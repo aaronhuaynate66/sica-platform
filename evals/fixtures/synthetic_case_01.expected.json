@@ -1,0 +1,120 @@
+{
+  "active_problems": [
+    "Anemia leve gestacional",
+    "Cesárea previa (2022)"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "Edad 32 años",
+      "source_page": 1,
+      "source_text": "Edad:\n32 años"
+    },
+    {
+      "claim": "FUM 15/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n15/09/2025"
+    },
+    {
+      "claim": "FPP 22/06/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n22/06/2026"
+    },
+    {
+      "claim": "EG 28 semanas 2 días",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n28 semanas 2 días"
+    },
+    {
+      "claim": "Hemoglobina 10.8 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.8\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "TSH 2.1 mUI/L",
+      "source_page": 1,
+      "source_text": "TSH\n2.1\nmUI/L\nDentro de rango"
+    },
+    {
+      "claim": "Glucosa basal 92 mg/dL",
+      "source_page": 1,
+      "source_text": "Glucosa basal\n92\nmg/dL\nNormal"
+    },
+    {
+      "claim": "HIV No reactivo",
+      "source_page": 1,
+      "source_text": "HIV (ELISA)\nNo reactivo\n—\nNegativo"
+    },
+    {
+      "claim": "Sífilis No reactivo",
+      "source_page": 1,
+      "source_text": "Sífilis (RPR)\nNo reactivo\n—\nNegativa"
+    },
+    {
+      "claim": "Fecha laboratorios 02/04/2026",
+      "source_page": 1,
+      "source_text": "LABORATORIOS (último control: 02/04/2026)"
+    },
+    {
+      "claim": "Cesárea previa 2022",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (1 cesárea segmentaria, 2022)"
+    },
+    {
+      "claim": "Anemia leve gestacional",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.8\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "Plan cesárea programada 39 semanas",
+      "source_page": 2,
+      "source_text": "Plan de parto: cesárea programada por cesárea previa, a coordinar a las 39 sem."
+    }
+  ],
+  "fpp": "2026-06-22",
+  "fum": "2025-09-15",
+  "gestational_age_weeks": 28.3,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-04-02",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "10.8"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "2.1"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "92"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Paciente de 32 años, G2P1 con cesárea previa por desproporción céfalo-pélvica en 2022. Gestación actual de 28 semanas 2 días sin complicaciones agudas, movimientos fetales presentes, sin signos de alarma. Anemia leve gestacional en tratamiento con sulfato ferroso. Plan de cesárea programada a las 39 semanas por cesárea previa.",
+  "patient_age": 32,
+  "risk_factors": [
+    "Cesárea previa",
+    "Anemia leve gestacional"
+  ]
+}

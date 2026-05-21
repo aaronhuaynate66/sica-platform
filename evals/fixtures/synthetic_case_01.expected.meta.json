@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical",
+  "baseline_type_notes": "Synthetic data, AI-generated reference. Suitable for regression smoke-tests only. NOT a clinically validated baseline. Real clinical ground-truth baselines arrive with retrospective dataset from the founding partner and double-blind obstetrician review (see issue #10).",
+  "created_at": "2026-05-21T04:37:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_01.expected.json",
+    "sha256": "5e8bb716195087ec73dfe2e6bf1c0c52d1d62b849bc71da57c987a164fe91cff",
+    "size_bytes": 3335
+  },
+  "human_reviewer": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "non_determinism_note": "Model output is non-deterministic (no seed). Diffs against this baseline may be benign (different evidence_spans ordering or count) or substantive (different patient_age, etc.). Substantive diffs require investigation; benign diffs require updating this fixture with explicit ADR if a structural change is intentional.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_01.pdf",
+    "sha256": "b68c637adbfc2f7b52dc9d7bd3755df668d4d55c3c0bcb94ba66a0c529dd364b",
+    "size_bytes": 5626
+  },
+  "produced_by": {
+    "command": "python -m clinical_extractor.cli extract data/synthetic_case_01.pdf --output ../../evals/fixtures/synthetic_case_01.expected.json",
+    "extractor_version": "0.1.0",
+    "service": "clinical-extractor"
+  },
+  "prompt_version": "0.1.0",
+  "related_issues": ["#9"],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

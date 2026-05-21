@@ -1,0 +1,101 @@
+name: Sync Roadmap
+
+# Living Roadmap System — regenera ROADMAP.md desde el estado de issues
+# y commitea solo si el contenido cambió. Ver ADR 0002.
+
+on:
+  issues:
+    types: [opened, closed, reopened, labeled, unlabeled, edited]
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+  schedule:
+    # Una vez al día (13:00 UTC = 08:00 hora Lima) como safety net
+    # en caso de que un evento de issue se haya perdido.
+    - cron: "0 13 * * *"
+
+# Cola las corridas en lugar de cancelarlas — queremos que cada cambio de
+# issue sea procesado, no descartado por el siguiente. cancel-in-progress
+# es false a propósito.
+concurrency:
+  group: roadmap-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  sync:
+    name: Regenerate ROADMAP.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # En eventos de PR solo correr si la PR efectivamente se mergeó a main.
+    # PRs cerradas sin merge no deben disparar nada.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.merged == true &&
+       github.event.pull_request.base.ref == 'main')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 para que `git log --author` pueda buscar commits
+          # previos del bot al construir el footer del ROADMAP.
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Verify gh CLI is available
+        run: |
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "::error::gh CLI no está en el runner. Esto no debería pasar en ubuntu-latest."
+            exit 1
+          fi
+          gh --version
+
+      - name: Generate ROADMAP.md
+        env:
+          # gh CLI usa GH_TOKEN del entorno cuando está disponible.
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/generate_roadmap.py --repo ${{ github.repository }}
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet -- ROADMAP.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "ROADMAP.md no cambió — nada que commitear."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "ROADMAP.md cambió. Diff:"
+            git --no-pager diff --stat -- ROADMAP.md
+          fi
+
+      - name: Configure bot identity
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "sica-bot[bot]"
+          git config user.email "sica-bot@users.noreply.github.com"
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git add ROADMAP.md
+          git commit -m "chore(roadmap): auto-sync from issue activity"
+          git push origin HEAD:main
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Sync Roadmap" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Trigger: \`${{ github.event_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Changed: \`${{ steps.diff.outputs.changed }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Repo: \`${{ github.repository }}\`" >> "$GITHUB_STEP_SUMMARY"

@@ -87,3 +87,4 @@ Usamos [MADR](https://adr.github.io/madr/) (Markdown Architecture Decision Recor
 | # | Título | Status | Fecha |
 |---|---|---|---|
 | [0001](0001-monorepo-turborepo.md) | Monorepo en sica-platform con Turborepo + pnpm | Accepted | 2026-05-20 |
+| [0002](0002-living-roadmap-system.md) | Living Roadmap System: ROADMAP.md auto-sincronizado desde issues | Accepted | 2026-05-21 |
