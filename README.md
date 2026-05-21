@@ -32,6 +32,7 @@ sica/
 ├── README.md                       ← este archivo
 ├── STRATEGY.md                     ← documento estratégico, fuente de verdad (21 secciones)
 ├── STRATEGY.v0.1.backup.md         ← backup de versión anterior
+├── MASTER_PLAN.md                  ← estado operativo auto-generado (no editar a mano)
 ├── docs/
 │   ├── roadmap.md                  ← roadmap detallado R0–R5
 │   ├── glossary.md                 ← glosario clínico, técnico, regulatorio
@@ -49,6 +50,7 @@ sica/
 | Documento | Para quién | Cuándo usar |
 |---|---|---|
 | `STRATEGY.md` | Founders + asesores clínicos/regulatorios + (eventualmente) inversores | Fuente de verdad estratégica |
+| `MASTER_PLAN.md` | Cualquiera que entre al repo | Estado operativo en vivo: progreso por release, milestones, bloqueantes, ADRs, commits. **Auto-generado** — no editar a mano. Ver [ADR 0002](docs/decisions/0002-living-roadmap-system.md). |
 | `docs/roadmap.md` | Equipo de producto e ingeniería | Planificación operativa R0-R5 |
 | `docs/fundraising-narrative.md` | **Solo founders + inversores** | Pitch a VC — NO compartir con asesores ni prospects clínicos |
 | `docs/operating-model.md` | Equipo interno | Cómo operamos como AI-native company |

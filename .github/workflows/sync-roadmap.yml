@@ -1,11 +1,12 @@
 name: Sync Roadmap
 
-# Living Roadmap System — regenera ROADMAP.md desde el estado de issues
-# y commitea solo si el contenido cambió. Ver ADR 0002.
+# Living Roadmap System — regenera MASTER_PLAN.md desde el estado de issues,
+# milestones, ADRs y commits, y commitea solo si el contenido cambió.
+# Ver ADR 0002.
 
 on:
   issues:
-    types: [opened, closed, reopened, labeled, unlabeled, edited]
+    types: [opened, closed, reopened, labeled, unlabeled, edited, milestoned, demilestoned]
   pull_request:
     types: [closed]
   workflow_dispatch:
@@ -28,7 +29,7 @@ permissions:
 
 jobs:
   sync:
-    name: Regenerate ROADMAP.md
+    name: Regenerate MASTER_PLAN.md
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # En eventos de PR solo correr si la PR efectivamente se mergeó a main.
@@ -43,7 +44,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # fetch-depth: 0 para que `git log --author` pueda buscar commits
-          # previos del bot al construir el footer del ROADMAP.
+          # previos del bot al construir el footer del MASTER_PLAN.
           fetch-depth: 0
           persist-credentials: true
 
@@ -60,7 +61,7 @@ jobs:
           fi
           gh --version
 
-      - name: Generate ROADMAP.md
+      - name: Generate MASTER_PLAN.md
         env:
           # gh CLI usa GH_TOKEN del entorno cuando está disponible.
           GH_TOKEN: ${{ github.token }}
@@ -69,13 +70,16 @@ jobs:
       - name: Detect changes
         id: diff
         run: |
-          if git diff --quiet -- ROADMAP.md; then
+          # Cualquier cambio en MASTER_PLAN.md o la eliminación de ROADMAP.md legacy
+          # cuenta como cambio. `git status --porcelain` cubre ambos casos.
+          if [ -z "$(git status --porcelain MASTER_PLAN.md ROADMAP.md)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "ROADMAP.md no cambió — nada que commitear."
+            echo "Sin cambios — nada que commitear."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "ROADMAP.md cambió. Diff:"
-            git --no-pager diff --stat -- ROADMAP.md
+            echo "Hubo cambios. Diff:"
+            git --no-pager diff --stat -- MASTER_PLAN.md ROADMAP.md || true
+            git --no-pager status --porcelain MASTER_PLAN.md ROADMAP.md
           fi
 
       - name: Configure bot identity
@@ -87,8 +91,8 @@ jobs:
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
         run: |
-          git add ROADMAP.md
-          git commit -m "chore(roadmap): auto-sync from issue activity"
+          git add -A MASTER_PLAN.md ROADMAP.md
+          git commit -m "chore(plan): auto-sync MASTER_PLAN from issue activity"
           git push origin HEAD:main
 
       - name: Summary

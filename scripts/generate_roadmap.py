@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Genera /ROADMAP.md desde el estado actual de issues en GitHub.
+"""Genera /MASTER_PLAN.md desde el estado actual de issues, milestones, ADRs y commits.
 
 Diseño:
 
-- Determinístico: misma data de issues → mismo output. NO usa `now()`.
+- Determinístico: misma data → mismo output. NO usa `now()`.
 - Timestamp del documento se deriva del `updatedAt` máximo entre issues.
 - Sin dependencias externas: stdlib + `gh` CLI invocado via subprocess.
-- Idempotente: si el output coincide con el archivo en disco, no se reescribe
-  (el workflow detecta este caso y no commitea).
+- Idempotente: si el output coincide con el archivo en disco, no se reescribe.
+- 100% auto-generado: no hay secciones manuales. El archivo se reconstruye completo en cada run.
 
 Uso:
 
     python scripts/generate_roadmap.py [--repo OWNER/REPO] [--output PATH]
 
 Salida:
-    Sobreescribe /ROADMAP.md con el contenido regenerado. Log a stdout.
+    Sobreescribe /MASTER_PLAN.md con el contenido regenerado. Log a stdout.
     Exit 0 si OK, 1 si error.
 
 Requisitos:
@@ -26,35 +26,96 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 DEFAULT_REPO = "aaronhuaynate66/sica-platform"
-DEFAULT_OUTPUT = "ROADMAP.md"
+DEFAULT_OUTPUT = "MASTER_PLAN.md"
+DEFAULT_LEGACY_OUTPUT = "ROADMAP.md"  # se elimina si existe
+BOT_EMAIL = "sica-bot@users.noreply.github.com"
+BOT_LOGIN = "sica-bot"
 
-# Tabla estática de la visión 18 meses — mirror de docs/roadmap.md
-# Cambios a esta tabla deben sincronizarse con docs/roadmap.md.
-RELEASES = [
-    ("R0 Foundation", "0–2", "Benchmark + stack mínimo, sin UI clínica", "MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas"),
-    ("R1 Resumen Obstétrico (Alpha)", "2–5", "Panel standalone, sesiones de revisión", ">70% resúmenes útiles sin edición mayor"),
-    ("R2 Shadow + Checklist", "5–8", "Embed en HIS, sin uso mandatorio", "≥40% uso + recall brechas ≥80% + 0 incidentes seguridad"),
-    ("R3 Handoff Materno-Neonatal", "8–11", "Primer flujo crítico (asistivo)", "Completitud ≥95% + correcciones <10% + aprobación neo"),
-    ("R4 Brief Preanestésico", "11–14", "Cesárea programada y urgencia", "<10% correcciones críticas + aprobación calidad"),
-    ("R5 CRED + Multi-sede", "14–18", "Pediatría longitudinal + producto replicable", "Sede 2 onboarded + renovación partner"),
+# Tabla estática de la visión 18 meses — mirror de docs/roadmap.md.
+# El due_date se cruza con el milestone real en GitHub al renderizar.
+RELEASES_META: list[dict[str, Any]] = [
+    {
+        "key": "R0",
+        "title": "R0 Foundation",
+        "period": "Mes 0-2",
+        "wedge": "Benchmark + stack mínimo, sin UI clínica",
+        "gate": "MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas",
+        "active": True,
+    },
+    {
+        "key": "R1",
+        "title": "R1 Resumen Obstétrico",
+        "period": "Mes 2-5",
+        "wedge": "Panel standalone, sesiones de revisión",
+        "gate": ">70% resúmenes calificados útiles sin edición mayor",
+        "active": False,
+    },
+    {
+        "key": "R2",
+        "title": "R2 Shadow Mode",
+        "period": "Mes 5-8",
+        "wedge": "Embed en HIS, sin uso mandatorio",
+        "gate": "≥40% uso + recall brechas ≥80% + 0 incidentes seguridad",
+        "active": False,
+    },
+    {
+        "key": "R3",
+        "title": "R3 Handoff Materno-Neonatal",
+        "period": "Mes 8-11",
+        "wedge": "Primer flujo crítico (asistivo)",
+        "gate": "Completitud ≥95% + correcciones <10% + aprobación neonatología",
+        "active": False,
+    },
+    {
+        "key": "R4",
+        "title": "R4 Brief Preanestésico",
+        "period": "Mes 11-14",
+        "wedge": "Cesárea programada y urgencia",
+        "gate": "<10% correcciones críticas + aprobación calidad",
+        "active": False,
+    },
+    {
+        "key": "R5",
+        "title": "R5 CRED + Multi-sede",
+        "period": "Mes 14-18",
+        "wedge": "Pediatría longitudinal + producto replicable",
+        "gate": "Sede 2 onboarded + renovación partner",
+        "active": False,
+    },
 ]
 
-# Categorías de issues que aparecen en el roadmap.
-# (label_principal, secciones_titulo)
-CATEGORIES = [
-    ("Regulatorio y Legal", ["regulatorio", "legal"]),
-    ("GTM y Distribution", ["gtm", "distribution-engine"]),
-    ("Datos y Eval", ["data", "investigacion"]),
-    ("Mercado", ["mercado"]),
-    ("Marca", ["marca"]),
+# Categorización de issues. Orden importa: primer match gana.
+# Cada regla: (titulo_seccion, labels_match, title_keywords)
+CATEGORY_RULES: list[tuple[str, set[str], list[str]]] = [
+    ("Regulatorio y Legal", {"regulatorio", "legal", "marca"}, []),
+    ("GTM y Distribution", {"gtm", "distribution-engine"}, []),
+    ("Mercado", {"mercado"}, []),
+    ("Datos y Eval", {"data", "investigacion"}, ["harness", "factualidad", "métricas", "ground truth", "evaluación"]),
+    ("Modelos AI", set(), ["medgemma", "routing", "modelo", "modelos"]),
+    ("Seguridad", set(), ["seguridad", "phi"]),
+    ("Infraestructura", set(), ["monorepo", "langfuse", "extractor", "pipeline", "setup"]),
+]
+
+# Tabla estática de infraestructura. Cambios aquí requieren PR humano.
+INFRASTRUCTURE: list[tuple[str, str, str]] = [
+    ("GitHub repo público", "✅ Activo", "https://github.com/aaronhuaynate66/sica-platform"),
+    ("GitHub Actions CI", "✅ Activo", "ci.yml + sync-roadmap.yml"),
+    ("GitHub Project (kanban)", "✅ Activo", "https://github.com/users/aaronhuaynate66/projects/2"),
+    ("Milestones por release", "✅ Activo", "R0-R5 con due dates y descripciones"),
+    ("Living Roadmap System", "✅ Activo", "Auto-sync MASTER_PLAN.md en cada cambio de issue"),
+    ("Clinical Extractor (Python)", "✅ Local", "Probado con synthetic_case_01.pdf"),
+    ("Baseline Fixture", "✅", "evals/fixtures/synthetic_case_01.expected.json"),
+    ("Sentry / Observabilidad", "⬜ Pendiente", "R0 sprint"),
+    ("Supabase / Postgres", "⬜ Pendiente", "R0 sprint"),
+    ("Vercel deploys", "⬜ Pendiente", "R1 sprint"),
 ]
 
 
@@ -68,6 +129,7 @@ class Issue:
     updated_at: str
     closed_at: str | None
     url: str
+    milestone_title: str | None
 
     @property
     def label_set(self) -> set[str]:
@@ -75,6 +137,34 @@ class Issue:
 
     def has_label(self, name: str) -> bool:
         return name in self.label_set
+
+
+@dataclass(frozen=True)
+class Milestone:
+    title: str
+    description: str
+    due_on: str | None
+    state: str
+    open_issues: int
+    closed_issues: int
+
+
+@dataclass(frozen=True)
+class Commit:
+    sha_short: str
+    author_login: str
+    author_email: str
+    message_subject: str
+    date: str  # ISO
+
+
+@dataclass(frozen=True)
+class ADR:
+    number: str  # "0001"
+    title: str  # "Monorepo en sica-platform con Turborepo + pnpm"
+    status: str
+    date: str
+    filename: str
 
 
 def log(msg: str) -> None:
@@ -99,7 +189,7 @@ def run_gh(args: list[str]) -> str:
 
 
 def fetch_issues(repo: str) -> list[Issue]:
-    """Trae todos los issues (open + closed) del repo."""
+    """Trae todos los issues (open + closed) del repo, ordenados por número desc."""
     raw = run_gh(
         [
             "issue",
@@ -111,12 +201,13 @@ def fetch_issues(repo: str) -> list[Issue]:
             "--limit",
             "500",
             "--json",
-            "number,title,labels,state,createdAt,updatedAt,closedAt,url",
+            "number,title,labels,state,createdAt,updatedAt,closedAt,url,milestone",
         ]
     )
     data: list[dict[str, Any]] = json.loads(raw)
     issues: list[Issue] = []
     for d in data:
+        milestone = d.get("milestone") or {}
         issues.append(
             Issue(
                 number=int(d["number"]),
@@ -127,237 +218,483 @@ def fetch_issues(repo: str) -> list[Issue]:
                 updated_at=str(d["updatedAt"]),
                 closed_at=d.get("closedAt") or None,
                 url=str(d["url"]),
+                milestone_title=(milestone.get("title") if milestone else None) or None,
             )
         )
     issues.sort(key=lambda i: i.number, reverse=True)
     return issues
 
 
-def latest_bot_commit_short(bot_email: str = "sica-bot@users.noreply.github.com") -> str:
-    """Devuelve el hash corto del commit más reciente del bot, o sentinel."""
+def fetch_milestones(repo: str) -> list[Milestone]:
+    """Trae todos los milestones del repo."""
+    raw = run_gh(["api", f"repos/{repo}/milestones", "--paginate", "-q", "."])
+    # `gh api` paginated devuelve cada página como JSON separado. Si no hay paginación
+    # da un solo JSON array. Manejamos ambos casos.
+    text = raw.strip()
+    if not text:
+        return []
+    # Intentar parsear como JSON único primero
     try:
-        result = subprocess.run(
-            ["git", "log", "--author", bot_email, "-n", "1", "--format=%h"],
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        # Multiple arrays concatenados
+        data = []
+        decoder = json.JSONDecoder()
+        idx = 0
+        while idx < len(text):
+            chunk, end = decoder.raw_decode(text, idx)
+            if isinstance(chunk, list):
+                data.extend(chunk)
+            else:
+                data.append(chunk)
+            idx = end
+            while idx < len(text) and text[idx].isspace():
+                idx += 1
+    milestones: list[Milestone] = []
+    for d in data:
+        milestones.append(
+            Milestone(
+                title=str(d["title"]),
+                description=str(d.get("description") or ""),
+                due_on=d.get("due_on") or None,
+                state=str(d.get("state") or "open"),
+                open_issues=int(d.get("open_issues") or 0),
+                closed_issues=int(d.get("closed_issues") or 0),
+            )
         )
-        out = result.stdout.strip()
-        return out if out else "<sin corrida previa>"
-    except FileNotFoundError:
-        return "<git no disponible>"
+    return milestones
+
+
+def fetch_recent_commits(repo: str, limit: int = 30) -> list[Commit]:
+    """Trae los últimos N commits del repo (sin filtrar). Filtrado por bot ocurre después."""
+    raw = run_gh(["api", f"repos/{repo}/commits", "-X", "GET", "-F", f"per_page={limit}"])
+    data: list[dict[str, Any]] = json.loads(raw)
+    commits: list[Commit] = []
+    for d in data:
+        commit = d.get("commit") or {}
+        author_obj = d.get("author") or {}
+        commit_author = commit.get("author") or {}
+        author_login = (author_obj.get("login") if author_obj else None) or commit_author.get("name") or "unknown"
+        author_email = commit_author.get("email") or ""
+        subject = (commit.get("message") or "").splitlines()[0] if commit.get("message") else ""
+        commits.append(
+            Commit(
+                sha_short=str(d["sha"])[:7],
+                author_login=str(author_login),
+                author_email=str(author_email),
+                message_subject=subject,
+                date=str(commit_author.get("date") or ""),
+            )
+        )
+    return commits
+
+
+def read_adrs(decisions_dir: Path) -> list[ADR]:
+    """Lee todos los ADRs del directorio. Excluye README. Parsea Status y Date del header."""
+    if not decisions_dir.exists():
+        return []
+    adrs: list[ADR] = []
+    for path in sorted(decisions_dir.glob("*.md")):
+        if path.name.lower() == "readme.md":
+            continue
+        text = path.read_text(encoding="utf-8")
+        title_match = re.match(r"^#\s*(\d{4})\.\s+(.+?)$", text.splitlines()[0] if text.splitlines() else "")
+        if not title_match:
+            continue
+        number = title_match.group(1)
+        title = title_match.group(2).strip()
+        status_match = re.search(r"\*\*Status:\*\*\s*([^\n]+)", text)
+        date_match = re.search(r"\*\*Date:\*\*\s*([^\n]+)", text)
+        adrs.append(
+            ADR(
+                number=number,
+                title=title,
+                status=(status_match.group(1).strip() if status_match else "Unknown"),
+                date=(date_match.group(1).strip() if date_match else "—"),
+                filename=path.name,
+            )
+        )
+    return adrs
+
+
+def latest_non_bot_commit_short(commits: list[Commit]) -> str:
+    """Hash corto del último commit humano (no-bot)."""
+    for c in commits:
+        if BOT_LOGIN not in c.author_login.lower() and BOT_EMAIL.lower() not in c.author_email.lower():
+            return c.sha_short
+    return "<sin commits humanos>"
 
 
 def latest_update_iso(issues: list[Issue]) -> str:
     """Timestamp ISO del issue actualizado más recientemente.
 
-    Si no hay issues (caso de bootstrap), devuelve "<sin issues>" como sentinel
-    determinístico.
+    Sentinel determinístico si no hay issues.
     """
     if not issues:
         return "<sin issues>"
     return max(i.updated_at for i in issues)
 
 
-def fmt_labels_other(issue: Issue, exclude: set[str]) -> str:
-    """Formatea labels excluyendo los listados. Devuelve "" si no quedan."""
-    remaining = sorted(set(issue.labels) - exclude)
-    if not remaining:
-        return ""
-    return " · " + " ".join(f"`{lbl}`" for lbl in remaining)
+def progress_bar(closed: int, total: int, width: int = 40) -> str:
+    """Barra ASCII de progreso. Width chars. Bloques completos vs vacíos."""
+    if total <= 0:
+        return "░" * width + f" 0/0 (0%)"
+    pct = closed / total
+    filled = int(round(pct * width))
+    filled = max(0, min(width, filled))
+    bar = ("█" * filled) + ("░" * (width - filled))
+    return f"{bar} {closed}/{total} issues cerrados ({round(pct * 100)}%)"
 
 
-def fmt_open_line(issue: Issue, exclude: set[str]) -> str:
-    """Línea Markdown con checkbox para issue abierto."""
-    extras = fmt_labels_other(issue, exclude)
-    return f"- [ ] **[#{issue.number}]({issue.url})** {issue.title}{extras}"
+def category_for(issue: Issue) -> str | None:
+    """Devuelve la categoría del issue según CATEGORY_RULES, o None si no matchea."""
+    title_lower = issue.title.lower()
+    for section, labels, keywords in CATEGORY_RULES:
+        if labels and (labels & issue.label_set):
+            return section
+        if keywords and any(kw in title_lower for kw in keywords):
+            return section
+    return None
 
 
-def fmt_closed_line(issue: Issue, exclude: set[str]) -> str:
-    """Línea Markdown para issue cerrado."""
-    extras = fmt_labels_other(issue, exclude)
-    closed_at = issue.closed_at or "—"
-    closed_date = closed_at.split("T")[0] if "T" in closed_at else closed_at
-    return f"- [x] ~~**[#{issue.number}]({issue.url})** {issue.title}~~ · cerrado {closed_date}{extras}"
+def issue_state_glyph(issue: Issue) -> str:
+    """Glifo + texto para el estado del issue."""
+    if issue.state == "CLOSED":
+        return "✅ Cerrado"
+    return "⬜ Abierto"
 
 
-def section_r0(issues: list[Issue]) -> str:
-    """Sección del release activo R0."""
-    r0 = [i for i in issues if i.has_label("r0")]
-    r0_open = [i for i in r0 if i.state == "OPEN"]
-    r0_closed = [i for i in r0 if i.state == "CLOSED"]
+def fmt_labels(labels: tuple[str, ...]) -> str:
+    """Lista compacta de labels separados por coma."""
+    return ", ".join(labels) if labels else "—"
 
-    lines: list[str] = []
-    lines.append("## Release activo: R0 Foundation")
+
+def fmt_closed_date(issue: Issue) -> str:
+    if issue.state != "CLOSED" or not issue.closed_at:
+        return "—"
+    return issue.closed_at.split("T")[0]
+
+
+# ============================================================
+# Renderizado por secciones
+# ============================================================
+
+
+def section_header(last_update_iso: str, head_short: str, active_release: dict[str, Any]) -> str:
+    lines = [
+        "# SICA — Master Plan",
+        "",
+        "## Estado general",
+        "",
+        f"Última actualización: `{last_update_iso}`  ",
+        "Generado automáticamente por `.github/workflows/sync-roadmap.yml`",
+        "",
+        f"**Release activo:** {active_release['title']} ({active_release['period']})  ",
+        f"**Hash del último commit:** `{head_short}`",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def section_overall_progress(issues: list[Issue]) -> str:
+    total = len(issues)
+    closed = sum(1 for i in issues if i.state == "CLOSED")
+    open_count = total - closed
+    blockers = sum(1 for i in issues if i.has_label("bloqueante") and i.state == "OPEN")
+    # "En progreso" no es un estado nativo de GitHub Issues. Lo aproximamos como 0.
+    in_progress = 0
+    pending = open_count - in_progress
+
+    lines = [
+        "## Progreso general",
+        "",
+        "```",
+        progress_bar(closed, total),
+        "```",
+        "",
+        f"✅ Cerrados: {closed} | 🔄 En progreso: {in_progress} | "
+        f"⬜ Pendientes: {pending} | 🚨 Bloqueantes: {blockers}",
+        "",
+        "---",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def fmt_due_date(due_on: str | None) -> str:
+    if not due_on:
+        return "—"
+    return due_on.split("T")[0]
+
+
+def section_release(
+    meta: dict[str, Any],
+    milestone: Milestone | None,
+    release_issues: list[Issue],
+) -> str:
+    """Una sección por release. Tabla de issues solo si hay alguno asignado."""
+    closed = sum(1 for i in release_issues if i.state == "CLOSED")
+    total = len(release_issues)
+
+    suffix = " (activo)" if meta["active"] else ""
+    lines = [
+        f"### {meta['title']}{suffix}",
+        "",
+        f"**Período:** {meta['period']}  ",
+        f"**Due date:** {fmt_due_date(milestone.due_on if milestone else None)}  ",
+        f"**Wedge:** {meta['wedge']}  ",
+        f"**Gate de salida:** {meta['gate']}",
+        "",
+    ]
+
+    if total == 0:
+        if meta["active"]:
+            lines.append("_(Sin issues asignados aún)_")
+        else:
+            lines.append("_(Sin issues asignados. Arranca cuando el release previo cierre gate.)_")
+        lines.append("")
+        return "\n".join(lines)
+
+    lines.append("```")
+    lines.append(progress_bar(closed, total))
+    lines.append("```")
     lines.append("")
-    lines.append("**Período:** Mes 0–2  ")
-    lines.append("**Wedge:** Benchmark + stack mínimo, sin UI clínica  ")
-    lines.append("**Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas")
+    lines.append("| # | Issue | Labels | Estado | Cerrado |")
+    lines.append("|---|-------|--------|--------|---------|")
+    for issue in sorted(release_issues, key=lambda i: i.number):
+        lines.append(
+            f"| #{issue.number} "
+            f"| [{issue.title}]({issue.url}) "
+            f"| {fmt_labels(issue.labels)} "
+            f"| {issue_state_glyph(issue)} "
+            f"| {fmt_closed_date(issue)} |"
+        )
     lines.append("")
+    return "\n".join(lines)
 
-    lines.append("### Issues abiertos en R0")
-    lines.append("")
-    if r0_open:
-        for issue in r0_open:
-            lines.append(fmt_open_line(issue, exclude={"r0", "fase-1"}))
-    else:
-        lines.append("_(sin issues abiertos en R0)_")
-    lines.append("")
 
-    lines.append("### Issues cerrados en R0")
+def section_releases_block(
+    issues: list[Issue], milestones: list[Milestone]
+) -> str:
+    """Bloque con las 6 secciones de release."""
+    by_title = {m.title: m for m in milestones}
+    lines = ["## Progreso por Release", ""]
+    for meta in RELEASES_META:
+        ms = by_title.get(meta["title"])
+        rel_issues = [i for i in issues if i.milestone_title == meta["title"]]
+        lines.append(section_release(meta, ms, rel_issues))
+    lines.append("---")
     lines.append("")
-    if r0_closed:
-        for issue in r0_closed:
-            lines.append(fmt_closed_line(issue, exclude={"r0", "fase-1"}))
-    else:
-        lines.append("_(sin issues cerrados en R0 todavía)_")
-    lines.append("")
+    return "\n".join(lines)
 
-    lines.append("### Bloqueadores activos")
-    lines.append("")
-    blockers = [i for i in issues if i.has_label("bloqueante") and i.state == "OPEN"]
-    if blockers:
-        for issue in blockers:
-            extras = fmt_labels_other(issue, exclude={"bloqueante", "fase-1"})
-            lines.append(f"- 🚧 **[#{issue.number}]({issue.url})** {issue.title}{extras}")
-    else:
-        lines.append("_(sin bloqueadores activos)_")
-    lines.append("")
 
+def section_blockers(issues: list[Issue]) -> str:
+    """Issues sin milestone — bloqueantes externos que cruzan releases."""
+    external = [i for i in issues if i.milestone_title is None]
+    lines = [
+        "## Bloqueantes externos (cruzan releases)",
+        "",
+        "Estos issues no pertenecen a un release específico. Bloquean avance "
+        "de Fase 1 o requieren acciones en el mundo real.",
+        "",
+    ]
+    if not external:
+        lines.append("_(sin bloqueantes externos)_")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        return "\n".join(lines)
+
+    lines.append("| # | Issue | Labels | Estado |")
+    lines.append("|---|-------|--------|--------|")
+    for issue in sorted(external, key=lambda i: i.number):
+        lines.append(
+            f"| #{issue.number} "
+            f"| [{issue.title}]({issue.url}) "
+            f"| {fmt_labels(issue.labels)} "
+            f"| {issue_state_glyph(issue)} |"
+        )
+    lines.append("")
+    lines.append("---")
+    lines.append("")
     return "\n".join(lines)
 
 
 def section_categories(issues: list[Issue]) -> str:
-    """Sección 'Issues por categoría'."""
-    lines: list[str] = []
-    lines.append("## Issues por categoría")
-    lines.append("")
-
-    for title, label_set in CATEGORIES:
-        relevant = [
-            i
-            for i in issues
-            if i.state == "OPEN" and any(i.has_label(lbl) for lbl in label_set)
-        ]
-        lines.append(f"### {title}")
-        lines.append("")
-        if relevant:
-            exclude = {"fase-1", *label_set}
-            for issue in relevant:
-                lines.append(fmt_open_line(issue, exclude=exclude))
+    """Issues agrupados por categoría. Cada issue aparece en una sola categoría."""
+    buckets: dict[str, list[Issue]] = {section: [] for section, _, _ in CATEGORY_RULES}
+    uncategorized: list[Issue] = []
+    for issue in issues:
+        cat = category_for(issue)
+        if cat is None:
+            uncategorized.append(issue)
         else:
-            joined = " / ".join(f"`{lbl}`" for lbl in label_set)
-            lines.append(f"_(sin issues abiertos con labels {joined})_")
+            buckets[cat].append(issue)
+
+    lines = ["## Issues por categoría", ""]
+    for section, _, _ in CATEGORY_RULES:
+        relevant = sorted(buckets[section], key=lambda i: i.number)
+        lines.append(f"### {section}")
+        lines.append("")
+        if not relevant:
+            lines.append("_(sin issues en esta categoría)_")
+        else:
+            for issue in relevant:
+                glyph = "✅" if issue.state == "CLOSED" else "⬜"
+                lines.append(f"- {glyph} [#{issue.number}]({issue.url}) {issue.title}")
         lines.append("")
 
-    return "\n".join(lines)
+    if uncategorized:
+        lines.append("### Sin categorizar")
+        lines.append("")
+        for issue in sorted(uncategorized, key=lambda i: i.number):
+            glyph = "✅" if issue.state == "CLOSED" else "⬜"
+            lines.append(f"- {glyph} [#{issue.number}]({issue.url}) {issue.title}")
+        lines.append("")
 
-
-def section_overview(issues: list[Issue]) -> str:
-    """Tabla resumen R0–R5."""
-    lines: list[str] = []
-    lines.append("## Visión a 18 meses")
-    lines.append("")
-    lines.append("| Release | Mes | Wedge | Gate de salida |")
-    lines.append("|---|---|---|---|")
-    for release, month, wedge, gate in RELEASES:
-        lines.append(f"| {release} | {month} | {wedge} | {gate} |")
-    lines.append("")
-    lines.append("Fuente detallada: [`docs/roadmap.md`](docs/roadmap.md).")
+    lines.append("---")
     lines.append("")
     return "\n".join(lines)
 
 
-def section_status(issues: list[Issue]) -> str:
-    """Sección 'Estado actual' con métricas."""
-    total = len(issues)
-    blockers_open = sum(
-        1 for i in issues if i.has_label("bloqueante") and i.state == "OPEN"
-    )
-    r0 = [i for i in issues if i.has_label("r0")]
-    r0_total = len(r0)
-    r0_closed = sum(1 for i in r0 if i.state == "CLOSED")
-    pct_r0 = round((r0_closed / r0_total) * 100) if r0_total else 0
+def section_adrs(adrs: list[ADR]) -> str:
+    """Tabla de ADRs leídos desde docs/decisions/."""
+    lines = [
+        "## Decisiones arquitectónicas (ADRs)",
+        "",
+    ]
+    if not adrs:
+        lines.append("_(sin ADRs registrados)_")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        return "\n".join(lines)
 
-    lines: list[str] = []
-    lines.append("## Estado actual")
+    lines.append("| # | Decisión | Estado | Fecha |")
+    lines.append("|---|----------|--------|-------|")
+    for adr in sorted(adrs, key=lambda a: a.number):
+        link = f"docs/decisions/{adr.filename}"
+        lines.append(f"| {adr.number} | [{adr.title}]({link}) | {adr.status} | {adr.date} |")
     lines.append("")
-    lines.append("- **Release activo:** R0 Foundation (Mes 0–2)")
-    lines.append(f"- **Issues totales:** {total}")
-    lines.append(f"- **Bloqueantes abiertos:** {blockers_open}")
-    lines.append(f"- **Progreso R0:** {r0_closed} de {r0_total} cerrados ({pct_r0}%)")
+    lines.append("Auto-generado leyendo `docs/decisions/`.")
+    lines.append("")
+    lines.append("---")
     lines.append("")
     return "\n".join(lines)
 
 
-def section_next_release() -> str:
+def section_commits(commits: list[Commit], limit: int = 10) -> str:
+    """Últimos N commits no-bot."""
+    human = [
+        c for c in commits
+        if BOT_LOGIN not in c.author_login.lower()
+        and BOT_EMAIL.lower() not in c.author_email.lower()
+    ][:limit]
+
+    lines = [
+        "## Commits recientes",
+        "",
+        f"Últimos {limit} commits del repo (excluyendo bot):",
+        "",
+    ]
+    if not human:
+        lines.append("_(sin commits humanos recientes)_")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        return "\n".join(lines)
+
+    lines.append("| Hash | Autor | Mensaje | Fecha |")
+    lines.append("|------|-------|---------|-------|")
+    for c in human:
+        date = c.date.split("T")[0] if c.date else "—"
+        # Escapar pipes en mensaje para no romper la tabla
+        msg = c.message_subject.replace("|", "\\|")
+        lines.append(f"| `{c.sha_short}` | {c.author_login} | {msg} | {date} |")
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def section_infrastructure() -> str:
+    lines = [
+        "## Infraestructura",
+        "",
+        "| Item | Estado | Notas |",
+        "|------|--------|-------|",
+    ]
+    for item, status, notes in INFRASTRUCTURE:
+        lines.append(f"| {item} | {status} | {notes} |")
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def section_footer() -> str:
     return (
-        "## Siguiente release: R1 Resumen Obstétrico (Alpha)\n"
+        "## Cómo se mantiene este documento\n"
         "\n"
-        "**Período:** Mes 2–5  \n"
-        "**Estado:** Pendiente. Arranca cuando R0 cierre gate.  \n"
-        "**Gate de salida:** >70% resúmenes calificados útiles sin edición mayor.\n"
+        "Auto-generado por `scripts/generate_roadmap.py` ejecutado por "
+        "`.github/workflows/sync-roadmap.yml`.\n"
+        "\n"
+        "**Triggers de regeneración:**\n"
+        "\n"
+        "- Apertura, cierre, edición de un issue\n"
+        "- Cambio de labels o milestone en un issue\n"
+        "- Merge de un PR a `main`\n"
+        "- Cron diario a las 13:00 UTC (safety net)\n"
+        "- Disparo manual (`workflow_dispatch`)\n"
+        "\n"
+        "**No editar manualmente este archivo.** Cualquier cambio será sobrescrito "
+        "en la próxima ejecución del workflow. Para cambiar el contenido visible, "
+        "actualiza los issues, milestones, ADRs o commits — la fuente de verdad son ellos.\n"
+        "\n"
+        "---\n"
+        "\n"
+        "_Generado por SICA Living Roadmap System v0.2_\n"
     )
 
 
-def section_footer(last_update_iso: str, bot_commit: str) -> str:
-    return (
-        "## Cómo se actualiza este documento\n"
-        "\n"
-        "Este archivo se regenera automáticamente cada vez que:\n"
-        "\n"
-        "- Se abre, cierra o edita un issue\n"
-        "- Se agregan o quitan labels a un issue\n"
-        "- Se mergea un PR a `main`\n"
-        "- Una vez al día por cron (safety net)\n"
-        "- Se dispara manualmente desde Actions (`workflow_dispatch`)\n"
-        "\n"
-        "**No editar manualmente.** Si necesitás reflejar algo acá, hacelo cambiando "
-        "los issues correspondientes en GitHub (estado, labels, título). El próximo run "
-        "del workflow lo recoge.\n"
-        "\n"
-        "Si el workflow necesita desactivarse temporalmente, ver "
-        "[ADR 0002](docs/decisions/0002-living-roadmap-system.md).\n"
-        "\n"
-        f"- Última generación (derivada del issue updatedAt más reciente): `{last_update_iso}`\n"
-        f"- Commit que la generó: `{bot_commit}`\n"
-    )
+# ============================================================
+# Composición
+# ============================================================
 
 
-def section_header(last_update_iso: str) -> str:
-    return (
-        "# Roadmap SICA\n"
-        "\n"
-        "> Documento vivo. Se regenera automáticamente cada vez que cambian los issues en GitHub.  \n"
-        f"> Última actualización (derivada de issues): `{last_update_iso}`  \n"
-        "> Generado por: [`.github/workflows/sync-roadmap.yml`](.github/workflows/sync-roadmap.yml)  \n"
-        "> No editar manualmente — los cambios se sobrescriben en el siguiente run.\n"
-    )
-
-
-def render(issues: list[Issue], bot_commit: str) -> str:
+def render(
+    issues: list[Issue],
+    milestones: list[Milestone],
+    commits: list[Commit],
+    adrs: list[ADR],
+) -> str:
     """Construye el documento completo."""
     last_update = latest_update_iso(issues)
+    head_short = latest_non_bot_commit_short(commits)
+    active = next(r for r in RELEASES_META if r["active"])
 
     parts = [
-        section_header(last_update),
-        "",
-        section_status(issues),
-        section_overview(issues),
-        section_r0(issues),
-        section_next_release(),
+        section_header(last_update, head_short, active),
+        section_overall_progress(issues),
+        section_releases_block(issues, milestones),
+        section_blockers(issues),
         section_categories(issues),
-        section_footer(last_update, bot_commit),
+        section_adrs(adrs),
+        section_commits(commits),
+        section_infrastructure(),
+        section_footer(),
     ]
     body = "\n".join(parts)
     if not body.endswith("\n"):
         body += "\n"
+    # Normalizar líneas vacías repetidas (>2 → 2)
+    while "\n\n\n\n" in body:
+        body = body.replace("\n\n\n\n", "\n\n\n")
     return body
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Genera ROADMAP.md desde issues de GitHub.")
+    parser = argparse.ArgumentParser(description="Genera MASTER_PLAN.md desde issues, milestones, commits y ADRs.")
     parser.add_argument("--repo", default=DEFAULT_REPO, help="OWNER/REPO (default: %(default)s)")
     parser.add_argument("--output", default=DEFAULT_OUTPUT, help="Ruta de salida (default: %(default)s)")
     parser.add_argument(
@@ -365,32 +702,48 @@ def main() -> int:
         action="store_true",
         help="No escribe nada; exit 0 si el output coincide con el archivo en disco, 1 si difiere.",
     )
+    parser.add_argument(
+        "--keep-legacy",
+        action="store_true",
+        help="No eliminar el legacy ROADMAP.md (default: lo elimina si existe).",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
     out_path = (repo_root / args.output).resolve()
+    legacy_path = (repo_root / DEFAULT_LEGACY_OUTPUT).resolve()
+    decisions_dir = repo_root / "docs" / "decisions"
 
-    log(f"repo:   {args.repo}")
-    log(f"output: {out_path}")
+    log(f"repo:          {args.repo}")
+    log(f"output:        {out_path}")
+    log(f"decisions dir: {decisions_dir}")
 
     try:
         issues = fetch_issues(args.repo)
+        milestones = fetch_milestones(args.repo)
+        commits = fetch_recent_commits(args.repo)
     except RuntimeError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    log(f"issues encontrados: {len(issues)} ({sum(1 for i in issues if i.state == 'OPEN')} abiertos)")
+    adrs = read_adrs(decisions_dir)
 
-    bot_commit = latest_bot_commit_short()
-    log(f"último commit del bot: {bot_commit}")
+    log(f"issues:    {len(issues)} ({sum(1 for i in issues if i.state == 'OPEN')} abiertos)")
+    log(f"milestones: {len(milestones)}")
+    log(f"commits:   {len(commits)} (raw)")
+    log(f"adrs:      {len(adrs)}")
 
-    new_content = render(issues, bot_commit)
+    new_content = render(issues, milestones, commits, adrs)
     log(f"output renderizado: {len(new_content)} chars, {new_content.count(chr(10))} líneas")
 
     if out_path.exists():
         old_content = out_path.read_text(encoding="utf-8")
         if old_content == new_content:
             log("sin cambios respecto al archivo en disco — no se escribe")
+            # Aún así eliminar legacy si existe
+            if not args.keep_legacy and legacy_path.exists():
+                legacy_path.unlink()
+                log(f"legacy eliminado: {legacy_path}")
             return 0
 
     if args.check:
@@ -400,9 +753,9 @@ def main() -> int:
     out_path.write_text(new_content, encoding="utf-8")
     log(f"escrito: {out_path}")
 
-    # Sanity check para CI
-    if datetime.now().year < 2024:
-        log("warning: año del sistema parece inválido")
+    if not args.keep_legacy and legacy_path.exists():
+        legacy_path.unlink()
+        log(f"legacy eliminado: {legacy_path}")
 
     return 0
 

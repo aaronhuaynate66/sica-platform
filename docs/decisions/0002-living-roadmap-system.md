@@ -1,4 +1,4 @@
-# 0002. Living Roadmap System: `ROADMAP.md` auto-sincronizado desde issues
+# 0002. Living Roadmap System: `MASTER_PLAN.md` auto-sincronizado desde issues
 
 - **Status:** Accepted
 - **Date:** 2026-05-21
@@ -29,25 +29,39 @@ El problema con `ROADMAP.md` editado a mano es el mismo de cualquier documento d
 
 Implementar un **Living Roadmap System** con tres piezas conectadas:
 
-### Pieza 1: `ROADMAP.md` en la raíz del repo
-Documento Markdown navegable, generado automáticamente. Se commitea al repo (no es artefacto de CI) para que sea visible en la home del repo en GitHub sin necesidad de hacer click.
+### Pieza 1: `MASTER_PLAN.md` en la raíz del repo
+Documento Markdown navegable, generado automáticamente y **100% auto-generado** (sin secciones manuales). Se commitea al repo (no es artefacto de CI) para que sea visible en la home del repo en GitHub sin necesidad de hacer click. El archivo se reconstruye completo en cada cambio de issue, milestone o ADR — no hay merge entre lo escrito a mano y lo generado.
+
+Estructura del documento:
+- Estado general (timestamp, hash del último commit humano, release activo)
+- Progreso general con barra ASCII
+- Progreso por release (6 milestones R0-R5, con tabla de issues por release y barra de progreso por milestone)
+- Bloqueantes externos (issues sin milestone que cruzan releases)
+- Issues por categoría (auto-categorización por labels + keywords del título)
+- Decisiones arquitectónicas (tabla derivada de `docs/decisions/*.md`)
+- Commits recientes (humanos, vía `gh api /commits`)
+- Infraestructura (tabla estática)
 
 ### Pieza 2: `scripts/generate_roadmap.py`
 Script Python stdlib-only (sin dependencias externas) que:
-- Lee issues via `gh issue list --json ...`
-- Renderiza `ROADMAP.md` desde un template embebido
+- Lee issues via `gh issue list --json ...` (incluyendo milestone asignado)
+- Lee milestones via `gh api /repos/.../milestones`
+- Lee commits via `gh api /repos/.../commits` y filtra autoría de bot
+- Lee ADRs parseando `docs/decisions/*.md` (header `# NNNN. Título`, `**Status:**`, `**Date:**`)
+- Renderiza `MASTER_PLAN.md` desde un template embebido
+- Borra `ROADMAP.md` legacy si todavía existe en disco
 - Es **determinístico**: misma data → mismo output bit-exacto (el timestamp del documento se deriva del `updatedAt` máximo entre issues, **no** de `now()`)
 - Es **idempotente**: si el output coincide con el archivo en disco, no se reescribe
 - Tiene modo `--check` para validar en PRs que el documento está al día
 
 ### Pieza 3: `.github/workflows/sync-roadmap.yml`
 GitHub Action que dispara con:
-- Eventos de `issues` (opened, closed, reopened, labeled, unlabeled, edited)
+- Eventos de `issues` (opened, closed, reopened, labeled, unlabeled, edited, **milestoned**, **demilestoned**)
 - `pull_request: closed` cuando se mergea a `main`
 - `workflow_dispatch` (botón manual en Actions)
 - `schedule: cron "0 13 * * *"` (13:00 UTC, una vez al día — safety net si un evento se perdió)
 
-El job corre el script, detecta si `ROADMAP.md` cambió (`git diff --quiet`), y **solo si cambió** commitea + pushea con identidad de bot.
+El job corre el script, detecta si `MASTER_PLAN.md` (o `ROADMAP.md` legacy) cambió vía `git status --porcelain`, y **solo si cambió** commitea + pushea con identidad de bot. Commit message: `chore(plan): auto-sync MASTER_PLAN from issue activity`.
 
 ### Identidad del bot
 
@@ -128,11 +142,15 @@ Si en algún momento el auto-sync se vuelve molesto (commits espurios, falsos po
 
 Si se decide deprecar el sistema entero, generar un ADR 00XX `Superseded by` que explique qué lo reemplaza.
 
+## Migration log
+
+- **2026-05-21** — Reemplazo de `ROADMAP.md` por `MASTER_PLAN.md`. Motivo: el formato anterior era mitad estático (tabla de visión 18 meses) y mitad dinámico (listado de issues). El nuevo formato es 100% auto-generado y agrega secciones que faltaban: progreso por release con barras ASCII, milestones con due dates reales (`R0-R5` creados como GitHub Milestones), bloqueantes externos separados de issues de release, ADRs derivados de `docs/decisions/`, commits humanos recientes vía `gh api`. Triggers ampliados con `milestoned/demilestoned`. Status sigue `Accepted` (evolución del sistema, no superseded). Inspiración: [SIR/MASTER_PLAN.md](https://github.com/aaronhuaynate66/SIR/blob/master/MASTER_PLAN.md) adaptado a fase R0 de SICA.
+
 ## References
 
 - `scripts/generate_roadmap.py` — implementación del generador
 - `.github/workflows/sync-roadmap.yml` — orchestrador
-- `ROADMAP.md` — output renderizado, en raíz del repo
+- `MASTER_PLAN.md` — output renderizado, en raíz del repo
 - [Project "SICA Roadmap"](https://github.com/users/aaronhuaynate66/projects/2) — vista kanban complementaria
 - `STRATEGY.md` § 19 (equipo y hiring) — escala futura que valida tener este sistema en su lugar antes de que el equipo crezca
 - [GitHub Docs: Workflow triggers](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows)

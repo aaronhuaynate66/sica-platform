@@ -7,7 +7,7 @@ Workflows de CI/CD del monorepo SICA. Cada archivo en este directorio se ejecuta
 | Workflow | Archivo | Triggers | Qué hace |
 |---|---|---|---|
 | **CI** | [`ci.yml`](ci.yml) | `pull_request` y `push` a `main` | Lint + type-check de paquetes Node/TS y servicios Python. Skip seguro si no hay nada que linter aún. |
-| **Sync Roadmap** | [`sync-roadmap.yml`](sync-roadmap.yml) | Eventos de issues, PR merge a `main`, dispatch manual, cron diario 13:00 UTC | Regenera `ROADMAP.md` desde `scripts/generate_roadmap.py`. Commitea solo si el contenido cambió, con autor `sica-bot[bot]`. Ver [ADR 0002](../../docs/decisions/0002-living-roadmap-system.md). |
+| **Sync Roadmap** | [`sync-roadmap.yml`](sync-roadmap.yml) | Eventos de issues (incluye `milestoned/demilestoned`), PR merge a `main`, dispatch manual, cron diario 13:00 UTC | Regenera `MASTER_PLAN.md` desde `scripts/generate_roadmap.py`. Commitea solo si el contenido cambió, con autor `sica-bot[bot]`. Ver [ADR 0002](../../docs/decisions/0002-living-roadmap-system.md). |
 
 ## Principios
 
