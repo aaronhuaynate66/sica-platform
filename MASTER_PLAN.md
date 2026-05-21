@@ -18,6 +18,47 @@ Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 ---
 
+## Timeline visual
+
+```mermaid
+gantt
+    title SICA Roadmap — Fase 1 (Mes 0–18)
+    dateFormat YYYY-MM-DD
+    axisFormat %b %Y
+
+    section R0 Foundation
+    R0 Foundation    :crit, active, r0, 2026-05-20, 2026-07-20
+
+    section R1 Resumen Obstétrico
+    R1 Resumen Obstétrico    :r1, 2026-07-20, 2026-10-20
+
+    section R2 Shadow Mode
+    R2 Shadow Mode    :r2, 2026-10-20, 2027-01-20
+
+    section R3 Handoff Materno-Neonatal
+    R3 Handoff Materno-Neonatal    :r3, 2027-01-20, 2027-04-20
+
+    section R4 Brief Preanestésico
+    R4 Brief Preanestésico    :r4, 2027-04-20, 2027-07-20
+
+    section R5 CRED + Multi-sede
+    R5 CRED + Multi-sede    :r5, 2027-07-20, 2027-11-20
+
+```
+
+**Estado por release:**
+
+| Release | Período | Estado | Progreso |
+|---------|---------|--------|----------|
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | ████░░░░░░ 38% |
+| R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
+| R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
+| R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
+| R4 Brief Preanestésico | Abr–Jul 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
+| R5 CRED + Multi-sede | Jul–Nov 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
+
+---
+
 ## Progreso por Release
 
 ### R0 Foundation (activo)

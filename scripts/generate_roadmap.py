@@ -39,6 +39,16 @@ DEFAULT_LEGACY_OUTPUT = "ROADMAP.md"  # se elimina si existe
 BOT_EMAIL = "sica-bot@users.noreply.github.com"
 BOT_LOGIN = "sica-bot"
 
+# Inicio de R0 = fecha del primer commit / inicio del proyecto.
+# GitHub milestones no exponen start_date, solo due_on. R0_START_DATE ancla el Gantt.
+R0_START_DATE = "2026-05-20"
+
+# Meses en español para la tabla de progreso visual (formato "MMM AAAA").
+MONTH_ES = {
+    1: "Ene", 2: "Feb", 3: "Mar", 4: "Abr", 5: "May", 6: "Jun",
+    7: "Jul", 8: "Ago", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dic",
+}
+
 # Tabla estática de la visión 18 meses — mirror de docs/roadmap.md.
 # El due_date se cruza con el milestone real en GitHub al renderizar.
 RELEASES_META: list[dict[str, Any]] = [
@@ -376,8 +386,202 @@ def fmt_closed_date(issue: Issue) -> str:
 
 
 # ============================================================
+# Helpers para timeline visual (Gantt + tabla de progreso)
+# ============================================================
+
+
+def iso_date_only(iso_ts: str | None) -> str | None:
+    """Convierte un ISO timestamp a YYYY-MM-DD. None pasa como None."""
+    if not iso_ts:
+        return None
+    return iso_ts.split("T")[0]
+
+
+def fmt_period_es(start_ymd: str, end_ymd: str) -> str:
+    """Devuelve un periodo legible en español: 'May–Jul 2026' o 'Oct 2026–Ene 2027'."""
+    sy, sm, _ = start_ymd.split("-")
+    ey, em, _ = end_ymd.split("-")
+    smonth = MONTH_ES[int(sm)]
+    emonth = MONTH_ES[int(em)]
+    if sy == ey:
+        return f"{smonth}–{emonth} {ey}"
+    return f"{smonth} {sy}–{emonth} {ey}"
+
+
+def compute_release_dates(milestones: list[Milestone]) -> dict[str, tuple[str, str]]:
+    """Mapa release_title -> (start_date, end_date) en formato YYYY-MM-DD.
+
+    Reglas:
+    - R0 start = R0_START_DATE constante (GitHub no expone start_date).
+    - R1..R5 start = due_on del milestone previo en RELEASES_META.
+    - end = due_on del milestone propio.
+    - Si un milestone no tiene due_on, se omite del mapa.
+    """
+    by_title = {m.title: m for m in milestones}
+    dates: dict[str, tuple[str, str]] = {}
+    prev_end: str | None = None
+    for idx, meta in enumerate(RELEASES_META):
+        ms = by_title.get(meta["title"])
+        end = iso_date_only(ms.due_on) if ms else None
+        if not end:
+            prev_end = None  # corta la cadena de inicios derivados
+            continue
+        start = R0_START_DATE if idx == 0 else prev_end
+        if not start:
+            # Caso raro: milestone anterior sin due_on → arrancamos el día siguiente al
+            # último start conocido falla; mejor saltar este release del Gantt.
+            prev_end = end
+            continue
+        dates[meta["title"]] = (start, end)
+        prev_end = end
+    return dates
+
+
+def release_has_open_blocker(release_key: str, issues: list[Issue]) -> bool:
+    """True si hay al menos un issue OPEN con label 'bloqueante' + label del release
+    (ej. 'r0') sin milestone asignado. Indica dependencia externa sin resolver.
+    """
+    target_label = release_key.lower()  # "R0" -> "r0"
+    for issue in issues:
+        if issue.state != "OPEN":
+            continue
+        if issue.milestone_title is not None:
+            continue
+        if "bloqueante" not in issue.label_set:
+            continue
+        if target_label in issue.label_set:
+            return True
+    return False
+
+
+def short_progress_bar(closed: int, total: int, width: int = 10) -> str:
+    """Barra ASCII compacta para la tabla de progreso visual."""
+    if total <= 0:
+        return "░" * width
+    pct = closed / total
+    filled = int(round(pct * width))
+    filled = max(0, min(width, filled))
+    return ("█" * filled) + ("░" * (width - filled))
+
+
+def gantt_task_id(release_key: str) -> str:
+    """ID Mermaid para una task del Gantt — kebab-case del key."""
+    return release_key.lower()
+
+
+def gantt_status_for(meta: dict[str, Any], milestone: Milestone | None, issues: list[Issue]) -> str:
+    """Devuelve la cadena de status Mermaid (puede ser vacía).
+
+    Reglas:
+    - done   si milestone está closed
+    - crit, active si meta.active y hay bloqueantes externos del release
+    - active si meta.active sin bloqueantes
+    - "" (pending) en otros casos
+    """
+    if milestone and milestone.state.lower() == "closed":
+        return "done"
+    if meta["active"]:
+        if release_has_open_blocker(meta["key"], issues):
+            return "crit, active"
+        return "active"
+    return ""
+
+
+def visual_progress_state(meta: dict[str, Any], milestone: Milestone | None) -> str:
+    """Estado legible para la columna 'Estado' de la tabla visual."""
+    if milestone and milestone.state.lower() == "closed":
+        return "✅ Completado"
+    if meta["active"]:
+        return "🔄 Activo"
+    return "⬜ Pendiente"
+
+
+# ============================================================
 # Renderizado por secciones
 # ============================================================
+
+
+def section_visual_timeline(milestones: list[Milestone], issues: list[Issue]) -> str:
+    """Diagrama Mermaid Gantt con los 6 releases.
+
+    Cualquier release sin due_on se omite del Gantt (sin fecha no se puede dibujar).
+    Si NINGÚN release tiene fechas, se omite la sección entera.
+    """
+    dates = compute_release_dates(milestones)
+    if not dates:
+        return ""
+
+    by_title = {m.title: m for m in milestones}
+    lines = [
+        "## Timeline visual",
+        "",
+        "```mermaid",
+        "gantt",
+        "    title SICA Roadmap — Fase 1 (Mes 0–18)",
+        "    dateFormat YYYY-MM-DD",
+        "    axisFormat %b %Y",
+        "",
+    ]
+    for meta in RELEASES_META:
+        if meta["title"] not in dates:
+            continue
+        start, end = dates[meta["title"]]
+        ms = by_title.get(meta["title"])
+        status = gantt_status_for(meta, ms, issues)
+        task_id = gantt_task_id(meta["key"])
+        # Etiqueta de section legible
+        lines.append(f"    section {meta['title']}")
+        # Mermaid Gantt task syntax: "label :status, id, start, end"
+        # (status omitido si vacío → "label :id, start, end")
+        if status:
+            lines.append(f"    {meta['title']}    :{status}, {task_id}, {start}, {end}")
+        else:
+            lines.append(f"    {meta['title']}    :{task_id}, {start}, {end}")
+        lines.append("")
+    lines.append("```")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def section_visual_progress(milestones: list[Milestone]) -> str:
+    """Tabla compacta de progreso por release: período legible + estado + barra ASCII."""
+    dates = compute_release_dates(milestones)
+    by_title = {m.title: m for m in milestones}
+
+    lines = [
+        "**Estado por release:**",
+        "",
+        "| Release | Período | Estado | Progreso |",
+        "|---------|---------|--------|----------|",
+    ]
+    any_row = False
+    for meta in RELEASES_META:
+        ms = by_title.get(meta["title"])
+        period = ""
+        if meta["title"] in dates:
+            start, end = dates[meta["title"]]
+            period = fmt_period_es(start, end)
+        else:
+            period = "—"
+        state = visual_progress_state(meta, ms)
+        if ms is not None:
+            total = ms.open_issues + ms.closed_issues
+            closed = ms.closed_issues
+        else:
+            total = 0
+            closed = 0
+        bar = short_progress_bar(closed, total)
+        pct = round((closed / total) * 100) if total > 0 else 0
+        lines.append(f"| {meta['title']} | {period} | {state} | {bar} {pct}% |")
+        any_row = True
+
+    if not any_row:
+        return ""
+
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    return "\n".join(lines)
 
 
 def section_header(last_update_iso: str, head_short: str, active_release: dict[str, Any]) -> str:
@@ -676,6 +880,8 @@ def render(
     parts = [
         section_header(last_update, head_short, active),
         section_overall_progress(issues),
+        section_visual_timeline(milestones, issues),
+        section_visual_progress(milestones),
         section_releases_block(issues, milestones),
         section_blockers(issues),
         section_categories(issues),
