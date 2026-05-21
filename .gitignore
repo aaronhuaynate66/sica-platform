@@ -1,0 +1,51 @@
+# Documentos en proceso / borradores no commiteables
+*.draft.md
+.scratch/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secretos (defensiva — aún no hay código pero por adelantado)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+service-account*.json
+
+# Datos clínicos — NUNCA commitear
+data/
+patients/
+*.csv
+*.xlsx
+*.pdf
+*.dcm
+*.fhir.json
+phi/
+historias/
+
+# Node / futuras dependencias
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+
+# Python / futuro código de ML
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
