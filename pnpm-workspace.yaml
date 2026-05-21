@@ -1,3 +1,11 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Builds aprobados explícitamente. Pnpm 11 requiere que cada paquete con
+# install script se marque true (corre) o false (se ignora silenciosamente).
+# Sin esto, `pnpm install` aborta con ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  msw: false           # no usamos MSW; viene como dep transitiva de shadcn
+  sharp: true          # next/image optimization
+  unrs-resolver: true  # next-stable-resolver

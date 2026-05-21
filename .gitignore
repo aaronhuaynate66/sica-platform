@@ -53,6 +53,8 @@ historias/
 !services/clinical-extractor/data/synthetic_case_01.pdf
 !evals/fixtures/
 !evals/fixtures/**/*.pdf
+# UI demo: copia local del PDF sintético para la app web. Marcado como demo.
+!apps/web/public/synthetic_case_01.pdf
 
 # =========================================================================
 # Node / TypeScript
