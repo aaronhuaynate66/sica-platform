@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `442e0a8`
+**Hash del último commit:** `81f1100`
 
 ## Progreso general
 
@@ -162,6 +162,8 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `81f1100` | aaronhuaynate66 | fix(workflow): tolerar ausencia de ROADMAP.md en commit step | 2026-05-21 |
+| `b56146e` | aaronhuaynate66 | feat(plan): replace ROADMAP.md with MASTER_PLAN.md, add milestones + per-release progress | 2026-05-21 |
 | `442e0a8` | aaronhuaynate66 | feat(roadmap): add living roadmap system with auto-sync workflow | 2026-05-21 |
 | `4d201d6` | aaronhuaynate66 | feat: monorepo skeleton + clinical-extractor service (R0 foundation) | 2026-05-21 |
 | `1ed3578` | aaronhuaynate66 | docs: add status badges to README | 2026-05-21 |
