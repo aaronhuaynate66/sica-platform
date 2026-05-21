@@ -1,7 +1,7 @@
 # Roadmap SICA
 
 > Documento vivo. Se regenera automáticamente cada vez que cambian los issues en GitHub.  
-> Última actualización (derivada de issues): `2026-05-21T04:23:05Z`  
+> Última actualización (derivada de issues): `2026-05-21T05:13:14Z`  
 > Generado por: [`.github/workflows/sync-roadmap.yml`](.github/workflows/sync-roadmap.yml)  
 > No editar manualmente — los cambios se sobrescriben en el siguiente run.
 
@@ -11,7 +11,7 @@
 - **Release activo:** R0 Foundation (Mes 0–2)
 - **Issues totales:** 15
 - **Bloqueantes abiertos:** 4
-- **Progreso R0:** 0 de 9 cerrados (0%)
+- **Progreso R0:** 1 de 9 cerrados (11%)
 
 ## Visión a 18 meses
 
@@ -41,12 +41,11 @@ Fuente detallada: [`docs/roadmap.md`](docs/roadmap.md).
 - [ ] **[#11](https://github.com/aaronhuaynate66/sica-platform/issues/11)** [R0] Definir métricas de factualidad: span-level accuracy + critical omissions
 - [ ] **[#10](https://github.com/aaronhuaynate66/sica-platform/issues/10)** [R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process
 - [ ] **[#9](https://github.com/aaronhuaynate66/sica-platform/issues/9)** [R0] Validar pipeline clinical-extractor en synthetic_case_01
-- [ ] **[#8](https://github.com/aaronhuaynate66/sica-platform/issues/8)** [R0] Setup técnico del monorepo
 - [ ] **[#5](https://github.com/aaronhuaynate66/sica-platform/issues/5)** [DATA] Acceso a 150-200 historias obstétricas desidentificadas para benchmark R0 · `bloqueante` `data`
 
 ### Issues cerrados en R0
 
-_(sin issues cerrados en R0 todavía)_
+- [x] ~~**[#8](https://github.com/aaronhuaynate66/sica-platform/issues/8)** [R0] Setup técnico del monorepo~~ · cerrado 2026-05-21
 
 ### Bloqueadores activos
 
@@ -101,5 +100,5 @@ Este archivo se regenera automáticamente cada vez que:
 
 Si el workflow necesita desactivarse temporalmente, ver [ADR 0002](docs/decisions/0002-living-roadmap-system.md).
 
-- Última generación (derivada del issue updatedAt más reciente): `2026-05-21T04:23:05Z`
+- Última generación (derivada del issue updatedAt más reciente): `2026-05-21T05:13:14Z`
 - Commit que la generó: `<sin corrida previa>`
