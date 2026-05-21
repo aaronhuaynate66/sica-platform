@@ -2,19 +2,19 @@
 
 ## Estado general
 
-Última actualización: `2026-05-21T05:35:28Z`  
+Última actualización: `2026-05-21T16:20:44Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `81f1100`
+**Hash del último commit:** `2eb7851`
 
 ## Progreso general
 
 ```
-███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 1/15 issues cerrados (7%)
+█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 2/15 issues cerrados (13%)
 ```
 
-✅ Cerrados: 1 | 🔄 En progreso: 0 | ⬜ Pendientes: 14 | 🚨 Bloqueantes: 4
+✅ Cerrados: 2 | 🔄 En progreso: 0 | ⬜ Pendientes: 13 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -28,7 +28,7 @@ Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 1/8 issues cerrados (12%)
+██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 2/8 issues cerrados (25%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
@@ -40,7 +40,7 @@ Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 | #12 | [[R0] Investigar viabilidad de MedGemma 4B local en el entorno del partner](https://github.com/aaronhuaynate66/sica-platform/issues/12) | fase-1, r0 | ⬜ Abierto | — |
 | #13 | [[R0] Crear primer ADR sobre política de routing de modelos (MedGemma vs Gemini vs Claude)](https://github.com/aaronhuaynate66/sica-platform/issues/13) | fase-1, r0 | ⬜ Abierto | — |
 | #14 | [[R0] Setup de Langfuse self-hosted o decisión de servicio gestionado](https://github.com/aaronhuaynate66/sica-platform/issues/14) | fase-1, r0 | ⬜ Abierto | — |
-| #15 | [[R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real](https://github.com/aaronhuaynate66/sica-platform/issues/15) | fase-1, r0 | ⬜ Abierto | — |
+| #15 | [[R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real](https://github.com/aaronhuaynate66/sica-platform/issues/15) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
 
 ### R1 Resumen Obstétrico
 
@@ -135,7 +135,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 
 ### Seguridad
 
-- ⬜ [#15](https://github.com/aaronhuaynate66/sica-platform/issues/15) [R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real
+- ✅ [#15](https://github.com/aaronhuaynate66/sica-platform/issues/15) [R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real
 
 ### Infraestructura
 
@@ -151,6 +151,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 |---|----------|--------|-------|
 | 0001 | [Monorepo en `sica-platform` con Turborepo + pnpm](docs/decisions/0001-monorepo-turborepo.md) | Accepted | 2026-05-20 |
 | 0002 | [Living Roadmap System: `MASTER_PLAN.md` auto-sincronizado desde issues](docs/decisions/0002-living-roadmap-system.md) | Accepted | 2026-05-21 |
+| 0003 | [Security and PHI handling policy](docs/decisions/0003-security-and-phi-policy.md) | Accepted | 2026-05-21 |
 
 Auto-generado leyendo `docs/decisions/`.
 
@@ -162,6 +163,8 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `2eb7851` | aaronhuaynate66 | docs(security): add security policies, PHI handling, Ley 29733 compliance mapping (closes #15) | 2026-05-21 |
+| `06215b2` | aaronhuaynate66 | feat(web): bootstrap Next.js app with 4 connected views (upload, timeline, dashboard, physician) | 2026-05-21 |
 | `81f1100` | aaronhuaynate66 | fix(workflow): tolerar ausencia de ROADMAP.md en commit step | 2026-05-21 |
 | `b56146e` | aaronhuaynate66 | feat(plan): replace ROADMAP.md with MASTER_PLAN.md, add milestones + per-release progress | 2026-05-21 |
 | `442e0a8` | aaronhuaynate66 | feat(roadmap): add living roadmap system with auto-sync workflow | 2026-05-21 |
