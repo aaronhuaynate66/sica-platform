@@ -652,6 +652,8 @@ HIS / SIHCE / LIS / PACS / PDFs / Imágenes / CNV
 
 ### 11.4 Política de routing de modelos
 
+> **Política formalizada en ADR 0004.** La tabla siguiente es punto de partida. Triggers de revisión, umbrales de evaluación, audit trail por operación y política de rollout/versionado están documentados en [`docs/decisions/0004-model-routing-policy.md`](docs/decisions/0004-model-routing-policy.md). Cambios a esta política requieren nuevo ADR que supersede a 0004.
+
 | Tarea | Modelo default | Fallback / escalamiento | Razón |
 |---|---|---|---|
 | Resumen de notas, labs, reportes | MedGemma 4B local | Gemini 2.5 Flash si contexto >32k tokens | PHI sensible, latencia importa |
