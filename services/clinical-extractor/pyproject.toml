@@ -1,0 +1,107 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clinical-extractor"
+version = "0.1.0"
+description = "SICA — extracción estructurada de historias clínicas obstétricas desde PDFs hacia JSON Pydantic."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+authors = [
+    { name = "SICA Platform" },
+]
+keywords = ["healthtech", "clinical-ai", "fhir", "pdf-extraction", "obstetrics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Healthcare Industry",
+    "Programming Language :: Python :: 3.13",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Private :: Do Not Upload",
+]
+dependencies = [
+    "anthropic>=0.39.0",
+    "pypdf>=5.1.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.0.1",
+    "click>=8.1.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+]
+
+[project.scripts]
+clinical-extractor = "clinical_extractor.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/aaronhuaynate66/sica-platform"
+Repository = "https://github.com/aaronhuaynate66/sica-platform"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clinical_extractor"]
+
+# =========================================================================
+# Ruff — linter + formateador
+# =========================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "PTH", # flake8-use-pathlib
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line too long — formatter handles
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# =========================================================================
+# Mypy — type checker
+# =========================================================================
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["pypdf.*"]
+ignore_missing_imports = true
+
+# =========================================================================
+# Pytest
+# =========================================================================
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "integration: requires ANTHROPIC_API_KEY and network — skip by default in unit runs",
+]

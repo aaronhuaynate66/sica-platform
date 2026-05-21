@@ -1,3 +1,9 @@
+# =========================================================================
+# SICA Platform — .gitignore
+# Política: por defecto NUNCA se commitea PHI ni secretos. Cualquier
+# excepción debe ser explícita, nominal y marcada como sintética.
+# =========================================================================
+
 # Documentos en proceso / borradores no commiteables
 *.draft.md
 .scratch/
@@ -5,47 +11,94 @@
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Editors
 .vscode/
 .idea/
 *.swp
+*.swo
 *~
+.cursor/
+.claude/
 
-# Secretos (defensiva — aún no hay código pero por adelantado)
+# Secretos — defensiva. .env nunca se commitea.
 .env
 .env.local
 .env.*.local
+.env.production
 *.key
 *.pem
 credentials.json
 service-account*.json
+.secrets/
 
-# Datos clínicos — NUNCA commitear
+# Datos clínicos — NUNCA commitear datos reales
 data/
 patients/
 *.csv
 *.xlsx
-*.pdf
 *.dcm
 *.fhir.json
 phi/
 historias/
 
-# Node / futuras dependencias
+# PDFs por defecto bloqueados (pueden contener PHI)
+*.pdf
+
+# EXCEPCIONES EXPLÍCITAS — solo para datos 100% sintéticos y marcados
+# Cada excepción aquí debe estar explícitamente revisada por un humano
+# y el contenido debe llevar el header "DATOS SINTÉTICOS - NO ES PACIENTE REAL".
+!services/clinical-extractor/data/
+!services/clinical-extractor/data/synthetic_case_01.pdf
+!evals/fixtures/
+!evals/fixtures/**/*.pdf
+
+# =========================================================================
+# Node / TypeScript
+# =========================================================================
 node_modules/
+.pnpm-store/
+.pnp/
+.pnp.js
 dist/
 build/
+out/
 .next/
 .turbo/
+.cache/
+*.tsbuildinfo
+.eslintcache
+coverage/
+.nyc_output/
 
-# Python / futuro código de ML
+# =========================================================================
+# Python
+# =========================================================================
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
 .venv/
 venv/
+env/
 .ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+htmlcov/
+.coverage
+.coverage.*
+*.egg-info/
+*.egg
+pip-wheel-metadata/
 
-# Logs
+# =========================================================================
+# Logs y temporales
+# =========================================================================
 *.log
 logs/
+tmp/
+.tmp/

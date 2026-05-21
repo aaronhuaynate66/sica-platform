@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentación estratégica
+    url: https://github.com/aaronhuaynate66/sica-platform/blob/main/STRATEGY.md
+    about: Antes de abrir un issue, revisa STRATEGY.md y docs/roadmap.md para contexto.
+  - name: 🏗️ ADRs (decisiones arquitectónicas)
+    url: https://github.com/aaronhuaynate66/sica-platform/tree/main/docs/decisions
+    about: Si tu issue es sobre una decisión arquitectónica, considera abrir un ADR propuesto.
+  - name: 🔒 Reporte de seguridad / privacidad
+    url: https://github.com/aaronhuaynate66/sica-platform/security/advisories/new
+    about: Reportes de seguridad o exposición de PHI — NO los abras como issue público.

@@ -1,0 +1,26 @@
+{
+  "name": "sica-platform",
+  "private": true,
+  "version": "0.0.0",
+  "description": "SICA — Sistema de Inteligencia Clínica Asistida. Monorepo platform.",
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "type-check": "turbo run type-check",
+    "dev": "turbo run dev",
+    "clean": "turbo run clean && rimraf node_modules .turbo"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  }
+}
