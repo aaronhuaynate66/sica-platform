@@ -91,7 +91,12 @@ jobs:
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
         run: |
-          git add -A MASTER_PLAN.md ROADMAP.md
+          # `git add` falla si el pathspec no existe en el tree, así que
+          # tratamos add y delete por separado. --ignore-unmatch hace
+          # idempotente el delete del legacy: una vez borrado, los siguientes
+          # runs no fallan al no encontrarlo.
+          git add MASTER_PLAN.md
+          git rm -f --ignore-unmatch ROADMAP.md
           git commit -m "chore(plan): auto-sync MASTER_PLAN from issue activity"
           git push origin HEAD:main
 
