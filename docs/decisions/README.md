@@ -88,3 +88,4 @@ Usamos [MADR](https://adr.github.io/madr/) (Markdown Architecture Decision Recor
 |---|---|---|---|
 | [0001](0001-monorepo-turborepo.md) | Monorepo en sica-platform con Turborepo + pnpm | Accepted | 2026-05-20 |
 | [0002](0002-living-roadmap-system.md) | Living Roadmap System: MASTER_PLAN.md auto-sincronizado desde issues | Accepted | 2026-05-21 |
+| [0003](0003-security-and-phi-policy.md) | Security and PHI handling policy | Accepted | 2026-05-21 |

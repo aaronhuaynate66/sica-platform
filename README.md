@@ -30,6 +30,7 @@ SICA es la primera capa cognitiva longitudinal que conecta el journey clínico m
 ```
 sica/
 ├── README.md                       ← este archivo
+├── SECURITY.md                     ← política de divulgación responsable (GitHub Security)
 ├── STRATEGY.md                     ← documento estratégico, fuente de verdad (21 secciones)
 ├── STRATEGY.v0.1.backup.md         ← backup de versión anterior
 ├── MASTER_PLAN.md                  ← estado operativo auto-generado (no editar a mano)
@@ -38,7 +39,8 @@ sica/
 │   ├── glossary.md                 ← glosario clínico, técnico, regulatorio
 │   ├── fundraising-narrative.md    ← narrativa VC (BORRADOR — uso interno fundraising)
 │   ├── operating-model.md          ← AI-native company operations (placeholder Fase 2)
-│   └── decisions/                  ← ADRs (pendiente Fase 2)
+│   ├── security/                   ← políticas de seguridad y compliance (PHI, Ley 29733, incident response, threat model)
+│   └── decisions/                  ← ADRs
 ├── .gitignore
 └── LICENSE                         ← pendiente: decidir licencia
 ```
@@ -51,6 +53,8 @@ sica/
 |---|---|---|
 | `STRATEGY.md` | Founders + asesores clínicos/regulatorios + (eventualmente) inversores | Fuente de verdad estratégica |
 | `MASTER_PLAN.md` | Cualquiera que entre al repo | Estado operativo en vivo: progreso por release, milestones, bloqueantes, ADRs, commits. **Auto-generado** — no editar a mano. Ver [ADR 0002](docs/decisions/0002-living-roadmap-system.md). |
+| `SECURITY.md` | Cualquiera que encuentre una vulnerabilidad | Cómo reportarla de forma responsable. Para reportar vulnerabilidades, ver `SECURITY.md`. |
+| `docs/security/` | Equipo + asesor regulatorio + auditor + partner | Políticas de seguridad y compliance: manejo de PHI, Ley 29733, incident response, threat model. Ver [ADR 0003](docs/decisions/0003-security-and-phi-policy.md). |
 | `docs/roadmap.md` | Equipo de producto e ingeniería | Planificación operativa R0-R5 |
 | `docs/fundraising-narrative.md` | **Solo founders + inversores** | Pitch a VC — NO compartir con asesores ni prospects clínicos |
 | `docs/operating-model.md` | Equipo interno | Cómo operamos como AI-native company |
@@ -67,6 +71,8 @@ Este repositorio contiene material estratégico y de producto en fase pre-constr
 - una validación clínica formal.
 
 Todos los claims de producto se entienden como **hipótesis a validar**, no como capacidades probadas. La validación clínica formal, la inscripción de banco de datos personales ante la ANPD, y la consulta con DIGEMID son **pasos requeridos antes de exposición a paciente real**.
+
+Las políticas de seguridad y manejo de PHI están documentadas en [`SECURITY.md`](SECURITY.md) y [`docs/security/`](docs/security/) — su revisión y firma por asesor regulatorio externo es bloqueante para procesar el primer dato real. Ver lista completa de bloqueantes en [`docs/security/ley-29733-compliance.md`](docs/security/ley-29733-compliance.md).
 
 ---
 
