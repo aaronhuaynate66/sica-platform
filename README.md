@@ -1,5 +1,9 @@
 # SICA
 
+![Status](https://img.shields.io/badge/status-phase%201-blue)
+![Stage](https://img.shields.io/badge/stage-pre%20product-orange)
+![License](https://img.shields.io/badge/license-proprietary-red)
+
 **Sistema de Inteligencia Clínica Asistida**
 
 Clinical Intelligence Infrastructure para salud materno-infantil en mercados emergentes, empezando por Perú.
