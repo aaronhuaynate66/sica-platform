@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `0ed8b5c`
+**Hash del último commit:** `391aed9`
 
 ## Progreso general
 
@@ -206,16 +206,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
-| `0ed8b5c` | aaronhuaynate66 | test(evals): persist Claude Sonnet 4.5 baseline on synthetic_case_01 (closes #9) | 2026-05-22 |
-| `842dc62` | aaronhuaynate66 | docs(evals): formalize factuality metrics specification (closes #11) | 2026-05-22 |
-| `c5c5785` | aaronhuaynate66 | feat(evals): implement evaluation harness with metrics, comparators, reporters (closes #10) | 2026-05-22 |
-| `69dd7fd` | aaronhuaynate66 | feat(plan): add Mermaid Gantt timeline and visual release progress to MASTER_PLAN | 2026-05-21 |
-| `8898c61` | aaronhuaynate66 | docs(adr): add ADR 0004 model routing policy with conditional triggers (closes #13) | 2026-05-21 |
-| `2eb7851` | aaronhuaynate66 | docs(security): add security policies, PHI handling, Ley 29733 compliance mapping (closes #15) | 2026-05-21 |
-| `06215b2` | aaronhuaynate66 | feat(web): bootstrap Next.js app with 4 connected views (upload, timeline, dashboard, physician) | 2026-05-21 |
-| `81f1100` | aaronhuaynate66 | fix(workflow): tolerar ausencia de ROADMAP.md en commit step | 2026-05-21 |
-| `b56146e` | aaronhuaynate66 | feat(plan): replace ROADMAP.md with MASTER_PLAN.md, add milestones + per-release progress | 2026-05-21 |
-| `442e0a8` | aaronhuaynate66 | feat(roadmap): add living roadmap system with auto-sync workflow | 2026-05-21 |
+| `391aed9` | aaronhuaynate66 | feat(web): add inline editing for selected fields with edit tracking | 2026-05-22 |
+| `338a486` | aaronhuaynate66 | feat(web): add evidence traceability with EvidenceModal and per-field references | 2026-05-22 |
+| `a5b3946` | aaronhuaynate66 | fix(api): parse ALLOWED_ORIGINS as CSV from env var (closes deployment regression) | 2026-05-22 |
+| `a02ae05` | aaronhuaynate66 | feat(api): prepare for Render deployment with render.yaml and improved CORS/health | 2026-05-22 |
+| `7405c59` | aaronhuaynate66 | Modify install command in vercel.json | 2026-05-22 |
+| `a926307` | aaronhuaynate66 | Update vercel.json build and install commands | 2026-05-22 |
+| `e4e888e` | aaronhuaynate66 | chore(web): vercel config and deployment docs | 2026-05-22 |
+| `23e63c1` | aaronhuaynate66 | feat(web): wire UI to API with live/demo mode toggle | 2026-05-22 |
+| `9108916` | aaronhuaynate66 | style(extractor): fix ruff lint issues blocking CI | 2026-05-22 |
+| `c10e2f5` | aaronhuaynate66 | feat(extractor): add retry logic, structured logging, and batch processing | 2026-05-22 |
 
 ---
 
