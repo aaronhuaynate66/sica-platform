@@ -49,7 +49,12 @@ describe("isApiAvailable", () => {
       "fetch",
       vi.fn(async () =>
         new Response(
-          JSON.stringify({ status: "ok", version: "0.1.0", extractor_available: true }),
+          JSON.stringify({
+            status: "ok",
+            version: "0.1.0",
+            extractor_available: true,
+            timestamp: "2026-05-22T15:30:00Z",
+          }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
       ),

@@ -1,0 +1,36 @@
+# =========================================================================
+# Render — Infrastructure-as-Code para sica-platform
+# Documentación: https://render.com/docs/blueprint-spec
+# Cómo conectar: ver apps/api/RENDER.md
+# =========================================================================
+
+services:
+  - type: web
+    name: sica-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: apps/api
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: uvicorn sica_api.main:app --host 0.0.0.0 --port $PORT
+    pythonVersion: "3.13"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Anthropic API key — secret, se setea manualmente en Render UI.
+      # NUNCA commitear el valor real.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_FILE_SIZE_MB
+        value: "10"
+      # Orígenes literales permitidos por CORS. Para patrones (preview
+      # deploys *.vercel.app) usar ALLOWED_ORIGIN_REGEX — ver settings.py.
+      - key: ALLOWED_ORIGINS
+        value: "https://sica-web.vercel.app,https://*.vercel.app,http://localhost:3000"
+      # Regex de orígenes — cubre cualquier subdominio de vercel.app
+      # (preview deploys con hash). Refinar con dominio de producción
+      # cuando exista.
+      - key: ALLOWED_ORIGIN_REGEX
+        value: "^https://([a-z0-9-]+\\.)*vercel\\.app$"

@@ -51,13 +51,18 @@ def _default_extractor(pdf_path: Path, *, api_key: str) -> dict[str, Any]:
 
     os.environ["ANTHROPIC_API_KEY"] = api_key
 
-    from clinical_extractor.extractor import ExtractionError, extract_from_pdf
+    from clinical_extractor.extractor import (  # type: ignore[import-not-found]
+        ExtractionError,
+        extract_from_pdf,
+    )
 
     try:
         summary = extract_from_pdf(pdf_path)
     except ExtractionError:
         raise
-    return summary.model_dump(mode="json")
+    # model_dump returns Any from a Pydantic model, but we know it's a dict[str, Any].
+    dumped: dict[str, Any] = summary.model_dump(mode="json")
+    return dumped
 
 
 # Hook reemplazable en tests vía dependency_overrides

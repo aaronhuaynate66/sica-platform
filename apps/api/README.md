@@ -107,6 +107,24 @@ Variable `.env` → atributo de `Settings`. Defaults se aplican si la variable n
 | `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS allow-list, comma-separated. |
 | `LOG_LEVEL` | `INFO` | `DEBUG | INFO | WARNING | ERROR` |
 
+## Deployment
+
+`sica-api` se deploya a **Render** como Python Web Service. Configuración declarativa en [`render.yaml`](../../render.yaml) (raíz del repo). Checklist exacto para la UI de Render en [`RENDER.md`](RENDER.md).
+
+URL de producción (cuando esté desplegada): `https://sica-api.onrender.com`.
+
+Resumen rápido:
+
+```bash
+# Render lee render.yaml. Build:
+pip install --upgrade pip && pip install -e .
+
+# Start:
+uvicorn sica_api.main:app --host 0.0.0.0 --port $PORT
+```
+
+Health check: `/health` debe responder <100ms con `{ "status": "ok", ..., "timestamp": "..." }` para que Render no marque el servicio como unhealthy.
+
 ## Próximos pasos
 
 - **Auth.** R0 corre sin auth — sólo para uso local del founder y CI. Antes de exponer a partner: JWT/OIDC + tenant claim + RBAC.

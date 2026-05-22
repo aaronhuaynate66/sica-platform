@@ -78,4 +78,4 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """FastAPI dependency: devuelve una instancia singleton de Settings."""
-    return Settings()  # type: ignore[call-arg]
+    return Settings()

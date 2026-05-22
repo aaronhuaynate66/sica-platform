@@ -18,6 +18,8 @@ export interface HealthResponse {
   status: string;
   version: string;
   extractor_available: boolean;
+  /** UTC ISO 8601 timestamp del momento de la respuesta. */
+  timestamp: string;
 }
 
 export interface ModelInfo {

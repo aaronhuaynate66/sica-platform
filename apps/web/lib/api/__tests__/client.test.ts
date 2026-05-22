@@ -36,6 +36,7 @@ describe("getHealth", () => {
           status: "ok",
           version: "0.1.0",
           extractor_available: true,
+          timestamp: "2026-05-22T15:30:00Z",
         }),
       ),
     );
@@ -45,6 +46,7 @@ describe("getHealth", () => {
       status: "ok",
       version: "0.1.0",
       extractor_available: true,
+      timestamp: "2026-05-22T15:30:00Z",
     });
   });
 

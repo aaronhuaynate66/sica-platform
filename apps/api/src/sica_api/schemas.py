@@ -11,7 +11,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class HealthResponse(BaseModel):
-    """Body de respuesta para GET /health."""
+    """Body de respuesta para GET /health.
+
+    Diseñado para Render health checks: ejecución <100ms, sin llamadas
+    de red, sin tocar Anthropic. Sólo introspección local.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -22,6 +26,9 @@ class HealthResponse(BaseModel):
             "True si el extractor está listo para servir requests "
             "(ANTHROPIC_API_KEY presente). False bloquea /extract."
         ),
+    )
+    timestamp: str = Field(
+        description="Momento UTC ISO 8601 en el que el servidor respondió.",
     )
 
 
