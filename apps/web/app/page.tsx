@@ -18,6 +18,8 @@ import {
   ApiUnavailableError,
   type ObstetricSummary,
 } from "@/lib/api/types";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 
 type DisplayState =
   | { kind: "empty" }
@@ -32,6 +34,7 @@ export default function UploadAndExtractPage() {
   const [display, setDisplay] = useState<DisplayState>({ kind: "empty" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastObjectUrlRef = useRef<string | null>(null);
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     if (configuredMode === "demo") {
@@ -51,21 +54,26 @@ export default function UploadAndExtractPage() {
     configuredMode === "live" && apiUp === true ? "live" : "demo";
 
   const loadDemo = useCallback(() => {
+    trackEvent(ANALYTICS_EVENTS.EXAMPLE_PDF_LOADED);
     setDisplay({
       kind: "demo",
       summary: syntheticCase01Summary,
       pdfPath: syntheticCase01PdfPath,
       label: "synthetic_case_01.pdf",
     });
-  }, []);
+  }, [trackEvent]);
 
   const triggerUpload = useCallback(() => {
+    trackEvent(ANALYTICS_EVENTS.CUSTOM_PDF_UPLOAD_STARTED);
     fileInputRef.current?.click();
-  }, []);
+  }, [trackEvent]);
 
   const handleFile = useCallback(
     async (file: File) => {
       if (effectiveMode === "demo") {
+        trackEvent(ANALYTICS_EVENTS.CUSTOM_PDF_UPLOAD_ERROR, {
+          error_type: "demo_mode_block",
+        });
         setDisplay({
           kind: "error",
           message:
@@ -79,6 +87,7 @@ export default function UploadAndExtractPage() {
         lastObjectUrlRef.current = null;
       }
 
+      const started = performance.now();
       setDisplay({ kind: "loading", label: file.name });
       try {
         const summary = await extractFromPdf(file);
@@ -90,22 +99,34 @@ export default function UploadAndExtractPage() {
           pdfPath: objectUrl,
           label: file.name,
         });
+        trackEvent(ANALYTICS_EVENTS.CUSTOM_PDF_UPLOAD_SUCCESS, {
+          duration_ms: Math.round(performance.now() - started),
+          mode: effectiveMode,
+        });
       } catch (err) {
         let message: string;
+        let errorType: string;
         if (err instanceof ApiTimeoutError) {
           message =
             "La extracción excedió el tiempo máximo (60s). Probá con un PDF más corto.";
+          errorType = "timeout";
         } else if (err instanceof ApiUnavailableError) {
           message = "No se pudo conectar al backend. Confirmá que sica-api está corriendo.";
+          errorType = "unavailable";
         } else if (err instanceof ApiError) {
           message = `Error ${err.status} (${err.code}): ${err.message}`;
+          errorType = `api_${err.status}_${err.code}`;
         } else {
           message = "Error inesperado procesando el documento.";
+          errorType = "unknown";
         }
+        trackEvent(ANALYTICS_EVENTS.CUSTOM_PDF_UPLOAD_ERROR, {
+          error_type: errorType,
+        });
         setDisplay({ kind: "error", message });
       }
     },
-    [effectiveMode],
+    [effectiveMode, trackEvent],
   );
 
   const onFileChange = useCallback(

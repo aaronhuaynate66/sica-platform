@@ -128,6 +128,7 @@ export function SummaryView({
                     label="Edad de la paciente"
                     value={summary.patient_age ?? 0}
                     editType="number"
+                    fieldPath="patient_age"
                     isEdited={isEdited("patient_age")}
                     onSave={(v) => editing.editField("patient_age", v)}
                     onReset={() => editing.resetField("patient_age")}
@@ -202,6 +203,7 @@ export function SummaryView({
                           label={`Problema activo ${idx + 1}`}
                           value={p}
                           editType="text"
+                          fieldPath={path}
                           isEdited={isEdited(path)}
                           onSave={(v) => editing.editField(path, v)}
                           onReset={() => editing.resetField(path)}
@@ -328,6 +330,7 @@ export function SummaryView({
                 label="Resumen y plan"
                 value={summary.notes_summary}
                 editType="textarea"
+                fieldPath="notes_summary"
                 isEdited={isEdited("notes_summary")}
                 onSave={(v) => editing.editField("notes_summary", v)}
                 onReset={() => editing.resetField("notes_summary")}

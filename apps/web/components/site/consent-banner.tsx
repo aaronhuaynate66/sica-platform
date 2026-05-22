@@ -4,6 +4,7 @@ import { Cookie, X } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { useConsent } from "@/lib/analytics/use-consent";
 
 /**
@@ -28,10 +29,29 @@ export function ConsentBanner({ onAccept, onDecline }: ConsentBannerProps = {}) 
   function handleAccept() {
     onAccept?.();
     accept();
+    // Disparo directo (bypass useAnalytics): justo recién consintió, el
+    // hook todavía tiene el closure de "pending" en este tick. Damos 150ms
+    // para que el script de gtag termine de cargar (next/script
+    // afterInteractive). Si no carga a tiempo, el evento se pierde —
+    // aceptable para este evento de baja prioridad.
+    setTimeout(() => {
+      if (typeof window === "undefined") return;
+      try {
+        if (typeof window.gtag === "function") {
+          window.gtag("event", ANALYTICS_EVENTS.CONSENT_GRANTED);
+        }
+        if (typeof window.clarity === "function") {
+          window.clarity("event", ANALYTICS_EVENTS.CONSENT_GRANTED);
+        }
+      } catch {
+        /* silent */
+      }
+    }, 150);
   }
   function handleDecline() {
     onDecline?.();
     decline();
+    // CONSENT_DENIED no se manda — no hay analytics activos.
   }
 
   return (

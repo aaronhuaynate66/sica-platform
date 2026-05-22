@@ -5,12 +5,22 @@ import { Shield, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 import { useConsent } from "@/lib/analytics/use-consent";
 
 const LAST_UPDATED = "22 de mayo de 2026";
 
 export default function PrivacyPage() {
   const { consent, reset } = useConsent();
+  const { trackEvent } = useAnalytics();
+
+  function handleReset() {
+    // trackEvent dispara ANTES de reset — después, consent vuelve a
+    // "pending" y useAnalytics noop-ea.
+    trackEvent(ANALYTICS_EVENTS.CONSENT_RESET);
+    reset();
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
@@ -172,7 +182,7 @@ export default function PrivacyPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={reset}
+              onClick={handleReset}
               data-testid="reset-consent"
             >
               <RotateCcw className="size-3" />

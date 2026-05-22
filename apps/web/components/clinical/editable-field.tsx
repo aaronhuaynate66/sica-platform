@@ -5,7 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { applyMaskingProps } from "@/lib/analytics/masking";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 
 type EditType = "text" | "number" | "textarea";
 
@@ -26,6 +28,12 @@ interface EditableFieldProps {
   renderValue?: (value: string | number) => React.ReactNode;
   /** Clase opcional para el contenedor. */
   className?: string;
+  /**
+   * Path técnico del campo (ej. "patient_age"). Si se provee, los eventos
+   * de edición se trackean en analytics CON ESTE PATH ÚNICAMENTE — nunca
+   * el valor del campo.
+   */
+  fieldPath?: string;
 }
 
 export function EditableField({
@@ -37,11 +45,13 @@ export function EditableField({
   isEdited = false,
   renderValue,
   className,
+  fieldPath,
 }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<string>(String(value ?? ""));
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const inputId = useId();
+  const { trackEvent } = useAnalytics();
 
   // Cuando entra a modo edición, sincroniza el draft con el valor actual.
   useEffect(() => {
@@ -65,7 +75,6 @@ export function EditableField({
     if (editType === "number") {
       const parsed = Number(draft);
       if (Number.isNaN(parsed)) {
-        // No-op si no es número válido. La UI muestra el draft sin guardar.
         return;
       }
       onSave(parsed);
@@ -73,11 +82,31 @@ export function EditableField({
       onSave(draft);
     }
     setIsEditing(false);
+    if (fieldPath) {
+      trackEvent(ANALYTICS_EVENTS.EDIT_SAVED, { field_path: fieldPath });
+    }
   }
 
   function handleCancel() {
     setDraft(String(value ?? ""));
     setIsEditing(false);
+    if (fieldPath) {
+      trackEvent(ANALYTICS_EVENTS.EDIT_CANCELED, { field_path: fieldPath });
+    }
+  }
+
+  function handleStartEdit() {
+    setIsEditing(true);
+    if (fieldPath) {
+      trackEvent(ANALYTICS_EVENTS.EDIT_STARTED, { field_path: fieldPath });
+    }
+  }
+
+  function handleReset() {
+    onReset?.();
+    if (fieldPath) {
+      trackEvent(ANALYTICS_EVENTS.EDIT_REVERTED, { field_path: fieldPath });
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -114,7 +143,7 @@ export function EditableField({
           variant="ghost"
           size="icon-xs"
           aria-label={`Editar ${label}`}
-          onClick={() => setIsEditing(true)}
+          onClick={handleStartEdit}
           data-testid="edit-trigger"
         >
           <Pencil />
@@ -124,7 +153,7 @@ export function EditableField({
             variant="ghost"
             size="icon-xs"
             aria-label={`Revertir ${label}`}
-            onClick={onReset}
+            onClick={handleReset}
             data-testid="reset-trigger"
             title="Volver al valor original"
           >

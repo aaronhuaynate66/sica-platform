@@ -4,7 +4,9 @@ import { Eye, Pencil, Trash2, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { applyMaskingProps } from "@/lib/analytics/masking";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 import {
   Dialog,
   DialogClose,
@@ -43,11 +45,23 @@ function readablePath(path: string): string {
 }
 
 export function EditsIndicator({ edits, onResetAll }: EditsIndicatorProps) {
+  const { trackEvent } = useAnalytics();
   if (edits.length === 0) return null;
+
+  function onOpenChange(open: boolean) {
+    if (open) trackEvent(ANALYTICS_EVENTS.EDITS_DIFF_OPENED);
+  }
+
+  function handleResetAll() {
+    trackEvent(ANALYTICS_EVENTS.EDITS_DISCARDED_ALL, {
+      edits_count: edits.length,
+    });
+    onResetAll();
+  }
 
   return (
     <div className="flex items-center gap-1.5">
-      <Dialog>
+      <Dialog onOpenChange={onOpenChange}>
         <DialogTrigger
           render={
             <Button
@@ -109,7 +123,7 @@ export function EditsIndicator({ edits, onResetAll }: EditsIndicatorProps) {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={onResetAll}
+                  onClick={handleResetAll}
                   data-testid="discard-all"
                 />
               }

@@ -7,6 +7,8 @@ import { Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 
 const NAV_ITEMS = [
   { href: "/", label: "Upload" },
@@ -17,6 +19,7 @@ const NAV_ITEMS = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const { trackEvent } = useAnalytics();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -35,6 +38,14 @@ export function TopNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (item.href !== pathname) {
+                    trackEvent(ANALYTICS_EVENTS.VIEW_CHANGED, {
+                      from: pathname,
+                      to: item.href,
+                    });
+                  }
+                }}
                 className={cn(
                   "rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                   isActive && "bg-muted text-foreground"

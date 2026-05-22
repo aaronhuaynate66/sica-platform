@@ -2,7 +2,6 @@
 
 import { ExternalLink, FileText, X } from "lucide-react";
 
-import { applyMaskingProps } from "@/lib/analytics/masking";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import { applyMaskingProps } from "@/lib/analytics/masking";
+import { useAnalytics } from "@/lib/analytics/use-analytics";
 import type { EvidenceSpan } from "@/lib/types/obstetric-summary";
 
 interface EvidenceModalProps {
@@ -31,6 +33,7 @@ interface EvidenceModalProps {
 }
 
 export function EvidenceModal({ evidence, fieldName, pdfUrl, trigger }: EvidenceModalProps) {
+  const { trackEvent } = useAnalytics();
   const hasEvidence = evidence.length > 0;
   const triggerNode = trigger ?? (
     <Button
@@ -46,8 +49,16 @@ export function EvidenceModal({ evidence, fieldName, pdfUrl, trigger }: Evidence
     </Button>
   );
 
+  function onOpenChange(open: boolean) {
+    if (open && hasEvidence) {
+      // field_name suele ser corto y enumish ("Edad", "Hemoglobina", …).
+      // sanitizeParams igual lo recortaría si crece >100 chars.
+      trackEvent(ANALYTICS_EVENTS.EVIDENCE_OPENED, { field_name: fieldName });
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog onOpenChange={onOpenChange}>
       <DialogTrigger render={triggerNode as React.ReactElement} />
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
@@ -90,6 +101,11 @@ export function EvidenceModal({ evidence, fieldName, pdfUrl, trigger }: Evidence
                     href={`${pdfUrl}#page=${span.source_page}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent(ANALYTICS_EVENTS.EVIDENCE_PDF_LINK_CLICKED, {
+                        page_number: span.source_page,
+                      })
+                    }
                     className="mt-2 inline-flex items-center gap-1 text-[11px] text-clinical-blue hover:underline"
                     data-testid="open-pdf-link"
                   >
