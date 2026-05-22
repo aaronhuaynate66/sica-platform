@@ -65,6 +65,10 @@ def _build_extractor(
 
     if kind == "clinical":
         wrapper = ClinicalExtractorWrapper()
+        # Force lazy init now so extractor_version and model_used are populated
+        # from the actual clinical_extractor package metadata, not from the
+        # "unknown" placeholders set in ClinicalExtractorWrapper.__init__.
+        wrapper._lazy_init()  # noqa: SLF001 — intentional reach to populate metadata
         return wrapper, wrapper.extractor_version, wrapper.model_used
 
     msg = f"Unknown extractor kind: {kind!r}. Use 'mock' or 'clinical'."

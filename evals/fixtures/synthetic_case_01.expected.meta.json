@@ -22,5 +22,21 @@
   },
   "prompt_version": "0.1.0",
   "related_issues": ["#9"],
-  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)",
+  "baseline_runs": [
+    {
+      "run_id": "edb66cf1-164b-491f-887f-95d9e80b2a4c",
+      "date": "2026-05-22T01:32:47.037662Z",
+      "model": "claude-sonnet-4-5-20250929",
+      "prompt_version": "0.1.0",
+      "extractor_version": "0.1.0",
+      "factual_accuracy": 0.9231,
+      "critical_omissions": 1,
+      "hallucinations": 0,
+      "confidence_calibration_error": 0.0269,
+      "passed_r0_gates": true,
+      "report_path": "evals/fixtures/baselines/claude_sonnet_4_5_synthetic_case_01.baseline.json",
+      "git_commit": "5f6d187"
+    }
+  ]
 }

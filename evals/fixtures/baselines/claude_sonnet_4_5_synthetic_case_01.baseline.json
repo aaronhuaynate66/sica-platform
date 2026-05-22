@@ -1,0 +1,373 @@
+{
+  "run_id": "edb66cf1-164b-491f-887f-95d9e80b2a4c",
+  "timestamp": "2026-05-22T01:32:47.037662Z",
+  "cases_total": 1,
+  "cases_succeeded": 1,
+  "cases_failed": 0,
+  "aggregate_metrics": {
+    "factual_accuracy_mean": 0.9231,
+    "critical_omissions_total": 1.0,
+    "hallucinations_total": 0.0,
+    "calibration_error_mean": 0.0269,
+    "latency_seconds_mean": 14.8432
+  },
+  "per_case_results": [
+    {
+      "case_id": "synthetic_case_01",
+      "factual_accuracy": 0.9231,
+      "critical_omissions": 1,
+      "hallucinations": 0,
+      "confidence_calibration_error": 0.0269,
+      "field_comparisons": [
+        {
+          "field_name": "patient_age",
+          "expected_value": 32,
+          "actual_value": 32,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": ""
+        },
+        {
+          "field_name": "fum",
+          "expected_value": "2025-09-15",
+          "actual_value": "2025-09-15",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": ""
+        },
+        {
+          "field_name": "fpp",
+          "expected_value": "2026-06-22",
+          "actual_value": "2026-06-22",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": ""
+        },
+        {
+          "field_name": "gestational_age_weeks",
+          "expected_value": 28.3,
+          "actual_value": 28.3,
+          "match": true,
+          "match_type": "fuzzy",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": "delta=0.00 weeks; tolerance=±0.5"
+        },
+        {
+          "field_name": "active_problems",
+          "expected_value": [
+            "Anemia leve gestacional",
+            "Cesárea previa (2022)"
+          ],
+          "actual_value": [
+            "Anemia leve gestacional",
+            "Antecedente de cesárea segmentaria previa"
+          ],
+          "match": false,
+          "match_type": "missing",
+          "confidence": 0.5,
+          "weight": 2.0,
+          "notes": "matched_expected=1/2, matched_actual=1/2"
+        },
+        {
+          "field_name": "risk_factors",
+          "expected_value": [
+            "Cesárea previa",
+            "Anemia leve gestacional"
+          ],
+          "actual_value": [
+            "Cesárea previa",
+            "Anemia leve"
+          ],
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": "matched_expected=2/2, matched_actual=2/2"
+        },
+        {
+          "field_name": "lab_results[0:hemoglobina].name",
+          "expected_value": "Hemoglobina",
+          "actual_value": "Hemoglobina",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[0:hemoglobina].value",
+          "expected_value": "10.8",
+          "actual_value": "10.8",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[0:hemoglobina].unit",
+          "expected_value": "g/dL",
+          "actual_value": "g/dL",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[0:hemoglobina].date",
+          "expected_value": "2026-04-02",
+          "actual_value": "2026-04-02",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[0:hemoglobina].abnormal",
+          "expected_value": true,
+          "actual_value": true,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 2.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[1:tsh].name",
+          "expected_value": "TSH",
+          "actual_value": "TSH",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[1:tsh].value",
+          "expected_value": "2.1",
+          "actual_value": "2.1",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[1:tsh].unit",
+          "expected_value": "mUI/L",
+          "actual_value": "mUI/L",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[1:tsh].date",
+          "expected_value": "2026-04-02",
+          "actual_value": "2026-04-02",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[1:tsh].abnormal",
+          "expected_value": false,
+          "actual_value": false,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[2:glucosa basal].name",
+          "expected_value": "Glucosa basal",
+          "actual_value": "Glucosa basal",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[2:glucosa basal].value",
+          "expected_value": "92",
+          "actual_value": "92",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[2:glucosa basal].unit",
+          "expected_value": "mg/dL",
+          "actual_value": "mg/dL",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[2:glucosa basal].date",
+          "expected_value": "2026-04-02",
+          "actual_value": "2026-04-02",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[2:glucosa basal].abnormal",
+          "expected_value": false,
+          "actual_value": false,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[3:hiv (elisa)].name",
+          "expected_value": "HIV (ELISA)",
+          "actual_value": "HIV (ELISA)",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[3:hiv (elisa)].value",
+          "expected_value": "No reactivo",
+          "actual_value": "No reactivo",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[3:hiv (elisa)].unit",
+          "expected_value": null,
+          "actual_value": null,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[3:hiv (elisa)].date",
+          "expected_value": "2026-04-02",
+          "actual_value": "2026-04-02",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[3:hiv (elisa)].abnormal",
+          "expected_value": false,
+          "actual_value": false,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[4:sífilis (rpr)].name",
+          "expected_value": "Sífilis (RPR)",
+          "actual_value": "Sífilis (RPR)",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[4:sífilis (rpr)].value",
+          "expected_value": "No reactivo",
+          "actual_value": "No reactivo",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[4:sífilis (rpr)].unit",
+          "expected_value": null,
+          "actual_value": null,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[4:sífilis (rpr)].date",
+          "expected_value": "2026-04-02",
+          "actual_value": "2026-04-02",
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "lab_results[4:sífilis (rpr)].abnormal",
+          "expected_value": false,
+          "actual_value": false,
+          "match": true,
+          "match_type": "exact",
+          "confidence": 1.0,
+          "weight": 1.0,
+          "notes": ""
+        },
+        {
+          "field_name": "notes_summary",
+          "expected_value": "Paciente de 32 años, G2P1 con cesárea previa por desproporción céfalo-pélvica en 2022. Gestación actual de 28 semanas 2 días sin complicaciones agudas, movimientos fetales presentes, sin signos de alarma. Anemia leve gestacional en tratamiento con sulfato ferroso. Plan de cesárea programada a las 39 semanas por cesárea previa.",
+          "actual_value": "Paciente de 32 años, G2P1 con cesárea previa en 2022, cursando embarazo actual de 28 semanas 2 días. Presenta anemia leve gestacional en tratamiento con sulfato ferroso. Controles prenatales regulares, ecografía de 20 semanas sin anomalías estructurales. Plan de cesárea programada a las 39 semanas por antecedente de cesárea previa.",
+          "match": false,
+          "match_type": "mismatch",
+          "confidence": 0.3600605143721634,
+          "weight": 1.0,
+          "notes": "difflib ratio (stub — semantic comparison pending, see TODO)"
+        }
+      ],
+      "hallucination_descriptions": [],
+      "latency_seconds": 14.843160599994007,
+      "cost_usd": null,
+      "timestamp": "2026-05-22T01:32:32.170652Z",
+      "extractor_version": "0.1.0",
+      "model_used": "claude-sonnet-4-5-20250929",
+      "error": null
+    }
+  ],
+  "metadata": {
+    "host": "AARON_66",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.5",
+    "git_commit": "5f6d187",
+    "extractor_version": "0.1.0",
+    "model_used": "claude-sonnet-4-5-20250929",
+    "fixtures_dir": "C:\\Users\\huayn\\Documents\\sica-platform\\evals\\fixtures"
+  }
+}

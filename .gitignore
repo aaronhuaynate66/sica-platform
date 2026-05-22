@@ -60,6 +60,11 @@ historias/
 # (cada corrida produce *.json/*.md/*.html con timestamps + run_id).
 evals/reports/*
 !evals/reports/.gitkeep
+# Excepción explícita: los baselines persistidos en evals/fixtures/baselines/
+# SÍ se commitean (son snapshots firmados de corridas que pasaron gates).
+# Documentado en evals/fixtures/baselines/README.md.
+!evals/fixtures/baselines/
+!evals/fixtures/baselines/**
 # Datasets y ground truth reales: nunca en el repo. Ver docs/security/data-handling.md.
 evals/datasets/
 evals/ground_truth/

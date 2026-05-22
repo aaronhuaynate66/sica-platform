@@ -1,0 +1,53 @@
+{
+  "baseline_type": "single-run-snapshot",
+  "baseline_type_notes": "Snapshot of one passing run of the real clinical-extractor against synthetic_case_01.pdf via the sica-evals harness. Captures the quality ceiling reachable with claude-sonnet-4-5-20250929 + prompt v0.1.0 on a deliberately-clear synthetic PDF. NOT a clinically validated baseline. Real clinical baselines arrive with retrospective dataset from the partner (issue #5).",
+  "non_determinism_note": "Claude is non-deterministic (no seed). Re-running this same input will produce factual_accuracy in roughly [0.90, 1.00] range based on observed variance; the metric numbers below are a single sample, not a reproducible exact value. To verify the model has not degraded, re-run the harness and check that the new run also passes all R0 gates — do NOT expect to match these exact numbers.",
+  "report": {
+    "path": "evals/fixtures/baselines/claude_sonnet_4_5_synthetic_case_01.baseline.json",
+    "sha256": "55a2663e1bf9350df689d6775b0fef6c411df1bcbd354d58cc06cff3bad65158",
+    "size_bytes": 11875
+  },
+  "run": {
+    "run_id": "edb66cf1-164b-491f-887f-95d9e80b2a4c",
+    "timestamp": "2026-05-22T01:32:47.037662Z",
+    "git_commit": "5f6d187",
+    "host": "AARON_66",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.5"
+  },
+  "extractor": {
+    "service": "clinical-extractor",
+    "version": "0.1.0",
+    "model": "claude-sonnet-4-5-20250929",
+    "prompt_version": "0.1.0"
+  },
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_01.pdf",
+    "sha256": "b68c637adbfc2f7b52dc9d7bd3755df668d4d55c3c0bcb94ba66a0c529dd364b",
+    "size_bytes": 5626
+  },
+  "expected_fixture": {
+    "path": "evals/fixtures/synthetic_case_01.expected.json",
+    "sha256": "5e8bb716195087ec73dfe2e6bf1c0c52d1d62b849bc71da57c987a164fe91cff"
+  },
+  "metrics": {
+    "factual_accuracy": 0.9231,
+    "critical_omissions": 1,
+    "hallucinations": 0,
+    "confidence_calibration_error": 0.0269,
+    "latency_seconds": 14.8432
+  },
+  "r0_gates": {
+    "factual_accuracy_threshold": 0.85,
+    "factual_accuracy_passed": true,
+    "critical_omissions_threshold": 5,
+    "critical_omissions_passed": true,
+    "hallucinations_threshold": 0,
+    "hallucinations_passed": true,
+    "calibration_error_threshold": 0.15,
+    "calibration_error_passed": true,
+    "all_passed": true
+  },
+  "command": "python -m sica_evals.cli run --filter synthetic_case_01 --extractor clinical --format all --output-dir evals/reports",
+  "related_issues": ["#9", "#10", "#11"]
+}

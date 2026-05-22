@@ -51,7 +51,7 @@ class ClinicalExtractorWrapper:
         if self._extractor is not None:
             return
         try:
-            from clinical_extractor.extractor import DEFAULT_MODEL, extract_obstetric_summary
+            from clinical_extractor.extractor import DEFAULT_MODEL, extract_from_pdf
         except ImportError as exc:
             msg = (
                 "clinical_extractor not installed in this environment. "
@@ -64,7 +64,7 @@ class ClinicalExtractorWrapper:
 
             load_dotenv(self._env_path, override=False)
 
-        self._extract_fn = extract_obstetric_summary
+        self._extract_fn = extract_from_pdf
         self.model_used = self._model or DEFAULT_MODEL
         # extractor_version comes from clinical_extractor package metadata
         try:
