@@ -1,8 +1,8 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @sica/web build",
-  "outputDirectory": ".next",
-  "installCommand": "echo 'Skipping default install (using monorepo command in buildCommand)'",
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../../packages ../../pnpm-lock.yaml ../../pnpm-workspace.yaml"
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": "nextjs",
+    "buildCommand": "pnpm --filter @sica/web build",
+    "outputDirectory": ".next",
+    "installCommand": "npm i -g pnpm@11.1.2 && pnpm install --frozen-lockfile",
+    "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../../packages ../../pnpm-lock.yaml ../../pnpm-workspace.yaml"
 }
