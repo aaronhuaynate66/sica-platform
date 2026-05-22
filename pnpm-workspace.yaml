@@ -6,6 +6,7 @@ packages:
 # install script se marque true (corre) o false (se ignora silenciosamente).
 # Sin esto, `pnpm install` aborta con ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
-  msw: false           # no usamos MSW; viene como dep transitiva de shadcn
-  sharp: true          # next/image optimization
-  unrs-resolver: true  # next-stable-resolver
+  esbuild: true # transitive dep of vitest (transforma TS en tests)
+  msw: false # no usamos MSW; viene como dep transitiva de shadcn
+  sharp: true # next/image optimization
+  unrs-resolver: true # next-stable-resolver

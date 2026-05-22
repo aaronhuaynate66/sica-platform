@@ -21,7 +21,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from sica_api.settings import Settings, get_settings
@@ -192,7 +192,7 @@ async def extract(
         try:
             assert settings.anthropic_api_key is not None  # narrowing for mypy
             payload = extractor(tmp_path, api_key=settings.anthropic_api_key)
-        except Exception as exc:  # noqa: BLE001 — surface as 500 sanitized
+        except Exception as exc:
             error_id = str(uuid.uuid4())
             logger.exception(
                 "extract failed",

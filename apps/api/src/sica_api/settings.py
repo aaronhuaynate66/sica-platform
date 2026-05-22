@@ -36,7 +36,22 @@ class Settings(BaseSettings):
     )
     allowed_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:3000"],
-        description="Orígenes permitidos por CORS.",
+        description=(
+            "Orígenes permitidos por CORS — match literal. "
+            "Para patrones (p. ej. *.vercel.app) usar allowed_origin_regex."
+        ),
+    )
+    allowed_origin_regex: str | None = Field(
+        # Default ancho para acomodar dev local + previews de Vercel + el dominio
+        # de producción cuando se sepa. Refinar cuando exista dominio canónico.
+        # TODO: reemplazar con regex específico del dominio de producción.
+        default=(
+            r"^https://([a-z0-9-]+\.)*vercel\.app$"
+        ),
+        description=(
+            "Regex de orígenes permitidos por CORS. Útil para wildcards de "
+            "Vercel preview deploys."
+        ),
     )
     log_level: str = Field(
         default="INFO",

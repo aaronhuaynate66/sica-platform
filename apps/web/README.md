@@ -85,13 +85,46 @@ apps/web/
 └── public/synthetic_case_01.pdf ← PDF demo (excepción gitignore)
 ```
 
+## Modo demo vs modo live
+
+La vista `/` (Upload & Extract) opera en dos modos según `NEXT_PUBLIC_API_MODE`:
+
+| Modo | Comportamiento |
+|---|---|
+| `demo` (default) | Botón "Cargar PDF de ejemplo" usa el fixture sintético. "Subir PDF propio" muestra un mensaje pidiendo acceso. Cero llamadas al backend. |
+| `live` | La UI verifica `/health` del backend al montar. Si responde, ofrece extracción real vía `POST /extract`. Si no responde, cae automáticamente a comportamiento `demo` con badge en amarillo. |
+
+### Variables de entorno
+
+Copiar `.env.example` a `.env.local` (gitignored) para dev:
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Base URL del backend `sica-api`. |
+| `NEXT_PUBLIC_API_MODE` | `demo` | `demo` o `live`. Live habilita "Subir PDF propio". |
+
+En Vercel, configurar estas vars en el dashboard del proyecto (Production + Preview). Ver `apps/web/VERCEL.md`.
+
+### Cliente HTTP
+
+El cliente vive en `lib/api/`:
+
+- `client.ts` — `getHealth()`, `getModels()`, `extractFromPdf(file)` con timeout configurable y clases de error tipadas (`ApiError`, `ApiTimeoutError`, `ApiUnavailableError`).
+- `types.ts` — interfaces TS que espejan `apps/api/src/sica_api/schemas.py`.
+- `mode-detector.ts` — `getConfiguredMode()`, `isApiAvailable()` con cache de 30s, `resolveEffectiveMode()`.
+
+Tests: `pnpm --filter @sica/web test`.
+
 ## Próximos pasos
 
 | Cuando | Qué |
 |--------|-----|
-| Exista `apps/api/` | Migrar `lib/fixtures/` → fetch a `/api/cases/:id`. Borrar copia local del JSON. |
 | Exista auth | Quitar disclaimer público, agregar login. |
-| Pase gate R1 (>70% resúmenes útiles) | Vista 1 acepta upload real (no solo cargar fixture). |
+| Pase gate R1 (>70% resúmenes útiles) | Quitar fallback a fixture estático; live mode obligatorio. |
 | R2 (Shadow Mode) | Vista 4 conecta a HIS via launch button contextual. |
 
 ## Notas técnicas

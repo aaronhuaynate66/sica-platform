@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import Any
 
 import pytest
@@ -56,7 +55,7 @@ def make_client():
 def fake_extractor():
     """Returns a callable that mimics the clinical-extractor contract."""
 
-    def _fake(pdf_path, *, api_key: str) -> dict[str, Any]:  # noqa: ANN001
+    def _fake(pdf_path, *, api_key: str) -> dict[str, Any]:
         return {
             "patient_age": 32,
             "gestational_age_weeks": 28.3,
@@ -77,7 +76,7 @@ def fake_extractor():
 def failing_extractor():
     """Extractor that always raises — exercises the 500 path."""
 
-    def _boom(pdf_path, *, api_key: str):  # noqa: ANN001, ARG001
+    def _boom(pdf_path, *, api_key: str):
         raise RuntimeError("simulated extractor failure")
 
     return _boom

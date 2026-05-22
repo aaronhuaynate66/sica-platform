@@ -1,61 +1,175 @@
-import { Activity, Calendar, FileText, FlaskConical, Stethoscope, TriangleAlert } from "lucide-react";
+"use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { FileUp, Loader2, Play, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ConfidenceBar } from "@/components/clinical/confidence-bar";
-import { EvidenceSheet } from "@/components/clinical/evidence-sheet";
+import { Button } from "@/components/ui/button";
+import { SummaryView } from "@/components/clinical/summary-view";
 import {
   syntheticCase01PdfPath,
   syntheticCase01Summary,
 } from "@/lib/fixtures";
+import { extractFromPdf } from "@/lib/api/client";
+import { getConfiguredMode, isApiAvailable } from "@/lib/api/mode-detector";
+import {
+  ApiError,
+  ApiTimeoutError,
+  ApiUnavailableError,
+  type ObstetricSummary,
+} from "@/lib/api/types";
 
-function formatGA(weeks: number | null): string {
-  if (weeks === null) return "—";
-  const w = Math.floor(weeks);
-  const days = Math.round((weeks - w) * 10);
-  return `${w}s ${days}d`;
-}
-
-function formatDateEs(iso: string | null): string {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  if (!y || !m || !d) return iso;
-  return `${d}/${m}/${y}`;
-}
+type DisplayState =
+  | { kind: "empty" }
+  | { kind: "demo"; summary: ObstetricSummary; pdfPath: string; label: string }
+  | { kind: "live"; summary: ObstetricSummary; pdfPath: string; label: string }
+  | { kind: "loading"; label: string }
+  | { kind: "error"; message: string };
 
 export default function UploadAndExtractPage() {
-  const summary = syntheticCase01Summary;
+  const configuredMode = getConfiguredMode();
+  const [apiUp, setApiUp] = useState<boolean | null>(null);
+  const [display, setDisplay] = useState<DisplayState>({ kind: "empty" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastObjectUrlRef = useRef<string | null>(null);
 
-  const spansBy = (claimKeywords: string[]) =>
-    summary.evidence_spans.filter((s) =>
-      claimKeywords.some((kw) => s.claim.toLowerCase().includes(kw))
+  useEffect(() => {
+    if (configuredMode === "demo") {
+      setApiUp(false);
+      return;
+    }
+    let cancelled = false;
+    isApiAvailable({ forceFresh: true }).then((ok) => {
+      if (!cancelled) setApiUp(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [configuredMode]);
+
+  const effectiveMode: "live" | "demo" =
+    configuredMode === "live" && apiUp === true ? "live" : "demo";
+
+  const loadDemo = useCallback(() => {
+    setDisplay({
+      kind: "demo",
+      summary: syntheticCase01Summary,
+      pdfPath: syntheticCase01PdfPath,
+      label: "synthetic_case_01.pdf",
+    });
+  }, []);
+
+  const triggerUpload = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (effectiveMode === "demo") {
+        setDisplay({
+          kind: "error",
+          message:
+            "Modo demo: subir PDFs propios requiere API conectada. Usa el ejemplo o solicita acceso.",
+        });
+        return;
+      }
+
+      if (lastObjectUrlRef.current) {
+        URL.revokeObjectURL(lastObjectUrlRef.current);
+        lastObjectUrlRef.current = null;
+      }
+
+      setDisplay({ kind: "loading", label: file.name });
+      try {
+        const summary = await extractFromPdf(file);
+        const objectUrl = URL.createObjectURL(file);
+        lastObjectUrlRef.current = objectUrl;
+        setDisplay({
+          kind: "live",
+          summary,
+          pdfPath: objectUrl,
+          label: file.name,
+        });
+      } catch (err) {
+        let message: string;
+        if (err instanceof ApiTimeoutError) {
+          message =
+            "La extracción excedió el tiempo máximo (60s). Probá con un PDF más corto.";
+        } else if (err instanceof ApiUnavailableError) {
+          message = "No se pudo conectar al backend. Confirmá que sica-api está corriendo.";
+        } else if (err instanceof ApiError) {
+          message = `Error ${err.status} (${err.code}): ${err.message}`;
+        } else {
+          message = "Error inesperado procesando el documento.";
+        }
+        setDisplay({ kind: "error", message });
+      }
+    },
+    [effectiveMode],
+  );
+
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = ""; // reset for re-selection of same file
+      if (file) void handleFile(file);
+    },
+    [handleFile],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (lastObjectUrlRef.current) {
+        URL.revokeObjectURL(lastObjectUrlRef.current);
+      }
+    };
+  }, []);
+
+  const modeBadge =
+    effectiveMode === "live" ? (
+      <Badge variant="outline" className="border-confirm-green/50 text-confirm-green">
+        ● Live mode
+      </Badge>
+    ) : (
+      <Badge variant="outline" className="border-warn-yellow/50 text-warn-yellow">
+        ● Demo mode
+      </Badge>
     );
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
       <div className="border-b border-border bg-muted/20 px-6 py-6">
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              SICA — Demo interna
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight">SICA — Demo interna</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-              Carga una historia clínica obstétrica y SICA la transforma en un
-              resumen estructurado con evidencia trazable. Esta demo usa{" "}
-              <strong className="text-foreground">datos sintéticos</strong>; no
-              hay paciente real, no hay backend conectado.
+              Carga una historia clínica obstétrica y SICA la transforma en un resumen estructurado
+              con evidencia trazable. Esta demo usa{" "}
+              <strong className="text-foreground">datos sintéticos</strong> por defecto. En modo
+              live el backend procesa el PDF real que subas.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button onClick={loadDemo} variant="default" size="sm">
+                <Play className="size-3.5" />
+                Cargar PDF de ejemplo
+              </Button>
+              <Button onClick={triggerUpload} variant="outline" size="sm">
+                <FileUp className="size-3.5" />
+                Subir PDF propio
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={onFileChange}
+                className="hidden"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2">
+            {modeBadge}
             <Badge variant="outline" className="font-mono">
-              caso 01
+              caso demo
             </Badge>
             <Badge variant="outline" className="border-warn-yellow/50 text-warn-yellow">
               sintético
@@ -64,213 +178,69 @@ export default function UploadAndExtractPage() {
         </div>
       </div>
 
-      {/* Split layout */}
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[60%_40%]">
-        {/* PDF preview */}
-        <section className="border-r border-border bg-muted/10 flex flex-col">
-          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
-            <div className="flex items-center gap-2">
-              <FileText className="size-4 text-muted-foreground" />
-              <span className="font-mono text-xs">synthetic_case_01.pdf</span>
-            </div>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              DEMO · 100% sintético
-            </span>
-          </div>
-          <iframe
-            src={syntheticCase01PdfPath}
-            title="PDF original sintético"
-            className="flex-1 w-full min-h-[70vh] bg-white"
-          />
-        </section>
-
-        {/* JSON cards */}
-        <section className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[calc(100vh-9rem)]">
-          {/* Confidence header */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Activity className="size-4 text-clinical-blue" />
-                  Confianza de extracción
-                </CardTitle>
-                <span className="font-mono text-xs tabular-nums">
-                  {Math.round(summary.confidence_score * 100)}%
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ConfidenceBar value={summary.confidence_score} />
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                {summary.evidence_spans.length} spans de evidencia indexados
-                desde el documento.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Demographic + gestational */}
-          <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="size-4 text-clinical-blue" />
-                Datos gestacionales
-              </CardTitle>
-              <EvidenceSheet
-                title="Evidencia · Datos gestacionales"
-                spans={spansBy(["edad", "fum", "fpp", "eg"])}
-              />
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Edad</dt>
-                <dd className="font-mono tabular-nums">
-                  {summary.patient_age ?? "—"} años
-                </dd>
-                <dt className="text-muted-foreground">EG actual</dt>
-                <dd className="font-mono tabular-nums">
-                  {formatGA(summary.gestational_age_weeks)}
-                </dd>
-                <dt className="text-muted-foreground">FUM</dt>
-                <dd className="font-mono tabular-nums">
-                  {formatDateEs(summary.fum)}
-                </dd>
-                <dt className="text-muted-foreground">FPP</dt>
-                <dd className="font-mono tabular-nums">
-                  {formatDateEs(summary.fpp)}
-                </dd>
-              </dl>
-            </CardContent>
-          </Card>
-
-          {/* Active problems */}
-          <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <TriangleAlert className="size-4 text-warn-yellow" />
-                Problemas activos
-              </CardTitle>
-              <EvidenceSheet
-                title="Evidencia · Problemas activos"
-                spans={spansBy(["anemia", "cesárea", "problema"])}
-              />
-            </CardHeader>
-            <CardContent>
-              {summary.active_problems.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin problemas activos.</p>
-              ) : (
-                <ul className="flex flex-wrap gap-1.5">
-                  {summary.active_problems.map((p) => (
-                    <li key={p}>
-                      <Badge variant="secondary" className="font-normal">
-                        {p}
-                      </Badge>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {summary.risk_factors.length > 0 && (
+      {display.kind === "empty" && (
+        <div className="flex-1 flex items-center justify-center px-6 py-16 text-center">
+          <div className="max-w-md">
+            <p className="text-sm text-muted-foreground">
+              Pulsá <strong className="text-foreground">Cargar PDF de ejemplo</strong> para ver una
+              extracción sintética pre-procesada, o{" "}
+              <strong className="text-foreground">Subir PDF propio</strong> si tenés modo live
+              activo.
+            </p>
+            <p className="mt-3 text-[11px] text-muted-foreground/70">
+              Modo configurado: <code className="font-mono">{configuredMode}</code>
+              {configuredMode === "live" && apiUp === false && (
                 <>
-                  <Separator className="my-3" />
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-                    Factores de riesgo
-                  </p>
-                  <ul className="flex flex-wrap gap-1.5">
-                    {summary.risk_factors.map((r) => (
-                      <li key={r}>
-                        <Badge
-                          variant="outline"
-                          className="border-warn-yellow/40 text-warn-yellow font-normal"
-                        >
-                          {r}
-                        </Badge>
-                      </li>
-                    ))}
-                  </ul>
+                  {" · "}
+                  <span className="text-warn-yellow">
+                    API no respondió en /health; cayendo a demo.
+                  </span>
                 </>
               )}
-            </CardContent>
-          </Card>
+            </p>
+          </div>
+        </div>
+      )}
 
-          {/* Labs */}
-          <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <FlaskConical className="size-4 text-clinical-blue" />
-                Laboratorios
-              </CardTitle>
-              <EvidenceSheet
-                title="Evidencia · Laboratorios"
-                spans={spansBy([
-                  "hemoglobina",
-                  "tsh",
-                  "glucosa",
-                  "hiv",
-                  "sífilis",
-                  "laboratorio",
-                ])}
-              />
-            </CardHeader>
-            <CardContent>
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-muted-foreground text-left">
-                    <th className="font-normal pb-1.5">Analito</th>
-                    <th className="font-normal pb-1.5 text-right">Valor</th>
-                    <th className="font-normal pb-1.5 text-right">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="font-mono tabular-nums">
-                  {summary.lab_results.map((lab) => (
-                    <tr key={lab.name} className="border-t border-border/50">
-                      <td className="py-1.5 font-sans">{lab.name}</td>
-                      <td className="py-1.5 text-right">
-                        {lab.value}
-                        {lab.unit ? ` ${lab.unit}` : ""}
-                      </td>
-                      <td className="py-1.5 text-right">
-                        {lab.abnormal ? (
-                          <Badge
-                            variant="outline"
-                            className="border-risk-red/40 text-risk-red font-normal text-[10px]"
-                          >
-                            anormal
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-confirm-green/40 text-confirm-green font-normal text-[10px]"
-                          >
-                            normal
-                          </Badge>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+      {display.kind === "loading" && (
+        <div className="flex-1 flex items-center justify-center px-6 py-16 text-center">
+          <div className="max-w-md">
+            <Loader2 className="mx-auto size-8 animate-spin text-clinical-blue" />
+            <p className="mt-3 text-sm font-medium">
+              Procesando <code className="font-mono">{display.label}</code>
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Puede tomar entre 10 y 30 segundos.
+            </p>
+          </div>
+        </div>
+      )}
 
-          {/* Notes summary */}
-          <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Stethoscope className="size-4 text-clinical-blue" />
-                Resumen y plan
-              </CardTitle>
-              <EvidenceSheet
-                title="Evidencia · Plan"
-                spans={spansBy(["plan", "cesárea programada"])}
-              />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed text-foreground/90">
-                {summary.notes_summary}
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
+      {display.kind === "error" && (
+        <div className="flex-1 flex items-center justify-center px-6 py-16 text-center">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-risk-red">{display.message}</p>
+            <Button
+              onClick={() => setDisplay({ kind: "empty" })}
+              variant="outline"
+              size="sm"
+              className="mt-4"
+            >
+              <RefreshCw className="size-3.5" />
+              Reintentar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {(display.kind === "demo" || display.kind === "live") && (
+        <SummaryView
+          summary={display.summary}
+          pdfPath={display.pdfPath}
+          pdfLabel={display.label}
+          origin={display.kind}
+        />
+      )}
     </div>
   );
 }

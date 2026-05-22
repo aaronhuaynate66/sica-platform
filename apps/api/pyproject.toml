@@ -79,6 +79,9 @@ select = [
 ]
 ignore = [
     "E501",
+    # FastAPI requiere Depends(...) y File(...) en argumentos por defecto.
+    # B008 está pensado para código generalista; en FastAPI es idiomático.
+    "B008",
 ]
 
 [tool.ruff.format]
