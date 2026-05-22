@@ -2,7 +2,7 @@
 
 ## Estado general
 
-Última actualización: `2026-05-22T20:34:27Z`  
+Última actualización: `2026-05-22T20:34:32Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
@@ -11,10 +11,10 @@ Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 ## Progreso general
 
 ```
-█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░ 6/18 issues cerrados (33%)
+█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░ 6/19 issues cerrados (32%)
 ```
 
-✅ Cerrados: 6 | 🔄 En progreso: 0 | ⬜ Pendientes: 12 | 🚨 Bloqueantes: 4
+✅ Cerrados: 6 | 🔄 En progreso: 0 | ⬜ Pendientes: 13 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -50,7 +50,7 @@ gantt
 
 | Release | Período | Estado | Progreso |
 |---------|---------|--------|----------|
-| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████░░░░░ 55% |
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████░░░░░ 50% |
 | R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
@@ -69,7 +69,7 @@ gantt
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-██████████████████████░░░░░░░░░░░░░░░░░░ 6/11 issues cerrados (55%)
+████████████████████░░░░░░░░░░░░░░░░░░░░ 6/12 issues cerrados (50%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
@@ -85,6 +85,7 @@ gantt
 | #16 | [Deploy apps/api a producción (Render)](https://github.com/aaronhuaynate66/sica-platform/issues/16) | retroactive | ⬜ Abierto | — |
 | #17 | [Conectar apps/web con apps/api en producción](https://github.com/aaronhuaynate66/sica-platform/issues/17) | retroactive | ⬜ Abierto | — |
 | #18 | [Evidencia trazable per-field en UI](https://github.com/aaronhuaynate66/sica-platform/issues/18) | retroactive | ⬜ Abierto | — |
+| #19 | [Editor inline para campos clave del resumen](https://github.com/aaronhuaynate66/sica-platform/issues/19) | retroactive | ⬜ Abierto | — |
 
 ### R1 Resumen Obstétrico
 
@@ -192,6 +193,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 - ⬜ [#16](https://github.com/aaronhuaynate66/sica-platform/issues/16) Deploy apps/api a producción (Render)
 - ⬜ [#17](https://github.com/aaronhuaynate66/sica-platform/issues/17) Conectar apps/web con apps/api en producción
 - ⬜ [#18](https://github.com/aaronhuaynate66/sica-platform/issues/18) Evidencia trazable per-field en UI
+- ⬜ [#19](https://github.com/aaronhuaynate66/sica-platform/issues/19) Editor inline para campos clave del resumen
 
 ---
 
