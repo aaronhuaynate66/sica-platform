@@ -4,6 +4,7 @@ import { Eye, Pencil, Trash2, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { applyMaskingProps } from "@/lib/analytics/masking";
 import {
   Dialog,
   DialogClose,
@@ -87,11 +88,14 @@ export function EditsIndicator({ edits, onResetAll }: EditsIndicatorProps) {
                 </div>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                   <dt className="text-muted-foreground">Original</dt>
-                  <dd className="font-mono text-muted-foreground line-through">
+                  <dd
+                    {...applyMaskingProps()}
+                    className="font-mono text-muted-foreground line-through"
+                  >
                     {formatValue(edit.original)}
                   </dd>
                   <dt className="text-muted-foreground">Nuevo</dt>
-                  <dd className="font-mono text-foreground">
+                  <dd {...applyMaskingProps()} className="font-mono text-foreground">
                     {formatValue(edit.current)}
                   </dd>
                 </dl>

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { applyMaskingProps } from "@/lib/analytics/masking";
 
 type EditType = "text" | "number" | "textarea";
 
@@ -97,7 +98,9 @@ export function EditableField({
   if (!isEditing) {
     return (
       <span className={`inline-flex items-center gap-1.5 ${className ?? ""}`}>
-        <span data-testid="editable-value">{valueNode}</span>
+        <span {...applyMaskingProps()} data-testid="editable-value">
+          {valueNode}
+        </span>
         {isEdited ? (
           <Badge
             variant="outline"
@@ -145,6 +148,7 @@ export function EditableField({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
           rows={4}
+          {...applyMaskingProps()}
           className="w-full min-w-[20rem] rounded-md border border-border bg-background px-2 py-1.5 text-sm"
           data-testid="editable-input"
         />
@@ -156,6 +160,7 @@ export function EditableField({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
+          {...applyMaskingProps()}
           className="rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums w-24"
           data-testid="editable-input"
         />

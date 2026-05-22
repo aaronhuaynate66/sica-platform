@@ -2,6 +2,7 @@
 
 import { ExternalLink, FileText, X } from "lucide-react";
 
+import { applyMaskingProps } from "@/lib/analytics/masking";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -68,6 +69,7 @@ export function EvidenceModal({ evidence, fieldName, pdfUrl, trigger }: Evidence
             evidence.map((span, idx) => (
               <article
                 key={`${span.source_page}-${idx}`}
+                {...applyMaskingProps()}
                 className="rounded-md border border-border bg-muted/30 p-3"
                 data-testid="evidence-item"
               >
@@ -77,7 +79,10 @@ export function EvidenceModal({ evidence, fieldName, pdfUrl, trigger }: Evidence
                     p. {span.source_page}
                   </span>
                 </header>
-                <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-muted-foreground">
+                <pre
+                  {...applyMaskingProps()}
+                  className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-muted-foreground"
+                >
                   {span.source_text}
                 </pre>
                 {pdfUrl ? (

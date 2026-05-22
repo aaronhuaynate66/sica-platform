@@ -14,6 +14,7 @@ import { ConfidenceBar } from "@/components/clinical/confidence-bar";
 import { EditableField } from "@/components/clinical/editable-field";
 import { EvidenceModal } from "@/components/clinical/evidence-modal";
 import { Separator } from "@/components/ui/separator";
+import { applyMaskingProps } from "@/lib/analytics/masking";
 import { evidenceFor, evidenceForItem } from "@/lib/clinical/field-evidence";
 import type { ObstetricSummary } from "@/lib/api/types";
 
@@ -73,6 +74,7 @@ export function SummaryView({
           <iframe
             src={pdfPath}
             title="PDF original"
+            {...applyMaskingProps()}
             className="flex-1 w-full min-h-[60vh] bg-white"
           />
         ) : (
@@ -117,7 +119,7 @@ export function SummaryView({
               Datos gestacionales
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent {...applyMaskingProps()}>
             <dl className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 text-sm items-center">
               <dt className="text-muted-foreground">Edad</dt>
               <dd className="font-mono tabular-nums text-right">
@@ -182,7 +184,7 @@ export function SummaryView({
               pdfUrl={pdfPath}
             />
           </CardHeader>
-          <CardContent>
+          <CardContent {...applyMaskingProps()}>
             {summary.active_problems.length === 0 ? (
               <p className="text-sm text-muted-foreground">Sin problemas activos.</p>
             ) : (
@@ -255,7 +257,7 @@ export function SummaryView({
               pdfUrl={pdfPath}
             />
           </CardHeader>
-          <CardContent>
+          <CardContent {...applyMaskingProps()}>
             {summary.lab_results.length === 0 ? (
               <p className="text-sm text-muted-foreground">Sin laboratorios.</p>
             ) : (
@@ -320,7 +322,7 @@ export function SummaryView({
               pdfUrl={pdfPath}
             />
           </CardHeader>
-          <CardContent>
+          <CardContent {...applyMaskingProps()}>
             {editing ? (
               <EditableField
                 label="Resumen y plan"
