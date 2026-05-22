@@ -2,19 +2,19 @@
 
 ## Estado general
 
-Última actualización: `2026-05-22T01:21:19Z`  
+Última actualización: `2026-05-22T01:37:34Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `842dc62`
+**Hash del último commit:** `0ed8b5c`
 
 ## Progreso general
 
 ```
-█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░ 5/15 issues cerrados (33%)
+████████████████░░░░░░░░░░░░░░░░░░░░░░░░ 6/15 issues cerrados (40%)
 ```
 
-✅ Cerrados: 5 | 🔄 En progreso: 0 | ⬜ Pendientes: 10 | 🚨 Bloqueantes: 4
+✅ Cerrados: 6 | 🔄 En progreso: 0 | ⬜ Pendientes: 9 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -50,7 +50,7 @@ gantt
 
 | Release | Período | Estado | Progreso |
 |---------|---------|--------|----------|
-| R0 Foundation | May–Jul 2026 | 🔄 Activo | ██████░░░░ 62% |
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | ████████░░ 75% |
 | R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
@@ -69,13 +69,13 @@ gantt
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-█████████████████████████░░░░░░░░░░░░░░░ 5/8 issues cerrados (62%)
+██████████████████████████████░░░░░░░░░░ 6/8 issues cerrados (75%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
 |---|-------|--------|--------|---------|
 | #8 | [[R0] Setup técnico del monorepo](https://github.com/aaronhuaynate66/sica-platform/issues/8) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
-| #9 | [[R0] Validar pipeline clinical-extractor en synthetic_case_01](https://github.com/aaronhuaynate66/sica-platform/issues/9) | fase-1, r0 | ⬜ Abierto | — |
+| #9 | [[R0] Validar pipeline clinical-extractor en synthetic_case_01](https://github.com/aaronhuaynate66/sica-platform/issues/9) | fase-1, r0 | ✅ Cerrado | 2026-05-22 |
 | #10 | [[R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process](https://github.com/aaronhuaynate66/sica-platform/issues/10) | fase-1, r0 | ✅ Cerrado | 2026-05-22 |
 | #11 | [[R0] Definir métricas de factualidad: span-level accuracy + critical omissions](https://github.com/aaronhuaynate66/sica-platform/issues/11) | fase-1, r0 | ✅ Cerrado | 2026-05-22 |
 | #12 | [[R0] Investigar viabilidad de MedGemma 4B local en el entorno del partner](https://github.com/aaronhuaynate66/sica-platform/issues/12) | fase-1, r0 | ⬜ Abierto | — |
@@ -181,7 +181,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 ### Infraestructura
 
 - ✅ [#8](https://github.com/aaronhuaynate66/sica-platform/issues/8) [R0] Setup técnico del monorepo
-- ⬜ [#9](https://github.com/aaronhuaynate66/sica-platform/issues/9) [R0] Validar pipeline clinical-extractor en synthetic_case_01
+- ✅ [#9](https://github.com/aaronhuaynate66/sica-platform/issues/9) [R0] Validar pipeline clinical-extractor en synthetic_case_01
 - ⬜ [#14](https://github.com/aaronhuaynate66/sica-platform/issues/14) [R0] Setup de Langfuse self-hosted o decisión de servicio gestionado
 
 ---
@@ -206,6 +206,7 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `0ed8b5c` | aaronhuaynate66 | test(evals): persist Claude Sonnet 4.5 baseline on synthetic_case_01 (closes #9) | 2026-05-22 |
 | `842dc62` | aaronhuaynate66 | docs(evals): formalize factuality metrics specification (closes #11) | 2026-05-22 |
 | `c5c5785` | aaronhuaynate66 | feat(evals): implement evaluation harness with metrics, comparators, reporters (closes #10) | 2026-05-22 |
 | `69dd7fd` | aaronhuaynate66 | feat(plan): add Mermaid Gantt timeline and visual release progress to MASTER_PLAN | 2026-05-21 |
@@ -215,7 +216,6 @@ Auto-generado leyendo `docs/decisions/`.
 | `81f1100` | aaronhuaynate66 | fix(workflow): tolerar ausencia de ROADMAP.md en commit step | 2026-05-21 |
 | `b56146e` | aaronhuaynate66 | feat(plan): replace ROADMAP.md with MASTER_PLAN.md, add milestones + per-release progress | 2026-05-21 |
 | `442e0a8` | aaronhuaynate66 | feat(roadmap): add living roadmap system with auto-sync workflow | 2026-05-21 |
-| `4d201d6` | aaronhuaynate66 | feat: monorepo skeleton + clinical-extractor service (R0 foundation) | 2026-05-21 |
 
 ---
 
