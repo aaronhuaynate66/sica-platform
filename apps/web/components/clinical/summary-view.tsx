@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfidenceBar } from "@/components/clinical/confidence-bar";
+import { EditableField } from "@/components/clinical/editable-field";
 import { EvidenceModal } from "@/components/clinical/evidence-modal";
 import { Separator } from "@/components/ui/separator";
 import { evidenceFor, evidenceForItem } from "@/lib/clinical/field-evidence";
@@ -35,10 +36,26 @@ interface SummaryViewProps {
   pdfPath: string | null;
   pdfLabel: string;
   origin: "demo" | "live";
+  /**
+   * Si se provee, los 3 campos editables (patient_age, active_problems[*],
+   * notes_summary) se renderizan con `EditableField`. Si no, son sólo lectura.
+   */
+  editing?: {
+    editField: (path: string, newValue: unknown) => void;
+    resetField: (path: string) => void;
+    editedFields: string[];
+  };
 }
 
-export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewProps) {
+export function SummaryView({
+  summary,
+  pdfPath,
+  pdfLabel,
+  origin,
+  editing,
+}: SummaryViewProps) {
   const spans = summary.evidence_spans;
+  const isEdited = (path: string) => editing?.editedFields.includes(path) ?? false;
 
   return (
     <div className="grid flex-1 grid-cols-1 lg:grid-cols-[60%_40%]">
@@ -104,7 +121,19 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
             <dl className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 text-sm items-center">
               <dt className="text-muted-foreground">Edad</dt>
               <dd className="font-mono tabular-nums text-right">
-                {summary.patient_age ?? "—"} años
+                {editing ? (
+                  <EditableField
+                    label="Edad de la paciente"
+                    value={summary.patient_age ?? 0}
+                    editType="number"
+                    isEdited={isEdited("patient_age")}
+                    onSave={(v) => editing.editField("patient_age", v)}
+                    onReset={() => editing.resetField("patient_age")}
+                    renderValue={(v) => <span>{v} años</span>}
+                  />
+                ) : (
+                  <span>{summary.patient_age ?? "—"} años</span>
+                )}
               </dd>
               <EvidenceModal
                 evidence={evidenceFor(spans, "patient_age")}
@@ -158,18 +187,34 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
               <p className="text-sm text-muted-foreground">Sin problemas activos.</p>
             ) : (
               <ul className="flex flex-col gap-1.5">
-                {summary.active_problems.map((p) => {
+                {summary.active_problems.map((p, idx) => {
+                  const path = `active_problems.${idx}`;
                   const itemSpans = evidenceForItem(spans, p);
                   return (
-                    <li key={p} className="flex items-center justify-between gap-2">
-                      <Badge variant="secondary" className="font-normal">
-                        {p}
-                      </Badge>
-                      <EvidenceModal
-                        evidence={itemSpans}
-                        fieldName={p}
-                        pdfUrl={pdfPath}
-                      />
+                    <li
+                      key={`${path}-${p}`}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      {editing ? (
+                        <EditableField
+                          label={`Problema activo ${idx + 1}`}
+                          value={p}
+                          editType="text"
+                          isEdited={isEdited(path)}
+                          onSave={(v) => editing.editField(path, v)}
+                          onReset={() => editing.resetField(path)}
+                          renderValue={(v) => (
+                            <Badge variant="secondary" className="font-normal">
+                              {v}
+                            </Badge>
+                          )}
+                        />
+                      ) : (
+                        <Badge variant="secondary" className="font-normal">
+                          {p}
+                        </Badge>
+                      )}
+                      <EvidenceModal evidence={itemSpans} fieldName={p} pdfUrl={pdfPath} />
                     </li>
                   );
                 })}
@@ -276,7 +321,24 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
             />
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-relaxed text-foreground/90">{summary.notes_summary}</p>
+            {editing ? (
+              <EditableField
+                label="Resumen y plan"
+                value={summary.notes_summary}
+                editType="textarea"
+                isEdited={isEdited("notes_summary")}
+                onSave={(v) => editing.editField("notes_summary", v)}
+                onReset={() => editing.resetField("notes_summary")}
+                renderValue={(v) => (
+                  <p className="text-sm leading-relaxed text-foreground/90 inline">{v}</p>
+                )}
+                className="w-full items-start"
+              />
+            ) : (
+              <p className="text-sm leading-relaxed text-foreground/90">
+                {summary.notes_summary}
+              </p>
+            )}
           </CardContent>
         </Card>
       </section>

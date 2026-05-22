@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SummaryView } from "@/components/clinical/summary-view";
+import { EditableSummaryView } from "@/components/clinical/editable-summary-view";
 import {
   syntheticCase01PdfPath,
   syntheticCase01Summary,
@@ -234,8 +234,10 @@ export default function UploadAndExtractPage() {
       )}
 
       {(display.kind === "demo" || display.kind === "live") && (
-        <SummaryView
-          summary={display.summary}
+        <EditableSummaryView
+          // Re-mount cuando cambia el case → reset del estado editable.
+          key={`${display.kind}:${display.label}`}
+          initialSummary={display.summary}
           pdfPath={display.pdfPath}
           pdfLabel={display.label}
           origin={display.kind}
