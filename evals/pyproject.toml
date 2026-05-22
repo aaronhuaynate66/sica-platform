@@ -1,0 +1,108 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sica-evals"
+version = "0.1.0"
+description = "SICA — evaluation harness for clinical extraction quality."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+authors = [
+    { name = "SICA Platform" },
+]
+keywords = ["healthtech", "clinical-ai", "evaluation", "obstetrics", "benchmark"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Healthcare Industry",
+    "Programming Language :: Python :: 3.13",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Private :: Do Not Upload",
+]
+dependencies = [
+    "pydantic>=2.10.0",
+    "click>=8.1.7",
+    "jinja2>=3.1.4",
+    "tabulate>=0.9.0",
+    "numpy>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+]
+# Optional integration with clinical-extractor (real model calls).
+# Install with: pip install -e ".[extractor]"
+extractor = [
+    "clinical-extractor",
+]
+
+[project.scripts]
+sica-eval = "sica_evals.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/aaronhuaynate66/sica-platform"
+Repository = "https://github.com/aaronhuaynate66/sica-platform"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sica_evals"]
+
+# =========================================================================
+# Ruff
+# =========================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "N",   # naming
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line length handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]  # assert False allowed in tests
+
+# =========================================================================
+# mypy
+# =========================================================================
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = ["tabulate.*", "jinja2.*"]
+ignore_missing_imports = true
+
+# =========================================================================
+# pytest
+# =========================================================================
+[tool.pytest.ini_options]
+minversion = "8.3"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]

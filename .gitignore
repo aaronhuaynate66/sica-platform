@@ -56,6 +56,20 @@ historias/
 # UI demo: copia local del PDF sintético para la app web. Marcado como demo.
 !apps/web/public/synthetic_case_01.pdf
 
+# sica-evals: reportes generados por el harness — NUNCA commitear
+# (cada corrida produce *.json/*.md/*.html con timestamps + run_id).
+evals/reports/*
+!evals/reports/.gitkeep
+# Datasets y ground truth reales: nunca en el repo. Ver docs/security/data-handling.md.
+evals/datasets/
+evals/ground_truth/
+# Build/dev artifacts del paquete sica-evals
+evals/.pytest_cache/
+evals/.mypy_cache/
+evals/.ruff_cache/
+evals/dist/
+evals/build/
+
 # =========================================================================
 # Node / TypeScript
 # =========================================================================
