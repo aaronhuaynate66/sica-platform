@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-import { TopNav } from "@/components/site/top-nav";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { MicrosoftClarity } from "@/components/analytics/microsoft-clarity";
+import { ConsentBanner } from "@/components/site/consent-banner";
 import { DisclaimerBanner } from "@/components/site/disclaimer-banner";
 import { ThemeProvider } from "@/components/site/theme-provider";
+import { TopNav } from "@/components/site/top-nav";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,8 +38,13 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="dark">
           <TopNav />
           <main className="flex-1 flex flex-col">{children}</main>
+          <ConsentBanner />
           <DisclaimerBanner />
         </ThemeProvider>
+        {/* Scripts de analytics. Internamente verifican consent + env var
+            antes de inyectar nada. Si cualquiera falta, no rinden script. */}
+        <GoogleAnalytics />
+        <MicrosoftClarity />
       </body>
     </html>
   );
