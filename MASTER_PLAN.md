@@ -2,7 +2,7 @@
 
 ## Estado general
 
-Última actualización: `2026-05-22T20:34:44Z`  
+Última actualización: `2026-05-22T20:35:01Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
@@ -11,10 +11,10 @@ Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 ## Progreso general
 
 ```
-████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 6/20 issues cerrados (30%)
+███████████████░░░░░░░░░░░░░░░░░░░░░░░░░ 8/21 issues cerrados (38%)
 ```
 
-✅ Cerrados: 6 | 🔄 En progreso: 0 | ⬜ Pendientes: 14 | 🚨 Bloqueantes: 4
+✅ Cerrados: 8 | 🔄 En progreso: 0 | ⬜ Pendientes: 13 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -50,7 +50,7 @@ gantt
 
 | Release | Período | Estado | Progreso |
 |---------|---------|--------|----------|
-| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████░░░░░ 46% |
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | ██████░░░░ 57% |
 | R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
@@ -69,7 +69,7 @@ gantt
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-██████████████████░░░░░░░░░░░░░░░░░░░░░░ 6/13 issues cerrados (46%)
+███████████████████████░░░░░░░░░░░░░░░░░ 8/14 issues cerrados (57%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
@@ -82,11 +82,12 @@ gantt
 | #13 | [[R0] Crear primer ADR sobre política de routing de modelos (MedGemma vs Gemini vs Claude)](https://github.com/aaronhuaynate66/sica-platform/issues/13) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
 | #14 | [[R0] Setup de Langfuse self-hosted o decisión de servicio gestionado](https://github.com/aaronhuaynate66/sica-platform/issues/14) | fase-1, r0 | ⬜ Abierto | — |
 | #15 | [[R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real](https://github.com/aaronhuaynate66/sica-platform/issues/15) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
-| #16 | [Deploy apps/api a producción (Render)](https://github.com/aaronhuaynate66/sica-platform/issues/16) | retroactive | ⬜ Abierto | — |
-| #17 | [Conectar apps/web con apps/api en producción](https://github.com/aaronhuaynate66/sica-platform/issues/17) | retroactive | ⬜ Abierto | — |
+| #16 | [Deploy apps/api a producción (Render)](https://github.com/aaronhuaynate66/sica-platform/issues/16) | retroactive | ✅ Cerrado | 2026-05-22 |
+| #17 | [Conectar apps/web con apps/api en producción](https://github.com/aaronhuaynate66/sica-platform/issues/17) | retroactive | ✅ Cerrado | 2026-05-22 |
 | #18 | [Evidencia trazable per-field en UI](https://github.com/aaronhuaynate66/sica-platform/issues/18) | retroactive | ⬜ Abierto | — |
 | #19 | [Editor inline para campos clave del resumen](https://github.com/aaronhuaynate66/sica-platform/issues/19) | retroactive | ⬜ Abierto | — |
 | #20 | [Banner de consentimiento + masking PHI](https://github.com/aaronhuaynate66/sica-platform/issues/20) | retroactive | ⬜ Abierto | — |
+| #21 | [Integración GA4 + Microsoft Clarity](https://github.com/aaronhuaynate66/sica-platform/issues/21) | retroactive | ⬜ Abierto | — |
 
 ### R1 Resumen Obstétrico
 
@@ -192,10 +193,11 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 
 ### Sin categorizar
 
-- ⬜ [#16](https://github.com/aaronhuaynate66/sica-platform/issues/16) Deploy apps/api a producción (Render)
-- ⬜ [#17](https://github.com/aaronhuaynate66/sica-platform/issues/17) Conectar apps/web con apps/api en producción
+- ✅ [#16](https://github.com/aaronhuaynate66/sica-platform/issues/16) Deploy apps/api a producción (Render)
+- ✅ [#17](https://github.com/aaronhuaynate66/sica-platform/issues/17) Conectar apps/web con apps/api en producción
 - ⬜ [#18](https://github.com/aaronhuaynate66/sica-platform/issues/18) Evidencia trazable per-field en UI
 - ⬜ [#19](https://github.com/aaronhuaynate66/sica-platform/issues/19) Editor inline para campos clave del resumen
+- ⬜ [#21](https://github.com/aaronhuaynate66/sica-platform/issues/21) Integración GA4 + Microsoft Clarity
 
 ---
 
