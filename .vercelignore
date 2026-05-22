@@ -1,0 +1,28 @@
+# =========================================================================
+# .vercelignore — qué NO sube Vercel desde el monorepo.
+# El root deployment de apps/web no necesita services/evals/docs/.github.
+# =========================================================================
+
+services/
+evals/
+docs/
+.github/
+
+# Markdown del repo (excepto el README de apps/web).
+README.md
+SECURITY.md
+STRATEGY.md
+STRATEGY.v0.1.backup.md
+MASTER_PLAN.md
+
+# Build cache / artifacts
+.turbo/
+**/__pycache__/
+**/.venv/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Python servicios (defensiva — services/ ya está excluido pero por si crece)
+**/*.py
+**/*.pyc

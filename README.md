@@ -76,6 +76,21 @@ Las políticas de seguridad y manejo de PHI están documentadas en [`SECURITY.md
 
 ---
 
+## Deployment
+
+| Componente | Plataforma | Estado | Documentación |
+|---|---|---|---|
+| `apps/web` | Vercel (frontend Next.js) | Pendiente primer deploy manual | [`apps/web/VERCEL.md`](apps/web/VERCEL.md) — checklist exacto para configurar el proyecto en la UI de Vercel |
+| `apps/api` | Cloud Run (backend Python FastAPI) | TODO | Ver issue R0 — Dockerfile + deploy script pendientes |
+| `services/clinical-extractor` | N/A (librería consumida por `apps/api`) | Local-only | — |
+
+El cliente HTTP de `apps/web` (`lib/api/client.ts`) opera en dos modos según `NEXT_PUBLIC_API_MODE`:
+
+- `demo` (default Vercel actual) — usa fixture sintético, sin red.
+- `live` — invoca `apps/api` real con fallback automático a demo si `/health` falla.
+
+CORS de `apps/api` permite por default `https://*.vercel.app` (preview deploys). Refinar `ALLOWED_ORIGIN_REGEX` cuando exista dominio de producción.
+
 ## Contacto
 
 Owner: ver perfil de GitHub del repo. Equipo y roles fundadores en `STRATEGY.md` § 19.
