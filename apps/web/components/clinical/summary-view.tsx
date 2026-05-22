@@ -1,10 +1,19 @@
-import { Activity, Calendar, FileText, FlaskConical, Stethoscope, TriangleAlert } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  FlaskConical,
+  Stethoscope,
+  TriangleAlert,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfidenceBar } from "@/components/clinical/confidence-bar";
-import { EvidenceSheet } from "@/components/clinical/evidence-sheet";
+import { EvidenceModal } from "@/components/clinical/evidence-modal";
 import { Separator } from "@/components/ui/separator";
+import { evidenceFor, evidenceForItem } from "@/lib/clinical/field-evidence";
 import type { ObstetricSummary } from "@/lib/api/types";
 
 function formatGA(weeks: number | null): string {
@@ -29,10 +38,7 @@ interface SummaryViewProps {
 }
 
 export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewProps) {
-  const spansBy = (claimKeywords: string[]) =>
-    summary.evidence_spans.filter((s) =>
-      claimKeywords.some((kw) => s.claim.toLowerCase().includes(kw)),
-    );
+  const spans = summary.evidence_spans;
 
   return (
     <div className="grid flex-1 grid-cols-1 lg:grid-cols-[60%_40%]">
@@ -50,13 +56,20 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
           <iframe
             src={pdfPath}
             title="PDF original"
-            className="flex-1 w-full min-h-[70vh] bg-white"
+            className="flex-1 w-full min-h-[60vh] bg-white"
           />
         ) : (
           <div className="flex flex-1 items-center justify-center bg-white text-xs text-muted-foreground">
             (PDF subido vive solo en memoria — no se persiste vista previa)
           </div>
         )}
+        <div className="border-t border-border bg-muted/40 px-4 py-2 text-[11px] flex items-center gap-2 text-muted-foreground">
+          <CheckCircle2 className="size-3.5 text-confirm-green shrink-0" />
+          <span>
+            <strong className="text-foreground font-medium">Trazabilidad activada</strong> — cada
+            dato extraído incluye referencia al texto fuente del documento.
+          </span>
+        </div>
       </section>
 
       <section className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[calc(100vh-9rem)]">
@@ -86,21 +99,44 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
               <Calendar className="size-4 text-clinical-blue" />
               Datos gestacionales
             </CardTitle>
-            <EvidenceSheet
-              title="Evidencia · Datos gestacionales"
-              spans={spansBy(["edad", "fum", "fpp", "eg"])}
-            />
           </CardHeader>
           <CardContent>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dl className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 text-sm items-center">
               <dt className="text-muted-foreground">Edad</dt>
-              <dd className="font-mono tabular-nums">{summary.patient_age ?? "—"} años</dd>
+              <dd className="font-mono tabular-nums text-right">
+                {summary.patient_age ?? "—"} años
+              </dd>
+              <EvidenceModal
+                evidence={evidenceFor(spans, "patient_age")}
+                fieldName="Edad"
+                pdfUrl={pdfPath}
+              />
+
               <dt className="text-muted-foreground">EG actual</dt>
-              <dd className="font-mono tabular-nums">{formatGA(summary.gestational_age_weeks)}</dd>
+              <dd className="font-mono tabular-nums text-right">
+                {formatGA(summary.gestational_age_weeks)}
+              </dd>
+              <EvidenceModal
+                evidence={evidenceFor(spans, "gestational_age_weeks")}
+                fieldName="Edad gestacional"
+                pdfUrl={pdfPath}
+              />
+
               <dt className="text-muted-foreground">FUM</dt>
-              <dd className="font-mono tabular-nums">{formatDateEs(summary.fum)}</dd>
+              <dd className="font-mono tabular-nums text-right">{formatDateEs(summary.fum)}</dd>
+              <EvidenceModal
+                evidence={evidenceFor(spans, "fum")}
+                fieldName="FUM"
+                pdfUrl={pdfPath}
+              />
+
               <dt className="text-muted-foreground">FPP</dt>
-              <dd className="font-mono tabular-nums">{formatDateEs(summary.fpp)}</dd>
+              <dd className="font-mono tabular-nums text-right">{formatDateEs(summary.fpp)}</dd>
+              <EvidenceModal
+                evidence={evidenceFor(spans, "fpp")}
+                fieldName="FPP"
+                pdfUrl={pdfPath}
+              />
             </dl>
           </CardContent>
         </Card>
@@ -111,23 +147,32 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
               <TriangleAlert className="size-4 text-warn-yellow" />
               Problemas activos
             </CardTitle>
-            <EvidenceSheet
-              title="Evidencia · Problemas activos"
-              spans={spansBy(["anemia", "cesárea", "problema", "hipertensi", "diabetes", "rpm", "gemelar"])}
+            <EvidenceModal
+              evidence={evidenceFor(spans, "active_problems")}
+              fieldName="Problemas activos"
+              pdfUrl={pdfPath}
             />
           </CardHeader>
           <CardContent>
             {summary.active_problems.length === 0 ? (
               <p className="text-sm text-muted-foreground">Sin problemas activos.</p>
             ) : (
-              <ul className="flex flex-wrap gap-1.5">
-                {summary.active_problems.map((p) => (
-                  <li key={p}>
-                    <Badge variant="secondary" className="font-normal">
-                      {p}
-                    </Badge>
-                  </li>
-                ))}
+              <ul className="flex flex-col gap-1.5">
+                {summary.active_problems.map((p) => {
+                  const itemSpans = evidenceForItem(spans, p);
+                  return (
+                    <li key={p} className="flex items-center justify-between gap-2">
+                      <Badge variant="secondary" className="font-normal">
+                        {p}
+                      </Badge>
+                      <EvidenceModal
+                        evidence={itemSpans}
+                        fieldName={p}
+                        pdfUrl={pdfPath}
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
             {summary.risk_factors.length > 0 && (
@@ -159,9 +204,10 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
               <FlaskConical className="size-4 text-clinical-blue" />
               Laboratorios
             </CardTitle>
-            <EvidenceSheet
-              title="Evidencia · Laboratorios"
-              spans={spansBy(["hemoglobina", "tsh", "glucosa", "hiv", "sífilis", "laboratorio", "plaquetas", "ferritina"])}
+            <EvidenceModal
+              evidence={evidenceFor(spans, "labs")}
+              fieldName="Laboratorios"
+              pdfUrl={pdfPath}
             />
           </CardHeader>
           <CardContent>
@@ -174,6 +220,7 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
                     <th className="font-normal pb-1.5">Analito</th>
                     <th className="font-normal pb-1.5 text-right">Valor</th>
                     <th className="font-normal pb-1.5 text-right">Estado</th>
+                    <th className="font-normal pb-1.5"></th>
                   </tr>
                 </thead>
                 <tbody className="font-mono tabular-nums">
@@ -201,6 +248,13 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
                           </Badge>
                         )}
                       </td>
+                      <td className="py-1.5 text-right">
+                        <EvidenceModal
+                          evidence={evidenceForItem(spans, lab.name)}
+                          fieldName={lab.name}
+                          pdfUrl={pdfPath}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -215,7 +269,11 @@ export function SummaryView({ summary, pdfPath, pdfLabel, origin }: SummaryViewP
               <Stethoscope className="size-4 text-clinical-blue" />
               Resumen y plan
             </CardTitle>
-            <EvidenceSheet title="Evidencia · Plan" spans={spansBy(["plan", "cesárea programada"])} />
+            <EvidenceModal
+              evidence={evidenceFor(spans, "plan")}
+              fieldName="Plan"
+              pdfUrl={pdfPath}
+            />
           </CardHeader>
           <CardContent>
             <p className="text-sm leading-relaxed text-foreground/90">{summary.notes_summary}</p>

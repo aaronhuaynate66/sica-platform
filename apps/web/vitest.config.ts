@@ -1,16 +1,25 @@
 import { fileURLToPath } from "url";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  plugins: [react()],
   test: {
-    environment: "node",
+    // happy-dom para tests de componentes React; los tests puros de lib/
+    // funcionan igual en happy-dom.
+    environment: "happy-dom",
     globals: false,
-    include: ["lib/**/*.test.ts", "lib/**/__tests__/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "lib/**/__tests__/**/*.test.ts",
+      "lib/**/__tests__/**/*.test.tsx",
+      "components/**/__tests__/**/*.test.tsx",
+    ],
     css: false,
+    setupFiles: ["./vitest.setup.ts"],
   },
-  // Disable PostCSS auto-discovery — the project's postcss.config.mjs is
-  // shaped for Next.js (string plugin spec) and breaks Vite's loader.
-  // Tests don't touch CSS, so this is a no-op for them.
+  // Disable PostCSS auto-discovery — el postcss.config.mjs es para Next.js
+  // (string plugin spec) y rompe el loader de Vite. Tests no tocan CSS.
   css: {
     postcss: { plugins: [] },
   },
