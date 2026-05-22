@@ -1,0 +1,27 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "ruptura prematura de membranas pretérmino",
+  "created_at": "2026-05-22T05:21:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_04_rpm.expected.json",
+    "sha256": "7c7879285d305314ad4180d5c26ef6deb599e2dc5e2b9e461c3c9816aa558ff1",
+    "size_bytes": 3230
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_04_rpm.pdf",
+    "sha256": "380e3c917ac1d2eeffafddfd8a24611c955192644295fd38967449f855d597b1",
+    "size_bytes": 4996
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#9",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

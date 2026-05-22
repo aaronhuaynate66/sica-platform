@@ -1,0 +1,27 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "embarazo gemelar bicorial biamniótico",
+  "created_at": "2026-05-22T05:21:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_03_gemelar.expected.json",
+    "sha256": "7abb36798a034d660318c389bb0b91621816c43eee1b1750182b5b757e81a956",
+    "size_bytes": 3098
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_03_gemelar.pdf",
+    "sha256": "07a3363dcac954a53112306544fb379b30b847381b72597ebdcec1cdc603644d",
+    "size_bytes": 4821
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#9",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

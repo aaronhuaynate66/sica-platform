@@ -1,0 +1,110 @@
+{
+  "active_problems": [
+    "Ruptura prematura de membranas de 8 horas",
+    "Oligoamnios secundario a RPM (ILA 6 cm)"
+  ],
+  "confidence_score": 0.92,
+  "evidence_spans": [
+    {
+      "claim": "Edad 30 años",
+      "source_page": 1,
+      "source_text": "Edad:\n30 años"
+    },
+    {
+      "claim": "G1 P0 primigesta",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G1 P0. Primigesta."
+    },
+    {
+      "claim": "FUM 12/08/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n12/08/2025"
+    },
+    {
+      "claim": "FPP 19/05/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n19/05/2026"
+    },
+    {
+      "claim": "EG 34 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n34 semanas"
+    },
+    {
+      "claim": "RPM hace 8 horas con líquido claro",
+      "source_page": 1,
+      "source_text": "Paciente refiere pérdida de líquido por vía vaginal hace 8 horas, inicio súbito, líquido claro sin mal olor."
+    },
+    {
+      "claim": "Tiempo de RPM al ingreso 8 horas",
+      "source_page": 1,
+      "source_text": "Tiempo de RPM al ingreso:\n8 horas"
+    },
+    {
+      "claim": "Afebril (T° 36.8°C)",
+      "source_page": 1,
+      "source_text": "T° 36.8°C (afebril)."
+    },
+    {
+      "claim": "Sin leucocitosis significativa",
+      "source_page": 1,
+      "source_text": "Leucocitos\n9800\n/mm³\nSin leucocitosis significativa"
+    },
+    {
+      "claim": "PCR no elevada",
+      "source_page": 1,
+      "source_text": "PCR\n0.8\nmg/dL\nNo elevada"
+    },
+    {
+      "claim": "Plan: antibióticos profilácticos + maduración pulmonar + manejo expectante",
+      "source_page": 1,
+      "source_text": "Antibioticoterapia profiláctica con ampicilina + eritromicina según protocolo de RPM pretérmino."
+    }
+  ],
+  "fpp": "2026-05-19",
+  "fum": "2025-08-12",
+  "gestational_age_weeks": 34.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-04-12",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.6"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-12",
+      "name": "Leucocitos",
+      "unit": "/mm³",
+      "value": "9800"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-12",
+      "name": "PCR",
+      "unit": "mg/dL",
+      "value": "0.8"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-12",
+      "name": "Glucosa",
+      "unit": "mg/dL",
+      "value": "88"
+    },
+    {
+      "abnormal": null,
+      "date": "2026-04-12",
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Pendiente"
+    }
+  ],
+  "notes_summary": "Primigesta de 30 años cursando 34 semanas de gestación, ingresa por ruptura prematura de membranas de 8 horas de evolución con líquido amniótico claro. Afebril, sin leucocitosis significativa ni PCR elevada — sin signos clínicos ni laboratoriales de corioamnionitis al momento. Eco compatible con oligoamnios secundario a RPM (ILA 6 cm). Plan de manejo expectante con antibioticoterapia profiláctica, maduración pulmonar fetal con betametasona y monitoreo materno-fetal estricto.",
+  "patient_age": 30,
+  "risk_factors": [
+    "Ruptura prematura de membranas pretérmino",
+    "Oligoamnios secundario"
+  ]
+}

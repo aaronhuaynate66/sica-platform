@@ -1,0 +1,27 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "control normal en PDF con ruido tipo OCR/manuscrito",
+  "created_at": "2026-05-22T05:21:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_07_manuscrito.expected.json",
+    "sha256": "ef4d8a5f43cb2c1a6e2e6f0474d792ed0078cf199d74b67545d022e0a8200715",
+    "size_bytes": 2617
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_07_manuscrito.pdf",
+    "sha256": "4a3dd2a7dbb6e5e7f53c44c5652d18241ae1c316b90333339d1378b2a1b5d132",
+    "size_bytes": 4117
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#9",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

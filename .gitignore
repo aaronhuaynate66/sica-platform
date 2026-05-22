@@ -51,6 +51,12 @@ historias/
 # y el contenido debe llevar el header "DATOS SINTÉTICOS - NO ES PACIENTE REAL".
 !services/clinical-extractor/data/
 !services/clinical-extractor/data/synthetic_case_01.pdf
+!services/clinical-extractor/data/synthetic_case_02_preeclampsia.pdf
+!services/clinical-extractor/data/synthetic_case_03_gemelar.pdf
+!services/clinical-extractor/data/synthetic_case_04_rpm.pdf
+!services/clinical-extractor/data/synthetic_case_05_diabetes_gestacional.pdf
+!services/clinical-extractor/data/synthetic_case_06_anemia_severa.pdf
+!services/clinical-extractor/data/synthetic_case_07_manuscrito.pdf
 !evals/fixtures/
 !evals/fixtures/**/*.pdf
 # UI demo: copia local del PDF sintético para la app web. Marcado como demo.

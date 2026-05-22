@@ -1,0 +1,140 @@
+{
+  "active_problems": [
+    "Diabetes gestacional (curva TOG anormal en 3 puntos)",
+    "Macrosomía fetal estimada (PFE percentil 90)",
+    "Polihidramnios leve (ILA 22 cm)"
+  ],
+  "confidence_score": 0.93,
+  "evidence_spans": [
+    {
+      "claim": "Edad 38 años",
+      "source_page": 1,
+      "source_text": "Edad:\n38 años"
+    },
+    {
+      "claim": "G4 P3",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G4 P3 (3 partos vaginales previos: 2014, 2017 y 2020)."
+    },
+    {
+      "claim": "Antecedente de macrosomía (4100 g) en último embarazo",
+      "source_page": 1,
+      "source_text": "Recién nacido del último embarazo: 4,100 g (macrosómico)."
+    },
+    {
+      "claim": "FUM 20/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n20/09/2025"
+    },
+    {
+      "claim": "FPP 27/06/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n27/06/2026"
+    },
+    {
+      "claim": "EG 28 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n28 semanas"
+    },
+    {
+      "claim": "Glucosa ayuno 105 mg/dL",
+      "source_page": 1,
+      "source_text": "Glucosa ayuno\n105\nmg/dL\nSobre umbral DG (>=92)"
+    },
+    {
+      "claim": "Glucosa 1 h post 75 g 195 mg/dL",
+      "source_page": 1,
+      "source_text": "Glucosa 1 h\n195\nmg/dL\nSobre umbral DG (>=180)"
+    },
+    {
+      "claim": "Glucosa 2 h post 75 g 165 mg/dL",
+      "source_page": 1,
+      "source_text": "Glucosa 2 h\n165\nmg/dL\nSobre umbral DG (>=153)"
+    },
+    {
+      "claim": "HbA1c 6.4%",
+      "source_page": 1,
+      "source_text": "HbA1c\n6.4\n%\nCompatible con DG"
+    },
+    {
+      "claim": "Peso fetal estimado 1850 g percentil 90",
+      "source_page": 1,
+      "source_text": "Peso fetal estimado: 1,850 g (percentil 90 — macrosomía fetal estimada)."
+    },
+    {
+      "claim": "Plan: dieta + automonitoreo + endocrinología",
+      "source_page": 1,
+      "source_text": "Automonitoreo glucémico capilar: ayuno y postprandial 1 h, 4 mediciones diarias."
+    }
+  ],
+  "fpp": "2026-06-27",
+  "fum": "2025-09-20",
+  "gestational_age_weeks": 28.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-03-28",
+      "name": "Glucosa ayuno (TOG 75 g)",
+      "unit": "mg/dL",
+      "value": "105"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-03-28",
+      "name": "Glucosa 1 h (TOG 75 g)",
+      "unit": "mg/dL",
+      "value": "195"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-03-28",
+      "name": "Glucosa 2 h (TOG 75 g)",
+      "unit": "mg/dL",
+      "value": "165"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-03-28",
+      "name": "HbA1c",
+      "unit": "%",
+      "value": "6.4"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-28",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "12.1"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-28",
+      "name": "Creatinina",
+      "unit": "mg/dL",
+      "value": "0.7"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-28",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "2.0"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-28",
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    }
+  ],
+  "notes_summary": "Gestante de 38 años, G4P3, cursando 28 semanas con diagnóstico nuevo de diabetes gestacional por curva de tolerancia oral a la glucosa anormal en los 3 puntos (ayuno 105, 1 h 195, 2 h 165) y HbA1c 6.4%. Ecografía con macrosomía fetal estimada (PFE 1850 g, percentil 90) y polihidramnios leve. Antecedente relevante de macrosomía (4100 g) en último embarazo. Plan inicial con dieta estructurada, automonitoreo glucémico capilar y referencia a endocrinología; evaluación de insulina si metas no se logran.",
+  "patient_age": 38,
+  "risk_factors": [
+    "Edad materna avanzada (>=35)",
+    "Multiparidad (G4P3)",
+    "Antecedente de macrosomía fetal previa",
+    "Antecedente familiar de diabetes tipo 2",
+    "Diabetes gestacional con macrosomía estimada"
+  ]
+}

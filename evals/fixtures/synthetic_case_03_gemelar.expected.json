@@ -1,0 +1,112 @@
+{
+  "active_problems": [
+    "Embarazo gemelar bicorial biamniótico",
+    "Anemia leve gestacional"
+  ],
+  "confidence_score": 0.9,
+  "evidence_spans": [
+    {
+      "claim": "Edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "G2 P1",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (1 parto vaginal previo, 2023, embarazo único, sin complicaciones)."
+    },
+    {
+      "claim": "FUM 08/10/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n08/10/2025"
+    },
+    {
+      "claim": "FPP 15/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n15/07/2026"
+    },
+    {
+      "claim": "EG 24 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n24 semanas"
+    },
+    {
+      "claim": "Gemelar bicorial biamniótico",
+      "source_page": 1,
+      "source_text": "Tipo de embarazo:\nGemelar bicorial biamniótico"
+    },
+    {
+      "claim": "Corionicidad confirmada a las 12 semanas (signo lambda)",
+      "source_page": 1,
+      "source_text": "Eco a las 12 semanas confirmó corionicidad: dos sacos, dos placentas, signo lambda positivo."
+    },
+    {
+      "claim": "Crecimiento concordante en última eco",
+      "source_page": 1,
+      "source_text": "Última eco (18 semanas) con crecimiento concordante entre ambos fetos."
+    },
+    {
+      "claim": "Hemoglobina 10.2 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.2\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "Plan: control quincenal desde semana 26",
+      "source_page": 1,
+      "source_text": "Control quincenal a partir de semana 26."
+    }
+  ],
+  "fpp": "2026-07-15",
+  "fum": "2025-10-08",
+  "gestational_age_weeks": 24.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-03-15",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "10.2"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-03-15",
+      "name": "Hematocrito",
+      "unit": "%",
+      "value": "31.0"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "84"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "1.9"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Gestante de 28 años, G2P1, cursando 24 semanas de embarazo gemelar bicorial biamniótico confirmado por corionicidad ecográfica temprana. Crecimiento fetal concordante entre ambos gemelos en última ecografía. Anemia leve gestacional (Hb 10.2) en tratamiento con hierro oral. Plan de control quincenal a partir de semana 26 con vigilancia ecográfica seriada.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Embarazo gemelar",
+    "Anemia leve gestacional"
+  ]
+}

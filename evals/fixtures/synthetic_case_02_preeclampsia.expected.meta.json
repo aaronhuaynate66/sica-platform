@@ -1,0 +1,27 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "preeclampsia severa con proteinuria y plaquetopenia",
+  "created_at": "2026-05-22T05:21:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_02_preeclampsia.expected.json",
+    "sha256": "285641b909dd1375032e115f8aaa8a0351b908266f206112c95ad61143d8f738",
+    "size_bytes": 3659
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_02_preeclampsia.pdf",
+    "sha256": "a4d473cea405fcf2451cdb11147e762860f66a20ccbb5a5ebd47555e25d169a8",
+    "size_bytes": 4243
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#9",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

@@ -2,6 +2,34 @@
 
 Esta carpeta contiene **solo casos sintéticos** que el harness de evaluación usa como regression test. No entra PHI real aquí — eso vive en object storage privado (ver `evals/GROUND_TRUTH_PROCESS.md` y `docs/security/data-handling.md`).
 
+## Casos disponibles
+
+| case_id | Tipo clínico | Notas | Confidence esperada |
+|---|---|---|:---:|
+| `synthetic_case_01` | Control normal G2P1, EG 28 sem | Caso baseline original (issue #9). Cesárea previa + anemia leve. | 0.95 |
+| `synthetic_case_02_preeclampsia` | Preeclampsia severa, EG 32 sem | Plaquetopenia + proteinuria + plan con sulfato de Mg. | 0.92 |
+| `synthetic_case_03_gemelar` | Embarazo gemelar bicorial biamniótico, EG 24 sem | Corionicidad confirmada eco 12 sem. | 0.90 |
+| `synthetic_case_04_rpm` | RPM pretérmino, EG 34 sem | Sin signos de corioamnionitis. Manejo expectante. | 0.92 |
+| `synthetic_case_05_diabetes_gestacional` | DG con macrosomía estimada, EG 28 sem | Curva TOG anormal en 3 puntos + HbA1c 6.4%. | 0.93 |
+| `synthetic_case_06_anemia_severa` | Anemia ferropénica severa, EG 30 sem | Hb 7.2 sintomática — hierro EV + reevaluar transfusión. | 0.92 |
+| `synthetic_case_07_manuscrito` | Control normal, EG 22 sem, PDF con ruido OCR | Mismo perfil clínico que case_01 pero el PDF emula manuscrito digitalizado con sustituciones de caracteres (l↔1, O↔0, Z↔2, etc.). Stress-test del extractor frente a OCR ruidoso. | 0.72 |
+
+Todos los PDFs canónicos viven en `services/clinical-extractor/data/` y se copian aquí para que el harness los encuentre sin depender del path canónico.
+
+Generador: `services/clinical-extractor/scripts/generate_synthetic_pdfs.py` (regenerable, determinista en contenido — bytes pueden cambiar por timestamps internos de reportlab).
+
+## Cuándo agregar más casos
+
+Agregar un caso sintético tiene sentido cuando:
+
+1. **Cobertura clínica falta**: un escenario relevante para el wedge R1/R2 (obstetricia + neonatal) que ninguno de los actuales ejercita — p. ej. preeclampsia atípica sin proteinuria, síndrome HELLP, preeclampsia post-parto, RPM con corioamnionitis franca, restricción de crecimiento intrauterino.
+2. **Modo de fallo nuevo**: un patrón de PDF/OCR que rompió al extractor en producción y queremos prevenir regresión (PDF escaneado torcido, tabla con merged cells, abreviaturas locales no estándar).
+3. **Issue específico lo demanda**: el comparador o una métrica nueva necesita un caso que la ejercite (ej. evaluación de razonamiento temporal — STRATEGY § 10.1 pilar 6).
+
+**No** agregar casos solo para inflar el conteo. Cada caso es regression test permanente; mantener fixture, meta, schema y ground truth alineados tiene costo.
+
+Casos curados por médicos reales (single-reviewer o double-blind) **reemplazan** a los sintéticos en categorías solapadas — no se acumulan.
+
 ## Convenciones de naming
 
 Por cada caso, tres archivos pueden coexistir:
@@ -12,7 +40,9 @@ Por cada caso, tres archivos pueden coexistir:
 | `{case_id}.expected.json` | **Sí** | Output esperado en formato `ObstetricSummary`. |
 | `{case_id}.expected.meta.json` | Recomendado | Metadatos: tipo de baseline, revisor humano, hash del PDF, modelo que lo generó, fecha. |
 
-`case_id` debe ser estable, kebab/snake case, sin PHI ni nombres reales. Ejemplos: `synthetic_case_01`, `preeclampsia_atypical_01`, `gemelar_discordant_growth`.
+`case_id` debe ser estable, kebab/snake case, sin PHI ni nombres reales.
+
+Convención adoptada en el dataset actual: `synthetic_case_NN_descripcion` donde `NN` es el número correlativo y `descripcion` el patrón clínico dominante (`preeclampsia`, `gemelar`, `rpm`, `diabetes_gestacional`, `anemia_severa`, `manuscrito`). Para casos curados por médicos reales — sin numeración correlativa: `preeclampsia_atypical_01`, `gemelar_discordant_growth`, etc.
 
 ## Estructura de `expected.json`
 

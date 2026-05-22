@@ -1,0 +1,126 @@
+{
+  "active_problems": [
+    "Anemia severa ferropénica (Hb 7.2)",
+    "Sintomatología por anemia (cefalea, palpitaciones, fatiga)",
+    "Taquicardia compensatoria (FC 108)"
+  ],
+  "confidence_score": 0.92,
+  "evidence_spans": [
+    {
+      "claim": "Edad 22 años",
+      "source_page": 1,
+      "source_text": "Edad:\n22 años"
+    },
+    {
+      "claim": "G2 P1",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (parto vaginal 2022, sin complicaciones)."
+    },
+    {
+      "claim": "FUM 01/10/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n01/10/2025"
+    },
+    {
+      "claim": "FPP 08/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n08/07/2026"
+    },
+    {
+      "claim": "EG 30 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n30 semanas"
+    },
+    {
+      "claim": "Cefalea, palpitaciones, fatiga severa",
+      "source_page": 1,
+      "source_text": "Paciente refiere cefalea persistente, palpitaciones de esfuerzo y fatiga severa en últimas 2 semanas."
+    },
+    {
+      "claim": "FC 108 lpm (taquicardia)",
+      "source_page": 1,
+      "source_text": "FC 108 lpm (taquicardia compensatoria)."
+    },
+    {
+      "claim": "Hemoglobina 7.2 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n7.2\ng/dL\nAnemia severa"
+    },
+    {
+      "claim": "Ferritina 8 ng/mL",
+      "source_page": 1,
+      "source_text": "Ferritina\n8\nng/mL\nDepleción severa de hierro"
+    },
+    {
+      "claim": "VCM 72 fL (microcitosis)",
+      "source_page": 1,
+      "source_text": "VCM\n72\nfL\nMicrocitosis"
+    },
+    {
+      "claim": "Plan: hierro endovenoso + estudios + reevaluación transfusión",
+      "source_page": 1,
+      "source_text": "Hierro endovenoso (hierro sacarosa o carboximaltosa) según disponibilidad y protocolo institucional."
+    }
+  ],
+  "fpp": "2026-07-08",
+  "fum": "2025-10-01",
+  "gestational_age_weeks": 30.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "7.2"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "Hematocrito",
+      "unit": "%",
+      "value": "22.0"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "VCM",
+      "unit": "fL",
+      "value": "72"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "HCM",
+      "unit": "pg",
+      "value": "23"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "Ferritina",
+      "unit": "ng/mL",
+      "value": "8"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "Saturación transferrina",
+      "unit": "%",
+      "value": "10"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-02",
+      "name": "Reticulocitos",
+      "unit": "%",
+      "value": "1.2"
+    }
+  ],
+  "notes_summary": "Gestante de 22 años, G2P1, cursando 30 semanas con anemia severa ferropénica (Hb 7.2, ferritina 8) sintomática — cefalea persistente, palpitaciones de esfuerzo y fatiga severa, con taquicardia compensatoria (FC 108). Antecedente de anemia leve en embarazo previo sin tratamiento completado. Plan inicial de hierro endovenoso, estudios complementarios, y reevaluación de transfusión si no responde o aparece descompensación cardiovascular. Monitoreo fetal con Doppler de ACM para descartar anemia fetal.",
+  "patient_age": 22,
+  "risk_factors": [
+    "Anemia severa pregestacional no tratada",
+    "Dieta pobre en hierro hemínico",
+    "Descompensación cardiovascular potencial"
+  ]
+}

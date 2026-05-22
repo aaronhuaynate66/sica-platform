@@ -1,0 +1,27 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "anemia severa ferropénica sintomática",
+  "created_at": "2026-05-22T05:21:54Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_06_anemia_severa.expected.json",
+    "sha256": "d17324104e192f9b3089494fd0478ba6f85217b566470dc7423b982bc4957ff7",
+    "size_bytes": 3615
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_06_anemia_severa.pdf",
+    "sha256": "9a707e3db61b7dba9a5268714eb33eecf2819a60a163c5bfe9769cf03976a41a",
+    "size_bytes": 4382
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#9",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

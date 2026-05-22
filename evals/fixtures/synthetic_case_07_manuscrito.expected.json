@@ -1,0 +1,94 @@
+{
+  "active_problems": [],
+  "confidence_score": 0.72,
+  "evidence_spans": [
+    {
+      "claim": "Edad 26 años",
+      "source_page": 1,
+      "source_text": "Edad:\n26 años"
+    },
+    {
+      "claim": "G1 P0 primigesta",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G1 PO. Primigesta."
+    },
+    {
+      "claim": "FUM 20/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n20/09/2025"
+    },
+    {
+      "claim": "FPP 27/06/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n27/06/2026"
+    },
+    {
+      "claim": "EG 22 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n22 semanas"
+    },
+    {
+      "claim": "Sin signos de alarma",
+      "source_page": 1,
+      "source_text": "Sin signos de alarma al momento de la consulta."
+    },
+    {
+      "claim": "Hemoglobina 11.6 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n11.6\ng/dL\nDentro de rango"
+    },
+    {
+      "claim": "Eco 20 semanas normal",
+      "source_page": 1,
+      "source_text": "Anatomía fetal sin anomalías estructurales observables."
+    },
+    {
+      "claim": "Plan: control prenatal en 4 semanas + sulfato ferroso",
+      "source_page": 1,
+      "source_text": "Iniciar sulfato ferroso profiláctico 60 mg de hierro elemental VO c/24 h."
+    }
+  ],
+  "fpp": "2026-06-27",
+  "fum": "2025-09-20",
+  "gestational_age_weeks": 22.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.6"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "1.8"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "86"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Primigesta de 26 años cursando 22 semanas de gestación con control normal — sin patología activa, laboratorios dentro de rango y eco anatómica sin malformaciones. Documento digitalizado a partir de manuscrito con calidad de OCR variable, lo que reduce la confianza global de la extracción aunque los datos críticos siguen siendo legibles. Plan de continuidad de control prenatal y tamizaje de DG entre semanas 24-28.",
+  "patient_age": 26,
+  "risk_factors": []
+}

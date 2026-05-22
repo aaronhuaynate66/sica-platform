@@ -1,0 +1,133 @@
+{
+  "active_problems": [
+    "Hipertensión gestacional severa con proteinuria",
+    "Plaquetopenia (95,000/mm³)",
+    "Cefalea persistente y edema progresivo en MMII"
+  ],
+  "confidence_score": 0.92,
+  "evidence_spans": [
+    {
+      "claim": "Edad 35 años",
+      "source_page": 1,
+      "source_text": "Edad:\n35 años"
+    },
+    {
+      "claim": "G3 P2",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G3 P2 (2 partos vaginales previos, 2018 y 2021, sin complicaciones)."
+    },
+    {
+      "claim": "FUM 01/10/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n01/10/2025"
+    },
+    {
+      "claim": "FPP 08/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n08/07/2026"
+    },
+    {
+      "claim": "EG 32 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n32 semanas"
+    },
+    {
+      "claim": "PA 158/102 mmHg",
+      "source_page": 1,
+      "source_text": "PA 158/102 mmHg (confirmada en dos tomas separadas por 4 h)."
+    },
+    {
+      "claim": "Plaquetas 95000/mm³",
+      "source_page": 1,
+      "source_text": "Plaquetas\n95000\n/mm³\nPlaquetopenia"
+    },
+    {
+      "claim": "Proteinuria 2+ en tira",
+      "source_page": 1,
+      "source_text": "Proteinuria tira\n2+\n—\nCualitativa positiva"
+    },
+    {
+      "claim": "Proteinuria 24 h 1.8 g",
+      "source_page": 1,
+      "source_text": "Proteinuria 24 h\n1.8\ng/24 h\nSignificativa"
+    },
+    {
+      "claim": "Edema MMII (++/-)",
+      "source_page": 1,
+      "source_text": "Edema MMII (++/-)\nhasta tercio medio de pierna."
+    },
+    {
+      "claim": "Plan: sulfato de magnesio + maduración pulmonar",
+      "source_page": 1,
+      "source_text": "Inicio de sulfato de magnesio según protocolo (dosis de carga 4 g EV\nen 20 min, mantenimiento 1 g/h). 3. Maduración pulmonar fetal con betametasona 12 mg IM c/24 h x 2 dosis."
+    }
+  ],
+  "fpp": "2026-07-08",
+  "fum": "2025-10-01",
+  "gestational_age_weeks": 32.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-05-10",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.8"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-10",
+      "name": "Plaquetas",
+      "unit": "/mm³",
+      "value": "95000"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-05-10",
+      "name": "Creatinina",
+      "unit": "mg/dL",
+      "value": "0.9"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-10",
+      "name": "AST (TGO)",
+      "unit": "U/L",
+      "value": "38"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-10",
+      "name": "ALT (TGP)",
+      "unit": "U/L",
+      "value": "42"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-05-10",
+      "name": "LDH",
+      "unit": "U/L",
+      "value": "320"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-10",
+      "name": "Proteinuria tira",
+      "unit": null,
+      "value": "2+"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-05-10",
+      "name": "Proteinuria 24 h",
+      "unit": "g/24 h",
+      "value": "1.8"
+    }
+  ],
+  "notes_summary": "Gestante de 35 años, G3P2, cursando 32 semanas de gestación con cuadro de hipertensión gestacional severa (PA 158/102) y proteinuria significativa (2+ en tira, 1.8 g/24 h). Presenta plaquetopenia (95,000/mm³) y discreta elevación de transaminasas. Se ingresa para hospitalización con sulfato de magnesio, maduración pulmonar fetal con betametasona y monitoreo materno-fetal estricto.",
+  "patient_age": 35,
+  "risk_factors": [
+    "Preeclampsia con criterios de severidad",
+    "Plaquetopenia gestacional",
+    "Edad materna >=35 años"
+  ]
+}
