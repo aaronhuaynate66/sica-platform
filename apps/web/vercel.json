@@ -3,6 +3,6 @@
     "framework": "nextjs",
     "buildCommand": "pnpm --filter @sica/web build",
     "outputDirectory": ".next",
-    "installCommand": "npm i -g pnpm@11.1.2 && pnpm install --frozen-lockfile",
+    "installCommand": "npm i -g pnpm@11.1.2 && cd ../.. && pnpm install --frozen-lockfile",
     "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../../packages ../../pnpm-lock.yaml ../../pnpm-workspace.yaml"
 }
