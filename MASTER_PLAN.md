@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `391aed9`
+**Hash del último commit:** `16b66c4`
 
 ## Progreso general
 
@@ -206,6 +206,9 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `16b66c4` | aaronhuaynate66 | feat(web): instrument key events for GA4 and Clarity with PHI guardrails | 2026-05-22 |
+| `2016e43` | aaronhuaynate66 | feat(web): integrate GA4 and Microsoft Clarity with consent gating and PHI sanitization | 2026-05-22 |
+| `4dcf177` | aaronhuaynate66 | feat(web): add cookie consent banner and PHI masking for analytics readiness | 2026-05-22 |
 | `391aed9` | aaronhuaynate66 | feat(web): add inline editing for selected fields with edit tracking | 2026-05-22 |
 | `338a486` | aaronhuaynate66 | feat(web): add evidence traceability with EvidenceModal and per-field references | 2026-05-22 |
 | `a5b3946` | aaronhuaynate66 | fix(api): parse ALLOWED_ORIGINS as CSV from env var (closes deployment regression) | 2026-05-22 |
@@ -213,9 +216,6 @@ Auto-generado leyendo `docs/decisions/`.
 | `7405c59` | aaronhuaynate66 | Modify install command in vercel.json | 2026-05-22 |
 | `a926307` | aaronhuaynate66 | Update vercel.json build and install commands | 2026-05-22 |
 | `e4e888e` | aaronhuaynate66 | chore(web): vercel config and deployment docs | 2026-05-22 |
-| `23e63c1` | aaronhuaynate66 | feat(web): wire UI to API with live/demo mode toggle | 2026-05-22 |
-| `9108916` | aaronhuaynate66 | style(extractor): fix ruff lint issues blocking CI | 2026-05-22 |
-| `c10e2f5` | aaronhuaynate66 | feat(extractor): add retry logic, structured logging, and batch processing | 2026-05-22 |
 
 ---
 
