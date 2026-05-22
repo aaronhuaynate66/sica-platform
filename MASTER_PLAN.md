@@ -2,19 +2,19 @@
 
 ## Estado general
 
-Última actualización: `2026-05-21T20:08:08Z`  
+Última actualización: `2026-05-22T00:51:48Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `8898c61`
+**Hash del último commit:** `c5c5785`
 
 ## Progreso general
 
 ```
-████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 3/15 issues cerrados (20%)
+███████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 4/15 issues cerrados (27%)
 ```
 
-✅ Cerrados: 3 | 🔄 En progreso: 0 | ⬜ Pendientes: 12 | 🚨 Bloqueantes: 4
+✅ Cerrados: 4 | 🔄 En progreso: 0 | ⬜ Pendientes: 11 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -50,7 +50,7 @@ gantt
 
 | Release | Período | Estado | Progreso |
 |---------|---------|--------|----------|
-| R0 Foundation | May–Jul 2026 | 🔄 Activo | ████░░░░░░ 38% |
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████░░░░░ 50% |
 | R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
@@ -69,14 +69,14 @@ gantt
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-███████████████░░░░░░░░░░░░░░░░░░░░░░░░░ 3/8 issues cerrados (38%)
+████████████████████░░░░░░░░░░░░░░░░░░░░ 4/8 issues cerrados (50%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
 |---|-------|--------|--------|---------|
 | #8 | [[R0] Setup técnico del monorepo](https://github.com/aaronhuaynate66/sica-platform/issues/8) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
 | #9 | [[R0] Validar pipeline clinical-extractor en synthetic_case_01](https://github.com/aaronhuaynate66/sica-platform/issues/9) | fase-1, r0 | ⬜ Abierto | — |
-| #10 | [[R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process](https://github.com/aaronhuaynate66/sica-platform/issues/10) | fase-1, r0 | ⬜ Abierto | — |
+| #10 | [[R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process](https://github.com/aaronhuaynate66/sica-platform/issues/10) | fase-1, r0 | ✅ Cerrado | 2026-05-22 |
 | #11 | [[R0] Definir métricas de factualidad: span-level accuracy + critical omissions](https://github.com/aaronhuaynate66/sica-platform/issues/11) | fase-1, r0 | ⬜ Abierto | — |
 | #12 | [[R0] Investigar viabilidad de MedGemma 4B local en el entorno del partner](https://github.com/aaronhuaynate66/sica-platform/issues/12) | fase-1, r0 | ⬜ Abierto | — |
 | #13 | [[R0] Crear primer ADR sobre política de routing de modelos (MedGemma vs Gemini vs Claude)](https://github.com/aaronhuaynate66/sica-platform/issues/13) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
@@ -166,7 +166,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 ### Datos y Eval
 
 - ⬜ [#5](https://github.com/aaronhuaynate66/sica-platform/issues/5) [DATA] Acceso a 150-200 historias obstétricas desidentificadas para benchmark R0
-- ⬜ [#10](https://github.com/aaronhuaynate66/sica-platform/issues/10) [R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process
+- ✅ [#10](https://github.com/aaronhuaynate66/sica-platform/issues/10) [R0] Diseñar el harness de evaluación: dataset retrospectivo + ground truth process
 - ⬜ [#11](https://github.com/aaronhuaynate66/sica-platform/issues/11) [R0] Definir métricas de factualidad: span-level accuracy + critical omissions
 
 ### Modelos AI
@@ -205,6 +205,8 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `c5c5785` | aaronhuaynate66 | feat(evals): implement evaluation harness with metrics, comparators, reporters (closes #10) | 2026-05-22 |
+| `69dd7fd` | aaronhuaynate66 | feat(plan): add Mermaid Gantt timeline and visual release progress to MASTER_PLAN | 2026-05-21 |
 | `8898c61` | aaronhuaynate66 | docs(adr): add ADR 0004 model routing policy with conditional triggers (closes #13) | 2026-05-21 |
 | `2eb7851` | aaronhuaynate66 | docs(security): add security policies, PHI handling, Ley 29733 compliance mapping (closes #15) | 2026-05-21 |
 | `06215b2` | aaronhuaynate66 | feat(web): bootstrap Next.js app with 4 connected views (upload, timeline, dashboard, physician) | 2026-05-21 |
@@ -213,7 +215,6 @@ Auto-generado leyendo `docs/decisions/`.
 | `442e0a8` | aaronhuaynate66 | feat(roadmap): add living roadmap system with auto-sync workflow | 2026-05-21 |
 | `4d201d6` | aaronhuaynate66 | feat: monorepo skeleton + clinical-extractor service (R0 foundation) | 2026-05-21 |
 | `1ed3578` | aaronhuaynate66 | docs: add status badges to README | 2026-05-21 |
-| `c0ef233` | aaronhuaynate66 | docs: initial strategy v0.2 | 2026-05-21 |
 
 ---
 
