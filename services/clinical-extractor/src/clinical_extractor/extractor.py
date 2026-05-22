@@ -136,7 +136,7 @@ def _backoff_delay(attempt: int, initial: float, maximum: float) -> float:
     attempt=0 → initial. attempt=1 → 2*initial. etc. Capa a `maximum`.
     """
     base = min(initial * (2**attempt), maximum)
-    jitter = base * 0.2 * (random.random() * 2 - 1)  # noqa: S311 — no security context
+    jitter = base * 0.2 * (random.random() * 2 - 1)
     return max(0.0, base + jitter)
 
 

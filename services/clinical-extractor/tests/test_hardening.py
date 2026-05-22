@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import anthropic
@@ -19,7 +19,7 @@ import httpx
 import pytest
 
 from clinical_extractor import telemetry
-from clinical_extractor.cli import _extract_one, _run_batch
+from clinical_extractor.cli import _run_batch
 from clinical_extractor.extractor import (
     ExtractionError,
     _backoff_delay,
@@ -28,6 +28,9 @@ from clinical_extractor.extractor import (
 )
 from clinical_extractor.prompts import get_active_prompt
 from clinical_extractor.schemas import ObstetricSummary
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -378,7 +381,7 @@ class TestExtractBatch:
         # Create 3 minimal PDFs
         pdfs = [_make_minimal_pdf(tmp_path, f"case_{i:02d}.pdf") for i in range(3)]
 
-        def fake_extract(path, **kwargs):  # noqa: ANN001, ARG001
+        def fake_extract(path, **kwargs):
             return ObstetricSummary(confidence_score=0.88)
 
         monkeypatch.setattr("clinical_extractor.cli.extract_from_pdf", fake_extract)
@@ -402,7 +405,7 @@ class TestExtractBatch:
 
         call_count = {"n": 0}
 
-        def fake_extract(path, **kwargs):  # noqa: ANN001, ARG001
+        def fake_extract(path, **kwargs):
             call_count["n"] += 1
             if call_count["n"] == 2:
                 raise ExtractionError("simulated mid-batch failure")

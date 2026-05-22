@@ -124,7 +124,7 @@ async def _extract_one(
         except ExtractionError as exc:
             elapsed = time.perf_counter() - started
             return pdf_path, None, f"ExtractionError: {exc}", elapsed
-        except Exception as exc:  # noqa: BLE001 — surface every failure in summary
+        except Exception as exc:
             elapsed = time.perf_counter() - started
             return pdf_path, None, f"{type(exc).__name__}: {exc}", elapsed
 
@@ -225,7 +225,7 @@ def extract_batch(
             failed.append((pdf, error or "unknown error"))
 
     click.echo("", err=True)
-    click.echo(f"=== resumen extract-batch ===", err=True)
+    click.echo("=== resumen extract-batch ===", err=True)
     click.echo(f"  procesados: {len(results)}", err=True)
     click.echo(f"  exitosos:   {len(succeeded)}", err=True)
     click.echo(f"  fallidos:   {len(failed)}", err=True)
