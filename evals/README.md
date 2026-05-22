@@ -78,16 +78,39 @@ sica-eval diff reports/run_a.json reports/run_b.json
 
 Útil como gate de PR: si tocaste un prompt o cambiaste de modelo, esta comparación te dice si subiste o bajaste cada métrica.
 
-## Métricas implementadas
+## Métricas
 
-| Métrica | Módulo | Pilar STRATEGY § 10 |
-|---|---|---|
-| Factual accuracy (weighted) | `metrics.factual_accuracy` | 1 |
-| Critical omissions | `metrics.critical_omissions` | 2 |
-| Hallucinations | `metrics.hallucinations` | 3 |
-| Confidence calibration error (ECE) | `metrics.calibration` | 5 (proxy) |
+**Especificación formal:** [`docs/evaluation/metrics-specification.md`](../docs/evaluation/metrics-specification.md). Cualquier cambio a las métricas pasa primero por la spec, después por el código. **Decisiones metodológicas** (threshold de fuzzy, criticidad, ground truth dudoso) en [ADR 0005](../docs/decisions/0005-evaluation-methodology.md).
 
-Pilares aún no implementados (TODOs futuros): physician disagreement scoring (4), longitudinal consistency (5), temporal reasoning (6), synthetic patient testing en volumen (7).
+### Implementadas en R0
+
+| Métrica | Módulo | Spec § | Umbral R0 |
+|---|---|:---:|---:|
+| Factual accuracy (ponderada) | `metrics.factual_accuracy` | 1 | `≥ 0.85` |
+| Critical omissions | `metrics.critical_omissions` | 2 | `≤ 5 / run` |
+| Hallucinations (H_field + H_span) | `metrics.hallucinations` | 3 | `= 0` |
+| Confidence calibration error (ECE) | `metrics.calibration` | 4 | `≤ 0.15` |
+
+Mini-doc operativo de los módulos en [`src/sica_evals/metrics/README.md`](src/sica_evals/metrics/README.md).
+
+### Correr solo los tests de métricas
+
+```bash
+# Implementación
+python -m pytest tests/test_metrics.py -v
+
+# Spec compliance (verifica que el código cumple metrics-specification.md)
+python -m pytest tests/test_metrics_spec.py -v
+```
+
+### Pendientes (pilares 4-7 de STRATEGY § 10)
+
+Spec preliminar en [`metrics-specification.md`](../docs/evaluation/metrics-specification.md) § 5-8:
+
+- **Physician disagreement scoring** (pilar 4) — necesita uso clínico real. R2+.
+- **Longitudinal consistency** (pilar 5) — necesita múltiples encuentros por paciente. R3.
+- **Temporal reasoning** (pilar 6) — necesita suite sintética por médico. R1+.
+- **Synthetic patient testing en volumen** (pilar 7) — STRATEGY § 10.4. R1+.
 
 ## Cómo agregar un nuevo test case
 

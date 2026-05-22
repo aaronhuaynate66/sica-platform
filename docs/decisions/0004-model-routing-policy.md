@@ -44,7 +44,11 @@ SICA adopta una **política de routing condicional** estructurada en cinco nivel
 
 ### Nivel 2 — Criterios de evaluación (umbrales para mantener default)
 
-Estos umbrales determinan si un modelo **mantiene su posición de default** o si dispara un trigger del Nivel 3. Anclados en STRATEGY § 12.3 + § 10.
+> **Formalizado en `docs/evaluation/metrics-specification.md` el 2026-05-22.**
+> Las definiciones matemáticas exactas de cada métrica (factual accuracy, critical omissions, hallucinations, calibration error) viven ahora en el documento de especificación. Esta tabla es vista operativa por modelo y tarea; la spec es la fuente de verdad sobre **cómo se calcula** cada métrica.
+> Decisiones metodológicas (paráfrasis verbatim-casi, criticidad, ground truth dudoso) en [ADR 0005](0005-evaluation-methodology.md).
+
+Estos umbrales determinan si un modelo **mantiene su posición de default** o si dispara un trigger del Nivel 3. Anclados en STRATEGY § 12.3 + § 10 + spec formal.
 
 | Modelo | Tarea | Métrica primaria | Umbral | Métrica secundaria | Umbral | Estado |
 |---|---|---|---:|---|---:|---|
@@ -265,5 +269,6 @@ En cualquier paso, métricas que degraden disparan rollback automático al model
 | Fecha | Cambio | Autor | ADR superseder |
 |---|---|---|---|
 | 2026-05-21 | Creación inicial. Umbrales del Nivel 2 marcados como objetivos hasta cierre de #12. | Aaron Huaynate | — |
+| 2026-05-22 | Nivel 2 ahora referencia `docs/evaluation/metrics-specification.md` como fuente de verdad de las definiciones matemáticas de las métricas. Decisiones metodológicas movidas a ADR 0005. Sin cambio funcional de umbrales. | Aaron Huaynate | — |
 
 `[TODO — revisión clínica/regulatoria firmada]` — El issue #13 lista como criterio de cierre "Revisión por al menos un asesor clínico/regulatorio firmada en el PR del ADR". Esta firma queda **pendiente** y debe completarse antes de que el ADR pase de policy interna a documento expuesto a partner. Cuando se obtenga, registrar en este log la fecha y firmante.
