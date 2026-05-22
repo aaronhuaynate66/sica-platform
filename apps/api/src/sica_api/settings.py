@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -34,10 +35,15 @@ class Settings(BaseSettings):
         le=100,
         description="Tamaño máximo del PDF aceptado por POST /extract, en MB.",
     )
-    allowed_origins: list[str] = Field(
+    # NoDecode evita que pydantic-settings intente JSON-decodear el env var
+    # antes de pasarlo al validator. Render entrega ALLOWED_ORIGINS como CSV
+    # (formato natural de la UI de env vars), no como JSON; sin NoDecode el
+    # source EnvSettingsSource fallaría con SettingsError en Settings().
+    allowed_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000"],
         description=(
             "Orígenes permitidos por CORS — match literal. "
+            "Acepta CSV en env var (ALLOWED_ORIGINS=a,b,c). "
             "Para patrones (p. ej. *.vercel.app) usar allowed_origin_regex."
         ),
     )
@@ -61,7 +67,7 @@ class Settings(BaseSettings):
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def _parse_origins(cls, v: object) -> object:
-        """Permite especificar ALLOWED_ORIGINS como CSV en .env."""
+        """Parsea ALLOWED_ORIGINS desde env var (CSV) o desde código (list)."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
