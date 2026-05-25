@@ -1,0 +1,36 @@
+# Labels canónicos del repo sica-platform.
+#
+# Aplicar con: `scripts/setup-labels.sh` (Linux/Mac) o
+# `scripts/setup-labels.ps1` (Windows). Ambos scripts son idempotentes
+# (re-aplicar no rompe nada).
+#
+# Schema: lista de objetos {name, color, description}. Color es hex
+# sin '#'. Descripción es libre.
+
+- name: "skip-harness-gate"
+  color: "fbca04"
+  description: "Bypass harness gate. Usar solo para PRs que sabes no afectan extracción (refactor puro, docs, CI)."
+
+- name: "baseline-update"
+  color: "0e8a16"
+  description: "PR que actualiza el baseline canónico de extracción. Requiere revisión humana explícita."
+
+- name: "harness-failure"
+  color: "d93f0b"
+  description: "Auto-aplicado por el workflow harness-gate.yml cuando el gate falla. Se remueve cuando vuelve a pasar."
+
+- name: "retroactive"
+  color: "c5def5"
+  description: "Issue creado para documentar trabajo ya hecho previo al sistema de tracking."
+
+- name: "bloqueante"
+  color: "b60205"
+  description: "Bloquea avance de la fase actual o requiere acción en el mundo real."
+
+- name: "fase-1"
+  color: "1d76db"
+  description: "Issue pertenece a la Fase 1 (consolidación estratégica / R0–R1)."
+
+- name: "r0"
+  color: "5319e7"
+  description: "Issue del release R0 (Foundation, Mes 0-2)."
