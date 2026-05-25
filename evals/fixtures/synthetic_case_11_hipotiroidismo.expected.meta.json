@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "hipotiroidismo descompensado en gestación (Hashimoto), EG 18 sem",
+  "created_at": "2026-05-25T15:31:22Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_11_hipotiroidismo.expected.json",
+    "sha256": "ca4fe2ecb182c632816534927b41c97cd0b598377845c456c94f36e17c6f52f7",
+    "size_bytes": 3708
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_11_hipotiroidismo.pdf",
+    "sha256": "bf494a62e951d3bb5188df2d82bc4a2591bdec8123e6335754a9aad5ff1159fc",
+    "size_bytes": 4935
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

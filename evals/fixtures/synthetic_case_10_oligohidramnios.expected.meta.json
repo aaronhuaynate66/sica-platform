@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "oligohidramnios severo (ILA 4 cm), EG 34 sem",
+  "created_at": "2026-05-25T15:31:22Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_10_oligohidramnios.expected.json",
+    "sha256": "d73694957cdbb3e10468c66d6abc0be6a87aa41910ef1e8c1f1dc69f2c422670",
+    "size_bytes": 2864
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_10_oligohidramnios.pdf",
+    "sha256": "873762138cbf11a678bc37f5e717a9eac1a71e26e8a9da07b34135adaf89e455",
+    "size_bytes": 4147
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

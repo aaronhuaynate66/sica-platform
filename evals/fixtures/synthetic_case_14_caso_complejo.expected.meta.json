@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "caso multipatología: edad materna avanzada + HTA crónica + DM2 + macrosomía, EG 36 sem",
+  "created_at": "2026-05-25T15:31:22Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_14_caso_complejo.expected.json",
+    "sha256": "650d9924fea65da439289b637d1c49faf0033121271ecbd5f025495c0c864412",
+    "size_bytes": 4677
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_14_caso_complejo.pdf",
+    "sha256": "2b7ecbaf0be3c85382a33249bf6153b5bd94ce8b71553da8ec5dc62afb5748dd",
+    "size_bytes": 6042
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

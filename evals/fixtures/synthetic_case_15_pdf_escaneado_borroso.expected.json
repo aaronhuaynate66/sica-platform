@@ -1,0 +1,90 @@
+{
+  "active_problems": [
+    "Anemia leve gestacional",
+    "Cesárea previa (2022)"
+  ],
+  "confidence_score": 0.72,
+  "evidence_spans": [
+    {
+      "claim": "Edad 32 años",
+      "source_page": 1,
+      "source_text": "Edad:\n32 años"
+    },
+    {
+      "claim": "G2 P1 con cesárea previa 2022",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (1 cesárea segmentaria, 2022, por desproporción céfalo-pélvica"
+    },
+    {
+      "claim": "FUM 15/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n15/09/2025"
+    },
+    {
+      "claim": "FPP 22/06/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n22/06/2026"
+    },
+    {
+      "claim": "EG 28 semanas 2 días",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n28 semanas 2 días"
+    },
+    {
+      "claim": "Hemoglobina 10.8 g/dL — anemia leve",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.8\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "Plan: cesárea programada a 39 semanas",
+      "source_page": 1,
+      "source_text": "Cesárea programada a las 39 semanas por cesárea previa."
+    }
+  ],
+  "fpp": "2026-06-22",
+  "fum": "2025-09-15",
+  "gestational_age_weeks": 28.3,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-04-02",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "10.8"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "2.1"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "92"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-02",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Gestante de 32 años, G2P1 con cesárea previa, cursando 28 semanas de gestación con anemia leve gestacional en tratamiento. PDF escaneado de baja calidad — ruido OCR (sustituciones tipo l↔1, O↔0, S↔5) reduce la confianza global de la extracción aunque los datos críticos siguen siendo identificables. Plan de continuar sulfato ferroso, control prenatal en 4 semanas y cesárea programada a las 39 semanas por cesárea previa.",
+  "patient_age": 32,
+  "risk_factors": [
+    "Cesárea previa",
+    "Anemia leve gestacional"
+  ]
+}

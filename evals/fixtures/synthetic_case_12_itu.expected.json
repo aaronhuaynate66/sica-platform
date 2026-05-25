@@ -1,0 +1,100 @@
+{
+  "active_problems": [
+    "ITU baja sintomática (cistitis aguda) por E. coli",
+    "Lumbalgia leve bilateral"
+  ],
+  "confidence_score": 0.92,
+  "evidence_spans": [
+    {
+      "claim": "Edad 31 años",
+      "source_page": 1,
+      "source_text": "Edad:\n31 años"
+    },
+    {
+      "claim": "G1 P0 primigesta",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G1 P0. Primigesta."
+    },
+    {
+      "claim": "FUM 05/10/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n05/10/2025"
+    },
+    {
+      "claim": "FPP 12/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n12/07/2026"
+    },
+    {
+      "claim": "EG 16 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n16 semanas"
+    },
+    {
+      "claim": "Síntomas urinarios bajos (disuria, polaquiuria, urgencia)",
+      "source_page": 1,
+      "source_text": "disuria, polaquiuria y urgencia miccional desde hace 4 días"
+    },
+    {
+      "claim": "Afebril, puño-percusión lumbar negativa",
+      "source_page": 1,
+      "source_text": "T° 36.8°C (afebril). Peso 60.5 kg. Puño-percusión lumbar negativa bilateral."
+    },
+    {
+      "claim": "Urocultivo: E. coli >100,000 UFC/mL",
+      "source_page": 1,
+      "source_text": "Urocultivo\nE. coli >100,000\nUFC/mL\nCrecimiento significativo"
+    },
+    {
+      "claim": "Plan: nitrofurantoína 100 mg c/8 h por 7 días",
+      "source_page": 1,
+      "source_text": "Nitrofurantoína 100 mg VO c/8 h por 7 días (sensible según antibiograma, categoría B en gestación, evitar cerca del término)."
+    }
+  ],
+  "fpp": "2026-07-12",
+  "fum": "2025-10-05",
+  "gestational_age_weeks": 16.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-01-22",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "12.0"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-01-22",
+      "name": "Leucocitos",
+      "unit": "/mm³",
+      "value": "9400"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-01-22",
+      "name": "PCR",
+      "unit": "mg/dL",
+      "value": "1.2"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-01-22",
+      "name": "Examen de orina",
+      "unit": null,
+      "value": "Leucocitos 30-40/c"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-01-22",
+      "name": "Urocultivo",
+      "unit": "UFC/mL",
+      "value": "E. coli >100,000"
+    }
+  ],
+  "notes_summary": "Primigesta de 31 años cursando 16 semanas de gestación con cuadro de cistitis aguda (disuria, polaquiuria, urgencia miccional, lumbalgia leve) de 4 días de evolución. Urocultivo confirma E. coli con crecimiento >100,000 UFC/mL, sensible a nitrofurantoína y resistente a TMP-SMX. Sin signos clínicos ni de laboratorio compatibles con pielonefritis. Plan de antibioticoterapia oral por 7 días, hidratación abundante y urocultivo de control 7-10 días post-tratamiento.",
+  "patient_age": 31,
+  "risk_factors": [
+    "Antecedente de ITU recurrente pregestacional",
+    "Primigesta"
+  ]
+}

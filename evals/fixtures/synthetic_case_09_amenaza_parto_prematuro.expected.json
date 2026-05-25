@@ -1,0 +1,93 @@
+{
+  "active_problems": [
+    "Amenaza de parto prematuro sin modificaciones cervicales",
+    "Dinámica uterina regular (3-4 contracciones en 10 min)"
+  ],
+  "confidence_score": 0.93,
+  "evidence_spans": [
+    {
+      "claim": "Edad 25 años",
+      "source_page": 1,
+      "source_text": "Edad:\n25 años"
+    },
+    {
+      "claim": "G1 P0 primigesta",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G1 P0. Primigesta."
+    },
+    {
+      "claim": "FUM 01/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n01/09/2025"
+    },
+    {
+      "claim": "FPP 08/06/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n08/06/2026"
+    },
+    {
+      "claim": "EG 28 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n28 semanas"
+    },
+    {
+      "claim": "Dinámica uterina: 3-4 contracciones en 10 min",
+      "source_page": 1,
+      "source_text": "Dinámica uterina: 3-4 contracciones en 10 min, intensidad moderada, duración 30-40 segundos."
+    },
+    {
+      "claim": "Cuello cerrado, sin modificaciones",
+      "source_page": 1,
+      "source_text": "Tacto vaginal: cuello posterior, cerrado, sin modificaciones cervicales."
+    },
+    {
+      "claim": "Test fibronectina negativo",
+      "source_page": 1,
+      "source_text": "Test fibronectina\nNegativo\n—\nBajo riesgo parto en 14 días"
+    },
+    {
+      "claim": "Plan: tocolíticos + maduración pulmonar + reposo",
+      "source_page": 1,
+      "source_text": "Tocolítico de primera línea (nifedipino 20 mg VO de carga, luego 10 mg c/6 h). 3. Maduración pulmonar fetal con betametasona 12 mg IM c/24 h x 2 dosis."
+    }
+  ],
+  "fpp": "2026-06-08",
+  "fum": "2025-09-01",
+  "gestational_age_weeks": 28.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.4"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "Leucocitos",
+      "unit": "/mm³",
+      "value": "10200"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "PCR",
+      "unit": "mg/dL",
+      "value": "0.6"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-03-15",
+      "name": "Test fibronectina",
+      "unit": null,
+      "value": "Negativo"
+    }
+  ],
+  "notes_summary": "Primigesta de 25 años cursando 28 semanas de gestación que consulta por dinámica uterina regular (3-4 contracciones en 10 min) de 6 horas de evolución, sin modificaciones cervicales al tacto. Test de fibronectina negativo (bajo riesgo de parto en próximos 14 días). Plan de hospitalización por 24-48 horas con tocolíticos (nifedipino), maduración pulmonar fetal con betametasona, reposo y monitoreo materno-fetal.",
+  "patient_age": 25,
+  "risk_factors": [
+    "Amenaza de parto prematuro",
+    "Primigesta"
+  ]
+}

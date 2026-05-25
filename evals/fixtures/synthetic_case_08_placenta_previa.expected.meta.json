@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "placenta previa total con sangrado intermitente, EG 31 sem",
+  "created_at": "2026-05-25T15:31:22Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_08_placenta_previa.expected.json",
+    "sha256": "0c82fe6903e389664abb51e20d69d744feb10e1560be7ca6bd8d10193829c106",
+    "size_bytes": 3032
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_08_placenta_previa.pdf",
+    "sha256": "a38007bbdca5665d5d51d867ffa63c5856c9d172c0110a26aa4b5cf307d8d4bc",
+    "size_bytes": 4139
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

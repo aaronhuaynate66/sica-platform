@@ -1,0 +1,128 @@
+{
+  "active_problems": [
+    "Hipotiroidismo descompensado en gestación (TSH 8.5, T4L 0.7)",
+    "Tiroiditis de Hashimoto con anti-TPO elevado",
+    "Fatiga e intolerancia al frío progresivas"
+  ],
+  "confidence_score": 0.93,
+  "evidence_spans": [
+    {
+      "claim": "Edad 29 años",
+      "source_page": 1,
+      "source_text": "Edad:\n29 años"
+    },
+    {
+      "claim": "G2 P0+1 (1 aborto espontáneo 2023)",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P0+1 (1 aborto espontáneo 2023 a las 8 semanas, sin causa identificada)."
+    },
+    {
+      "claim": "FUM 10/10/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n10/10/2025"
+    },
+    {
+      "claim": "FPP 17/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n17/07/2026"
+    },
+    {
+      "claim": "EG 18 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n18 semanas"
+    },
+    {
+      "claim": "Hashimoto pregestacional, levotiroxina 75 mcg/día",
+      "source_page": 1,
+      "source_text": "tiroiditis de Hashimoto desde 2019, en tratamiento con levotiroxina 75 mcg/día"
+    },
+    {
+      "claim": "TSH 8.5 mUI/L (elevada)",
+      "source_page": 1,
+      "source_text": "TSH\n8.5\nmUI/L\nElevada (meta gestacional <2.5)"
+    },
+    {
+      "claim": "T4 libre 0.7 ng/dL (disminuida)",
+      "source_page": 1,
+      "source_text": "T4 libre\n0.7\nng/dL\nDisminuida (rango 0.93-1.7)"
+    },
+    {
+      "claim": "Anti-TPO 245 UI/mL",
+      "source_page": 1,
+      "source_text": "Anti-TPO\n245\nUI/mL\nElevado — autoinmunidad confirmada"
+    },
+    {
+      "claim": "Plan: ajuste levotiroxina a 125 mcg/día + control en 4 sem",
+      "source_page": 1,
+      "source_text": "Ajuste de dosis de levotiroxina: aumentar a 125 mcg/día (incremento del 60-80% sobre dosis pregestacional según guías ATA)."
+    }
+  ],
+  "fpp": "2026-07-17",
+  "fum": "2025-10-10",
+  "gestational_age_weeks": 18.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-02-10",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "8.5"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-02-10",
+      "name": "T4 libre",
+      "unit": "ng/dL",
+      "value": "0.7"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-02-10",
+      "name": "Anti-TPO",
+      "unit": "UI/mL",
+      "value": "245"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-02-10",
+      "name": "T3 total",
+      "unit": "ng/dL",
+      "value": "85"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.9"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "82"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-10",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Gestante de 29 años con tiroiditis de Hashimoto pregestacional cursando 18 semanas de gestación. Antecedente de un aborto espontáneo previo (2023). Hipotiroidismo descompensado en gestación (TSH 8.5 mUI/L con meta gestacional <2.5, T4 libre disminuida) por dosis insuficiente de levotiroxina ante el aumento fisiológico de demanda. Plan de ajuste de levotiroxina a 125 mcg/día, control bioquímico en 4 semanas y seguimiento conjunto con endocrinología.",
+  "patient_age": 29,
+  "risk_factors": [
+    "Hipotiroidismo descompensado gestacional",
+    "Tiroiditis de Hashimoto",
+    "Aborto espontáneo previo"
+  ]
+}

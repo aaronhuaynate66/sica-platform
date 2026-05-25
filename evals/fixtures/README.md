@@ -13,10 +13,45 @@ Esta carpeta contiene **solo casos sintéticos** que el harness de evaluación u
 | `synthetic_case_05_diabetes_gestacional` | DG con macrosomía estimada, EG 28 sem | Curva TOG anormal en 3 puntos + HbA1c 6.4%. | 0.93 |
 | `synthetic_case_06_anemia_severa` | Anemia ferropénica severa, EG 30 sem | Hb 7.2 sintomática — hierro EV + reevaluar transfusión. | 0.92 |
 | `synthetic_case_07_manuscrito` | Control normal, EG 22 sem, PDF con ruido OCR | Mismo perfil clínico que case_01 pero el PDF emula manuscrito digitalizado con sustituciones de caracteres (l↔1, O↔0, Z↔2, etc.). Stress-test del extractor frente a OCR ruidoso. | 0.72 |
+| `synthetic_case_08_placenta_previa` | Placenta previa total, EG 31 sem | Sangrado intermitente escaso, cesárea programada a 37 sem. | 0.91 |
+| `synthetic_case_09_amenaza_parto_prematuro` | APP sin modificaciones cervicales, EG 28 sem | Fibronectina negativa, tocolítico + maduración pulmonar. | 0.93 |
+| `synthetic_case_10_oligohidramnios` | Oligohidramnios severo (ILA 4 cm), EG 34 sem | Doppler normal, NST reactivo, hospitalización + maduración. | 0.85 |
+| `synthetic_case_11_hipotiroidismo` | Hipotiroidismo descompensado (Hashimoto), EG 18 sem | TSH 8.5, T4L bajo, anti-TPO+. Ajuste levotiroxina. | 0.93 |
+| `synthetic_case_12_itu` | Cistitis aguda por E. coli, EG 16 sem | Sin signos de pielonefritis. Antibiograma orienta nitrofur. | 0.92 |
+| `synthetic_case_13_adolescente_vulnerable` | Primigesta adolescente con violencia intrafamiliar, EG 14 sem | Caso sensible — texto sobre denuncia + plan psicosocial. Verifica que el extractor preserva campos clínicos sin filtrar por sensibilidad. | 0.89 |
+| `synthetic_case_14_caso_complejo` | Multipatología (edad materna avanzada + HTA crónica + DM2 + macrosomía), EG 36 sem | Edge case: muchos problemas activos, muchos labs, plan complejo. | 0.82 |
+| `synthetic_case_15_pdf_escaneado_borroso` | Misma clínica que case_01, escaneo borroso (ruido OCR 10%) | Edge case técnico — escaneo de baja calidad agresivo. | 0.72 |
 
 Todos los PDFs canónicos viven en `services/clinical-extractor/data/` y se copian aquí para que el harness los encuentre sin depender del path canónico.
 
 Generador: `services/clinical-extractor/scripts/generate_synthetic_pdfs.py` (regenerable, determinista en contenido — bytes pueden cambiar por timestamps internos de reportlab).
+
+Generador de meta files: `evals/scripts/generate_meta_files.py` (re-corrible — recalcula hashes y tamaños cuando los archivos cambian, evita drift sha256 vs contenido real).
+
+## Casos por categoría
+
+Para navegación rápida por intención de cobertura clínica:
+
+- **Control normal:** `synthetic_case_01`
+- **Patologías obstétricas frecuentes (R0/R1):**
+  - `synthetic_case_02_preeclampsia`
+  - `synthetic_case_03_gemelar`
+  - `synthetic_case_04_rpm`
+  - `synthetic_case_05_diabetes_gestacional`
+  - `synthetic_case_06_anemia_severa`
+- **Patologías adicionales (Bloque A, cobertura ampliada):**
+  - `synthetic_case_08_placenta_previa`
+  - `synthetic_case_09_amenaza_parto_prematuro`
+  - `synthetic_case_10_oligohidramnios`
+  - `synthetic_case_11_hipotiroidismo`
+  - `synthetic_case_12_itu`
+- **Casos sensibles (test de robustez frente a contexto psicosocial):**
+  - `synthetic_case_13_adolescente_vulnerable`
+- **Casos complejos multipatología:**
+  - `synthetic_case_14_caso_complejo`
+- **Edge cases técnicos (PDF/OCR degradado):**
+  - `synthetic_case_07_manuscrito`
+  - `synthetic_case_15_pdf_escaneado_borroso`
 
 ## Cuándo agregar más casos
 

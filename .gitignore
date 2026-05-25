@@ -57,6 +57,14 @@ historias/
 !services/clinical-extractor/data/synthetic_case_05_diabetes_gestacional.pdf
 !services/clinical-extractor/data/synthetic_case_06_anemia_severa.pdf
 !services/clinical-extractor/data/synthetic_case_07_manuscrito.pdf
+!services/clinical-extractor/data/synthetic_case_08_placenta_previa.pdf
+!services/clinical-extractor/data/synthetic_case_09_amenaza_parto_prematuro.pdf
+!services/clinical-extractor/data/synthetic_case_10_oligohidramnios.pdf
+!services/clinical-extractor/data/synthetic_case_11_hipotiroidismo.pdf
+!services/clinical-extractor/data/synthetic_case_12_itu.pdf
+!services/clinical-extractor/data/synthetic_case_13_adolescente_vulnerable.pdf
+!services/clinical-extractor/data/synthetic_case_14_caso_complejo.pdf
+!services/clinical-extractor/data/synthetic_case_15_pdf_escaneado_borroso.pdf
 !evals/fixtures/
 !evals/fixtures/**/*.pdf
 # UI demo: copia local del PDF sintético para la app web. Marcado como demo.

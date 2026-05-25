@@ -1,0 +1,26 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "gestante adolescente con vulnerabilidad psicosocial (violencia intrafamiliar), EG 14 sem",
+  "created_at": "2026-05-25T15:31:22Z",
+  "fixture": {
+    "path": "evals/fixtures/synthetic_case_13_adolescente_vulnerable.expected.json",
+    "sha256": "0497205ccfa67510539195ffdae757cef88793e7b3ec561eb622cf4f764a08c8",
+    "size_bytes": 3574
+  },
+  "human_reviewer": null,
+  "non_determinism_note": "El fixture es una referencia hand-crafted que refleja lo que se espera que el extractor produzca dado el PDF correspondiente. El extractor real (LLM sin seed) puede diferir en ordering de evidence_spans, número exacto de spans, o confidence_score reportado. Diferencias substantivas en campos críticos (patient_age, gestational_age_weeks, lab_results, plan) requieren investigación; diferencias estilísticas (notes_summary, ordering) son benignas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_13_adolescente_vulnerable.pdf",
+    "sha256": "b005a63fff9a4b93059a946933522941190edbea694575208fc67a566505f054",
+    "size_bytes": 5009
+  },
+  "produced_by": {
+    "command": "scripts/generate_synthetic_pdfs.py + hand-crafted expected.json",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [
+    "#5",
+    "#10"
+  ],
+  "schema_version": "ObstetricSummary v0 (initial — see services/clinical-extractor/src/clinical_extractor/schemas.py)"
+}

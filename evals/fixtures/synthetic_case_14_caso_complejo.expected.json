@@ -1,0 +1,148 @@
+{
+  "active_problems": [
+    "Hipertensión arterial crónica con control limítrofe (PA 145/92)",
+    "Diabetes mellitus tipo 2 pregestacional con control subóptimo (HbA1c 6.2%)",
+    "Macrosomía fetal limítrofe (PFE percentil 88)",
+    "Cefalea leve intermitente — descartar superposición de preeclampsia",
+    "Obesidad gestacional (IMC actual 33.6)"
+  ],
+  "confidence_score": 0.82,
+  "evidence_spans": [
+    {
+      "claim": "Edad 41 años",
+      "source_page": 1,
+      "source_text": "Edad:\n41 años"
+    },
+    {
+      "claim": "G5 P4 (2 partos vaginales, 2 cesáreas previas)",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G5 P4 (4 hijos vivos — 2 partos vaginales 2010 y 2013, 2 cesáreas segmentarias 2017 y 2020"
+    },
+    {
+      "claim": "HTA crónica con metildopa 250 mg c/8h",
+      "source_page": 1,
+      "source_text": "Hipertensión arterial crónica diagnosticada hace 5 años, en tratamiento con metildopa 250 mg c/8 h"
+    },
+    {
+      "claim": "DM2 con metformina 850 mg c/12h",
+      "source_page": 1,
+      "source_text": "Diabetes mellitus tipo 2 diagnosticada hace 3 años, controlada con dieta y metformina 850 mg c/12 h"
+    },
+    {
+      "claim": "EG 36 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n36 semanas"
+    },
+    {
+      "claim": "PA 145/92 mmHg",
+      "source_page": 1,
+      "source_text": "PA 145/92 mmHg (confirmada en 2 tomas — limítrofe alta, requiere ajuste)."
+    },
+    {
+      "claim": "HbA1c 6.2% (sobre meta)",
+      "source_page": 2,
+      "source_text": "HbA1c\n6.2\n%\nSobre meta (<6.0)"
+    },
+    {
+      "claim": "Glucosa basal 110 mg/dL",
+      "source_page": 2,
+      "source_text": "Glucosa basal\n110\nmg/dL\nSobre meta gestacional"
+    },
+    {
+      "claim": "PFE 3,150 g (percentil 88) — macrosomía limítrofe",
+      "source_page": 2,
+      "source_text": "Peso fetal estimado 3,150 g (percentil 88 — macrosomía limítrofe)."
+    },
+    {
+      "claim": "Plan: cesárea programada 38-39 sem + ajuste antihipertensivos + insulina basal",
+      "source_page": 2,
+      "source_text": "Programar cesárea segmentaria a las 38-39 semanas por antecedente de cesárea anterior x2 + macrosomía estimada + paridad alta."
+    }
+  ],
+  "fpp": "2026-05-17",
+  "fum": "2025-08-10",
+  "gestational_age_weeks": 36.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-04-20",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.5"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "Plaquetas",
+      "unit": "/mm³",
+      "value": "215000"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "Creatinina",
+      "unit": "mg/dL",
+      "value": "0.8"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "Urea",
+      "unit": "mg/dL",
+      "value": "26"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-04-20",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "110"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-04-20",
+      "name": "HbA1c",
+      "unit": "%",
+      "value": "6.2"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "Proteinuria 24 h",
+      "unit": "g/24 h",
+      "value": "0.4"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "AST (TGO)",
+      "unit": "U/L",
+      "value": "28"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "ALT (TGP)",
+      "unit": "U/L",
+      "value": "32"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-20",
+      "name": "LDH",
+      "unit": "U/L",
+      "value": "280"
+    }
+  ],
+  "notes_summary": "Gestante de 41 años, G5P4 con 2 cesáreas previas, cursando 36 semanas de gestación con múltiples factores de riesgo: hipertensión arterial crónica con control limítrofe (PA 145/92), diabetes mellitus tipo 2 pregestacional con HbA1c 6.2% sobre meta, macrosomía fetal limítrofe (PFE percentil 88), obesidad (IMC actual 33.6) y cefalea leve a descartar preeclampsia sobreañadida. Plan de hospitalización en unidad de alto riesgo, ajuste de antihipertensivos (agregar nifedipino retard), optimización glucémica con insulina basal, vigilancia materno-fetal intensiva y cesárea programada a las 38-39 semanas con profilaxis tromboembólica y manejo multidisciplinario.",
+  "patient_age": 41,
+  "risk_factors": [
+    "Edad materna avanzada (>=40 años)",
+    "Gran multípara",
+    "Cesárea anterior x2",
+    "HTA crónica",
+    "Diabetes tipo 2 pregestacional",
+    "Obesidad",
+    "Macrosomía fetal estimada"
+  ]
+}

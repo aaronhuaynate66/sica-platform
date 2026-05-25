@@ -1,0 +1,103 @@
+{
+  "active_problems": [
+    "Placenta previa total",
+    "Sangrado vaginal escaso intermitente",
+    "Anemia leve gestacional"
+  ],
+  "confidence_score": 0.91,
+  "evidence_spans": [
+    {
+      "claim": "Edad 33 años",
+      "source_page": 1,
+      "source_text": "Edad:\n33 años"
+    },
+    {
+      "claim": "G3 P2 con 1 cesárea previa",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G3 P2 (1 parto vaginal 2018, 1 cesárea segmentaria 2021)."
+    },
+    {
+      "claim": "FUM 26/09/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n26/09/2025"
+    },
+    {
+      "claim": "FPP 03/07/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n03/07/2026"
+    },
+    {
+      "claim": "EG 31 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n31 semanas"
+    },
+    {
+      "claim": "Placenta previa total confirmada por eco",
+      "source_page": 1,
+      "source_text": "Placenta de inserción anterior cubriendo totalmente el orificio cervical interno — placenta previa total confirmada."
+    },
+    {
+      "claim": "Sangrado vaginal escaso intermitente",
+      "source_page": 1,
+      "source_text": "episodios intermitentes de sangrado vaginal escaso en últimas 2 semanas"
+    },
+    {
+      "claim": "Hemoglobina 10.5 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.5\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "Plan: reposo + control semanal + cesárea programada a 37 sem",
+      "source_page": 1,
+      "source_text": "Cesárea programada a las 37 semanas según protocolo institucional."
+    }
+  ],
+  "fpp": "2026-07-03",
+  "fum": "2025-09-26",
+  "gestational_age_weeks": 31.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-04-06",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "10.5"
+    },
+    {
+      "abnormal": true,
+      "date": "2026-04-06",
+      "name": "Hematocrito",
+      "unit": "%",
+      "value": "32.0"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-06",
+      "name": "Plaquetas",
+      "unit": "/mm³",
+      "value": "245000"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-06",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "85"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-06",
+      "name": "Tipo sanguíneo",
+      "unit": null,
+      "value": "O Rh+"
+    }
+  ],
+  "notes_summary": "Gestante de 33 años, G3P2 con cesárea anterior, cursando 31 semanas de gestación con diagnóstico ecográfico de placenta previa total. Refiere episodios intermitentes de sangrado vaginal escaso en últimas 2 semanas, sin compromiso hemodinámico. Plan de manejo expectante con reposo relativo, control semanal, suplementación con hierro, y cesárea programada a las 37 semanas — con ingreso inmediato si aparece sangrado moderado-severo.",
+  "patient_age": 33,
+  "risk_factors": [
+    "Placenta previa total",
+    "Cesárea previa",
+    "Multiparidad (G3P2)",
+    "Anemia leve gestacional"
+  ]
+}

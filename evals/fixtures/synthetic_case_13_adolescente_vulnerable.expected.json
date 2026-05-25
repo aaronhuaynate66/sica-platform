@@ -1,0 +1,112 @@
+{
+  "active_problems": [
+    "Embarazo en adolescente con vulnerabilidad psicosocial",
+    "Antecedente de violencia intrafamiliar en proceso de denuncia",
+    "Estado nutricional bajo el ideal",
+    "Anemia leve gestacional"
+  ],
+  "confidence_score": 0.89,
+  "evidence_spans": [
+    {
+      "claim": "Edad 19 años",
+      "source_page": 1,
+      "source_text": "Edad:\n19 años"
+    },
+    {
+      "claim": "G1 P0 primigesta adolescente",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G1 P0. Primigesta adolescente."
+    },
+    {
+      "claim": "FUM 20/11/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n20/11/2025"
+    },
+    {
+      "claim": "FPP 27/08/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n27/08/2026"
+    },
+    {
+      "claim": "EG 14 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n14 semanas"
+    },
+    {
+      "claim": "Antecedente de violencia intrafamiliar en denuncia",
+      "source_page": 1,
+      "source_text": "antecedente de violencia intrafamiliar (verbal y ocasionalmente física) por parte de la pareja, situación que se encuentra actualmente en proceso de denuncia"
+    },
+    {
+      "claim": "Estado afectivo lábil",
+      "source_page": 1,
+      "source_text": "Estado afectivo lábil pero con conciencia de embarazo y disposición a control prenatal."
+    },
+    {
+      "claim": "Hemoglobina 11.2 g/dL (anemia leve)",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n11.2\ng/dL\nAnemia leve gestacional"
+    },
+    {
+      "claim": "Plan: control + derivación Servicio Social + psicología",
+      "source_page": 1,
+      "source_text": "Derivación a Servicio Social del establecimiento para evaluación de red de apoyo y orientación legal sobre denuncia de violencia."
+    }
+  ],
+  "fpp": "2026-08-27",
+  "fum": "2025-11-20",
+  "gestational_age_weeks": 14.0,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": "2026-02-15",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.2"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-15",
+      "name": "TSH",
+      "unit": "mUI/L",
+      "value": "2.0"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-15",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "78"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-15",
+      "name": "HIV (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-15",
+      "name": "Sífilis (RPR)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-02-15",
+      "name": "Hepatitis B",
+      "unit": null,
+      "value": "No reactivo"
+    }
+  ],
+  "notes_summary": "Primigesta adolescente de 19 años cursando 14 semanas de gestación con vulnerabilidad psicosocial significativa: embarazo no planificado, antecedente reciente de violencia intrafamiliar por parte de la pareja en proceso de denuncia legal, estado afectivo lábil pero con disposición al control prenatal. Estado nutricional bajo el ideal. Anemia leve gestacional. Plan de control con protocolo de adolescente, derivación a Servicio Social y Psicología para acompañamiento, suplementación nutricional y seguimiento en 3 semanas con evaluación del estado emocional.",
+  "patient_age": 19,
+  "risk_factors": [
+    "Embarazo adolescente",
+    "Violencia intrafamiliar reciente",
+    "Estado nutricional deficitario",
+    "Anemia leve gestacional",
+    "Falta de red de apoyo de la pareja"
+  ]
+}

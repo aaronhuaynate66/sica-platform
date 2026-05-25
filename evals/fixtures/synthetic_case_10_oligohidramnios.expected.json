@@ -1,0 +1,100 @@
+{
+  "active_problems": [
+    "Oligohidramnios severo (ILA 4 cm)",
+    "Disminución leve de movimientos fetales reportada"
+  ],
+  "confidence_score": 0.85,
+  "evidence_spans": [
+    {
+      "claim": "Edad 36 años",
+      "source_page": 1,
+      "source_text": "Edad:\n36 años"
+    },
+    {
+      "claim": "G2 P1",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (parto vaginal 2022, sin complicaciones)."
+    },
+    {
+      "claim": "FUM 20/08/2025",
+      "source_page": 1,
+      "source_text": "FUM:\n20/08/2025"
+    },
+    {
+      "claim": "FPP 27/05/2026",
+      "source_page": 1,
+      "source_text": "FPP:\n27/05/2026"
+    },
+    {
+      "claim": "EG 34 semanas",
+      "source_page": 1,
+      "source_text": "EG actual (por FUM):\n34 semanas"
+    },
+    {
+      "claim": "ILA 4 cm (oligohidramnios severo)",
+      "source_page": 1,
+      "source_text": "ILA 4 cm (oligohidramnios severo, ILA <5 cm)."
+    },
+    {
+      "claim": "Doppler arteria umbilical normal",
+      "source_page": 1,
+      "source_text": "Doppler arteria umbilical normal."
+    },
+    {
+      "claim": "NST reactivo, sin pérdida de líquido al examen",
+      "source_page": 1,
+      "source_text": "NST reactivo. Sin pérdida vaginal de líquido al examen especular."
+    },
+    {
+      "claim": "Plan: hospitalización + maduración + monitoreo c/48h",
+      "source_page": 1,
+      "source_text": "Hospitalización para vigilancia materno-fetal."
+    }
+  ],
+  "fpp": "2026-05-27",
+  "fum": "2025-08-20",
+  "gestational_age_weeks": 34.0,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2026-04-18",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "12.2"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-18",
+      "name": "Creatinina",
+      "unit": "mg/dL",
+      "value": "0.7"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-18",
+      "name": "Urea",
+      "unit": "mg/dL",
+      "value": "22"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-18",
+      "name": "Glucosa basal",
+      "unit": "mg/dL",
+      "value": "90"
+    },
+    {
+      "abnormal": false,
+      "date": "2026-04-18",
+      "name": "Examen de orina",
+      "unit": null,
+      "value": "Normal"
+    }
+  ],
+  "notes_summary": "Gestante de 36 años, G2P1, cursando 34 semanas de gestación con diagnóstico ecográfico de oligohidramnios severo (ILA 4 cm). Función renal materna y bienestar fetal preservados — Doppler de arteria umbilical normal y NST reactivo al ingreso. Sin pérdida vaginal de líquido evidenciable. Plan de hospitalización con maduración pulmonar fetal, hidratación, monitoreo cada 48 horas y consideración de interrupción a las 36-37 semanas si oligohidramnios persiste.",
+  "patient_age": 36,
+  "risk_factors": [
+    "Oligohidramnios severo",
+    "Edad materna >=35 años"
+  ]
+}
