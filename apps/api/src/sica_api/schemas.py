@@ -44,7 +44,7 @@ class ModelInfo(BaseModel):
         description="True si el modelo puede procesar PHI real bajo ADR 0003/0004.",
     )
     active: bool = Field(
-        description="True si el modelo está disponible en runtime.",
+        description="True si el modelo está marcado como default activo en R0+.",
     )
     role: str = Field(
         description="Rol según ADR 0004 Nivel 1: default | fallback | dev_only | prohibited.",
@@ -52,6 +52,21 @@ class ModelInfo(BaseModel):
     notes: str = Field(
         default="",
         description="Notas operativas relevantes.",
+    )
+    is_available: bool = Field(
+        default=False,
+        description=(
+            "True si hay un LLMProvider registrado, soporta este modelo y "
+            "reporta is_available() == True (credenciales presentes). "
+            "Distinto de 'active' — que es decisión de política."
+        ),
+    )
+    provider_id: str | None = Field(
+        default=None,
+        description=(
+            "ID del LLMProvider que atiende este modelo (anthropic, "
+            "vertex-medgemma, etc.). None si no hay provider implementado aún."
+        ),
     )
 
 

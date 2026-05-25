@@ -30,6 +30,14 @@ export interface ModelInfo {
   active: boolean;
   role: "default" | "fallback" | "dev_only" | "prohibited" | string;
   notes: string;
+  /**
+   * Runtime: true si hay un LLMProvider registrado en el backend, soporta
+   * este modelo y reporta credenciales presentes. Distinto de `active`
+   * (que es decisión de política).
+   */
+  is_available?: boolean;
+  /** ID del LLMProvider que atiende este modelo, o null si no hay provider implementado aún. */
+  provider_id?: string | null;
 }
 
 export type ModelsResponse = ModelInfo[];

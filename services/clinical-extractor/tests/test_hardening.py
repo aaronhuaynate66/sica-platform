@@ -284,6 +284,7 @@ class TestTelemetry:
             "pdf_path",
             "pdf_size_bytes",
             "pages_extracted",
+            "provider_id",
             "model_used",
             "prompt_version",
             "latency_ms",
@@ -293,6 +294,7 @@ class TestTelemetry:
             "token_usage",
         }
         assert expected_keys.issubset(rec.keys())
+        assert rec["provider_id"] == "anthropic"
         assert rec["success"] is True
         assert rec["error_type"] is None
         assert rec["retry_count"] == 0
@@ -334,6 +336,7 @@ class TestTelemetry:
             "pdf_path",
             "pdf_size_bytes",
             "pages_extracted",
+            "provider_id",
             "model_used",
             "prompt_version",
             "latency_ms",

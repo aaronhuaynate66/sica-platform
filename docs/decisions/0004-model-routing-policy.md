@@ -170,6 +170,50 @@ En cualquier paso, métricas que degraden disparan rollback automático al model
 - Entrada en `MASTER_PLAN.md` (auto-generado vía ADR 0002).
 - Si el cambio es ruptura (cambio de proveedor, cambio de default mayor), requiere **ADR nuevo que supersede a este 0004**.
 
+### Nivel 6 — Implementación concreta (adapter pattern)
+
+La política declarada en Niveles 1-5 se realiza en código vía un **adapter
+pattern multi-provider** en `services/clinical-extractor/src/clinical_extractor/providers/`.
+
+**Capa de abstracción.** `LLMProvider` (en `providers/base.py`) define la
+interface que cualquier proveedor concreto debe implementar:
+
+- `provider_id` — ID estable del provider (`anthropic`, `vertex-medgemma`, ...).
+- `supported_models` — lista de `model_id` que el provider acepta.
+- `is_available()` — chequeo barato (sin red) de credenciales y configuración.
+- `extract(ExtractionRequest) → ExtractionResponse` — ejecuta la inferencia
+  con retry, timeout y manejo de errores propios del SDK del proveedor.
+
+**Providers concretos en R0.**
+
+| Provider concreto | Estado | Notas |
+|---|---|---|
+| `AnthropicProvider` | Production-ready en datos sintéticos | Cubre Sonnet 4.5, Opus 4.7, Haiku 4.5. Vetado para PHI real por ADR 0003. |
+| `VertexMedGemmaProvider` | Stub | `extract` levanta `NotImplementedError`. Implementación real depende de issue #12 (GCP credentials + endpoint Vertex). |
+
+**Registry central.** `ProviderRegistry` (singleton `DEFAULT_REGISTRY`)
+resuelve `model_id → provider` en runtime. El extractor core llama
+`DEFAULT_REGISTRY.get_for_model(model_id)`; si retorna `None` el modelo no
+está enrutable y se levanta `ExtractionError` con mensaje claro.
+
+**Beneficios operativos.**
+
+- **Triggers de Nivel 3 más baratos de ejecutar.** Cambiar default de
+  `claude-sonnet-4-5` a `medgemma-4b-it` es un cambio de string en
+  `CLAUDE_MODEL`/`extract_from_pdf(model=…)` — el registry resuelve el
+  provider y el resto del pipeline (retry, telemetría, validación Pydantic)
+  no cambia.
+- **Audit trail (Nivel 4) uniforme.** La telemetría emite `provider_id` y
+  `model_used` por operación con la misma estructura para todos los
+  providers — base regulatoria sin ramas especiales por proveedor.
+- **Tests offline.** Cada provider mockea su propio SDK en `test_providers.py`
+  sin tocar red; agregar providers nuevos no aumenta el costo de CI.
+
+Esta sección es **vivencia del adapter pattern** — no agrega política nueva
+sino que documenta cómo Niveles 1-5 se materializan en código. Cambios
+estructurales del adapter (firmas de interface, semántica de retry) que
+afecten Niveles 1-5 requieren update de este ADR.
+
 ## Consequences
 
 ### Positive
@@ -270,5 +314,6 @@ En cualquier paso, métricas que degraden disparan rollback automático al model
 |---|---|---|---|
 | 2026-05-21 | Creación inicial. Umbrales del Nivel 2 marcados como objetivos hasta cierre de #12. | Aaron Huaynate | — |
 | 2026-05-22 | Nivel 2 ahora referencia `docs/evaluation/metrics-specification.md` como fuente de verdad de las definiciones matemáticas de las métricas. Decisiones metodológicas movidas a ADR 0005. Sin cambio funcional de umbrales. | Aaron Huaynate | — |
+| 2026-05-25 | Agregado Nivel 6 — Implementación concreta (adapter pattern). Documenta cómo Niveles 1-5 se materializan en `services/clinical-extractor/src/clinical_extractor/providers/`. `AnthropicProvider` production-ready; `VertexMedGemmaProvider` stub a la espera de issue #12. Sin cambio funcional de política. | Aaron Huaynate | — |
 
 `[TODO — revisión clínica/regulatoria firmada]` — El issue #13 lista como criterio de cierre "Revisión por al menos un asesor clínico/regulatorio firmada en el PR del ADR". Esta firma queda **pendiente** y debe completarse antes de que el ADR pase de policy interna a documento expuesto a partner. Cuando se obtenga, registrar en este log la fecha y firmante.

@@ -208,6 +208,45 @@ ruff format --check .
 mypy src
 ```
 
+## Architecture — Multi-provider support
+
+El extractor soporta múltiples LLM providers vía adapter pattern, formalizando
+la política declarada en [ADR 0004](../../docs/decisions/0004-model-routing-policy.md):
+
+```
+extract_from_pdf
+    │
+    ├── _read_pdf_text          (pypdf → texto plano)
+    │
+    ├── DEFAULT_REGISTRY.get_for_model(model_id)
+    │       └── LLMProvider     (anthropic | vertex-medgemma | ...)
+    │
+    └── provider.extract(ExtractionRequest) → ExtractionResponse
+            └── ObstetricSummary.model_validate
+```
+
+Componentes (`src/clinical_extractor/providers/`):
+
+| Archivo | Propósito |
+|---|---|
+| `base.py` | Interface abstracta `LLMProvider` + dataclasses `ExtractionRequest` / `ExtractionResponse`. |
+| `anthropic_provider.py` | Claude Sonnet/Opus/Haiku. Default actual en R0. Production-ready. |
+| `vertex_medgemma_provider.py` | MedGemma 4B vía Vertex AI. **Stub**, `extract` levanta `NotImplementedError`. Implementación real en sesión con GCP credentials (issue #12). |
+| `registry.py` | `ProviderRegistry` central + singleton `DEFAULT_REGISTRY`. |
+
+Para agregar un provider nuevo:
+
+1. Crear `providers/my_provider.py` heredando de `LLMProvider`.
+2. Implementar `provider_id`, `supported_models`, `is_available`, `extract`.
+3. Registrarlo en `ProviderRegistry._register_defaults()` o vía `register()` desde el caller.
+
+El selector de provider en runtime se hace por `model_id`. Cada provider declara
+qué modelos soporta vía `supported_models`. Si dos providers declaran el mismo
+modelo, gana el primero registrado.
+
+La API HTTP `apps/api` lee este registry en `GET /models` para devolver
+`is_available` y `provider_id` de cada modelo configurado.
+
 ## Estructura
 
 ```
@@ -219,13 +258,20 @@ clinical-extractor/
 │   └── clinical_extractor/
 │       ├── __init__.py            ← exports públicos
 │       ├── cli.py                 ← entry point Click
-│       ├── extractor.py           ← lógica core PDF → ObstetricSummary
+│       ├── extractor.py           ← lógica core PDF → ObstetricSummary (delega a providers)
 │       ├── prompts.py             ← prompts versionados (registry)
-│       └── schemas.py             ← Pydantic models
+│       ├── schemas.py             ← Pydantic models
+│       └── providers/
+│           ├── base.py            ← LLMProvider interface + dataclasses
+│           ├── anthropic_provider.py
+│           ├── vertex_medgemma_provider.py    (stub — issue #12)
+│           └── registry.py        ← ProviderRegistry + DEFAULT_REGISTRY singleton
 ├── tests/
-│   └── test_extractor.py          ← unit tests (sin red)
+│   ├── test_extractor.py          ← unit tests (sin red)
+│   ├── test_hardening.py          ← retry, telemetry, batch
+│   └── test_providers.py          ← adapter pattern (registry + providers)
 └── data/
-    └── synthetic_case_01.pdf      ← PDF sintético marcado, solo para pruebas
+    └── synthetic_case_*.pdf       ← PDFs sintéticos marcados, solo para pruebas
 ```
 
 ## Datos
