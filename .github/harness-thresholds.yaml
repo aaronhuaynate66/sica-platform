@@ -1,0 +1,53 @@
+# Thresholds del harness gate
+#
+# Cualquier métrica que viole estos umbrales — relativo al baseline o
+# en valor absoluto — FALLA el gate en CI (workflow harness-gate.yml).
+#
+# Tipos soportados:
+#   - relative_decline: la métrica no puede caer más de `max_decline_pp`
+#     respecto al baseline. Para métricas "buenas más altas" (accuracy).
+#   - absolute_max: la métrica no puede superar `max_value`.
+#   - absolute_min: la métrica no puede bajar de `min_value`.
+#
+# Baseline canónico: ver `config.baseline_path` abajo.
+# Ver docs/decisions/0005-evaluation-methodology.md para racionale.
+
+thresholds:
+  factual_accuracy:
+    type: "relative_decline"
+    max_decline_pp: 3.0
+    description: >
+      Factualidad ponderada (peso 2x para campos críticos). No puede caer
+      más de 3 puntos respecto al baseline. Definido en
+      docs/evaluation/metrics-specification.md.
+
+  critical_omissions:
+    type: "absolute_max"
+    max_value: 5
+    description: >
+      Campos críticos esperados que el extractor no devolvió. Tope de 5
+      acumulado entre todos los casos del gate (STRATEGY § 7).
+
+  hallucination_count:
+    type: "absolute_max"
+    max_value: 0
+    description: >
+      Hallucinations totales (H_field + H_span). Cero tolerancia — un
+      hallazgo invalida el run y bloquea el merge.
+
+  ece:
+    type: "absolute_max"
+    max_value: 0.15
+    description: >
+      Expected Calibration Error: |confidence_reportada - accuracy_real|.
+      Tope blando para R0; se endurece en R1.
+
+config:
+  baseline_path: "evals/fixtures/baselines/claude_sonnet_4_5_synthetic_case_01.baseline.json"
+  baseline_locked_until: "2026-09-01"
+  # Hasta esta fecha, NO actualizar el baseline sin label "baseline-update"
+  # en el PR. Después del lock se permite update con review humano.
+
+  fail_fast: false
+  # false → corre todos los casos antes de fallar (mejor para diagnosticar).
+  # true  → falla al primer caso que viole threshold.
