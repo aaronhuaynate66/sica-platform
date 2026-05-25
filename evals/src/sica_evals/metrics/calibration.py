@@ -23,7 +23,6 @@ from collections.abc import Iterable
 
 from sica_evals.schemas import CaseResult
 
-
 DEFAULT_N_BINS = 10
 
 

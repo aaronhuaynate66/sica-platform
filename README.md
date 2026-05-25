@@ -91,6 +91,36 @@ El cliente HTTP de `apps/web` (`lib/api/client.ts`) opera en dos modos según `N
 
 CORS de `apps/api` permite por default `https://*.vercel.app` (preview deploys). Refinar `ALLOWED_ORIGIN_REGEX` cuando exista dominio de producción.
 
+## Pre-commit hooks (opcional pero recomendado)
+
+Para verificar lint y formato automáticamente antes de cada `git commit` —
+replicando un subset rápido de los checks que corre CI:
+
+### Linux / Mac
+
+```bash
+./scripts/setup-pre-commit.sh
+```
+
+### Windows (PowerShell)
+
+```powershell
+./scripts/setup-pre-commit.ps1
+```
+
+Los hooks (ver `.pre-commit-config.yaml`) corren:
+
+- `ruff check` + `ruff format --check` sobre código Python
+- Verificaciones genéricas: trailing whitespace, YAML válido, archivos >1 MB,
+  conflict markers, llaves privadas sueltas.
+
+`mypy` y `pnpm type-check` **no** corren en pre-commit (son lentos y
+dependientes del entorno). CI los corre obligatoriamente — si no instalás
+los hooks locales, CI seguirá ejecutando los mismos checks en cada push;
+solo que tarde y bloquea el deploy automático.
+
+---
+
 ## Contacto
 
 Owner: ver perfil de GitHub del repo. Equipo y roles fundadores en `STRATEGY.md` § 19.

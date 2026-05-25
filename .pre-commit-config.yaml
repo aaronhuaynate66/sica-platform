@@ -1,0 +1,88 @@
+# Pre-commit hooks de SICA — replican (subset rápido de) los checks de CI.
+#
+# Diseño:
+# - Solo hooks rápidos (<10s en total) — esto corre en cada `git commit`.
+# - Lo lento (mypy estricto, pnpm type-check sobre todo el repo) NO va aquí —
+#   queda para CI. Ver TODO al final del archivo.
+# - Idempotente y sin red: instalable offline una vez que pre-commit cacheó
+#   los repos de los hooks.
+#
+# Setup local:
+#   ./scripts/setup-pre-commit.sh        (Linux/Mac)
+#   ./scripts/setup-pre-commit.ps1       (Windows PowerShell)
+#
+# Para correr sobre todo el repo manualmente:
+#   pre-commit run --all-files
+#
+# Para hacer skip de un hook puntual (último recurso):
+#   SKIP=ruff git commit -m "..."
+
+repos:
+  # =========================================================================
+  # Hooks genéricos de seguridad y limpieza
+  # =========================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'  # markdown usa dos espacios al final para line break
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-added-large-files
+        args: [--maxkb=1024]  # 1 MB — previene PDFs grandes accidentales
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # =========================================================================
+  # Python — ruff (lint)
+  # Aplicado a TODOS los servicios y apps Python del monorepo:
+  #   services/clinical-extractor/, apps/api/ (cuando exista), evals/
+  #
+  # Cada proyecto Python tiene su propio pyproject.toml con la config de ruff
+  # (line-length=100, target=py313, select=[E,W,F,I,B,C4,UP,SIM,TCH,PTH,RUF]).
+  # ruff respeta el pyproject.toml más cercano de cada archivo procesado.
+  # =========================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff
+        name: ruff (check)
+        # Mismos directorios que el job lint-python del workflow ci.yml
+        files: ^(services/.+/(src|tests)/|apps/api/(src|tests)/|evals/(src|tests)/).+\.py$
+
+      # TODO: ruff-format está disponible como hook MANUAL.
+      # No se activa en cada commit por dos razones:
+      #
+      # 1. Las versiones de ruff cambian las reglas de formato entre minors
+      #    (ej. 0.8 → 0.15 reformatea ~20 archivos en este repo aunque ya
+      #    pasaron por ruff-format con la versión anterior).
+      # 2. Aplicar reformat masivo es un cambio cross-cutting que merece
+      #    su propio PR — no se mezcla con commits de feature.
+      #
+      # Cómo correrlo manualmente:
+      #    pre-commit run --hook-stage manual ruff-format-check --all-files
+      #
+      # CI (lint-python job) corre `ruff check` obligatoriamente; format
+      # check se hará obligatorio cuando el repo esté reformateado uniformemente.
+      - id: ruff-format
+        name: ruff (format check) [manual]
+        args: [--check]
+        stages: [manual]
+        files: ^(services/.+/(src|tests)/|apps/api/(src|tests)/|evals/(src|tests)/).+\.py$
+
+  # =========================================================================
+  # TODO: mypy NO se incluye en pre-commit deliberadamente.
+  #
+  # Razón: el job lint-python del CI corre mypy DESPUÉS de instalar las
+  # deps de cada servicio (anthropic, pypdf, pydantic, etc). En pre-commit
+  # tendríamos que (a) replicar esa instalación en cada commit, o (b)
+  # apoyarnos en el venv local del dev — frágil cross-OS.
+  #
+  # Decisión: mypy queda como verificación obligatoria en CI (lint-python
+  # job) — bloqueante para merge a main. Pre-commit cubre lo rápido y
+  # determinista; CI cubre lo lento y dependiente del entorno.
+  #
+  # Si más adelante mypy se vuelve necesario en pre-commit (porque CI se
+  # rompe muy seguido), evaluar pre-commit-mypy con `additional_dependencies`.
+  # =========================================================================

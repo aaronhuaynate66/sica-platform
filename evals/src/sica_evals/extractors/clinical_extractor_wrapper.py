@@ -71,7 +71,7 @@ class ClinicalExtractorWrapper:
             import clinical_extractor
 
             self.extractor_version = getattr(clinical_extractor, "__version__", "unknown")
-        except Exception:  # noqa: BLE001 — best-effort metadata
+        except Exception:
             self.extractor_version = "unknown"
         self._extractor = True
 

@@ -19,7 +19,6 @@ from sica_evals.comparators.field_comparator import (
 from sica_evals.comparators.span_comparator import compare_evidence_spans
 from sica_evals.metrics import (
     compute_calibration_error,
-    compute_factual_accuracy,
     compute_factual_accuracy_from_summary,
     count_critical_omissions,
     count_critical_omissions_against,

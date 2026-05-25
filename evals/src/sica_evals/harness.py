@@ -143,7 +143,7 @@ class Harness:
 
         try:
             actual = self.extractor(case.pdf_path)
-        except Exception as exc:  # noqa: BLE001 — surface extractor failures into CaseResult
+        except Exception as exc:
             elapsed = time.perf_counter() - started
             return CaseResult(
                 case_id=case.case_id,
