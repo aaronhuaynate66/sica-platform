@@ -11,7 +11,28 @@ services:
     region: oregon
     plan: free
     rootDir: apps/api
-    buildCommand: pip install --upgrade pip && pip install -e .
+    # El extractor vive en services/clinical-extractor (workspace local, no en
+    # PyPI). Lo instalamos por path antes que sica-api para que las rutas que
+    # lo importan (/providers, /models con runtime state, /extract) lo
+    # encuentren en el entorno de prod. Sin este install /health miente
+    # (reporta extractor_available=true cuando el módulo no está cargado).
+    #
+    # Decisiones:
+    # - Sin `-e` para clinical-extractor: editable installs con paths fuera
+    #   del rootDir a veces dejan egg-links que el runtime de Render no
+    #   resuelve. Instalación non-editable produce un wheel real en
+    #   site-packages.
+    # - `python -c "import clinical_extractor"` post-install hace el fallo
+    #   loud: si por cualquier razón el install no expuso el módulo, Render
+    #   aborta el deploy en vez de servir respuestas degradadas en silencio.
+    buildCommand: |
+      set -e
+      pip install --upgrade pip
+      # Compatible con `sh` (Render). Sin pushd/popd (bash extensions).
+      EXTRACTOR_DIR="$PWD/../../services/clinical-extractor"
+      pip install "$EXTRACTOR_DIR"
+      python -c "import clinical_extractor; print(f'clinical_extractor OK: {clinical_extractor.__version__}')"
+      pip install -e .
     startCommand: uvicorn sica_api.main:app --host 0.0.0.0 --port $PORT
     pythonVersion: "3.13"
     healthCheckPath: /health
