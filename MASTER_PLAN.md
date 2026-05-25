@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `a606af5`
+**Hash del último commit:** `eb3708e`
 
 ## Progreso general
 
@@ -223,6 +223,9 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `eb3708e` | aaronhuaynate66 | test(evals): add gate integration tests end-to-end | 2026-05-25 |
+| `4fbc8b4` | aaronhuaynate66 | feat(ci): add harness gate labels, setup scripts, and contributing docs | 2026-05-25 |
+| `0764302` | aaronhuaynate66 | feat(ci): add harness gate workflow with metric thresholds (closes #10 enforcement) | 2026-05-25 |
 | `a606af5` | aaronhuaynate66 | chore: validate post-migration push from Projects path | 2026-05-25 |
 | `61d3895` | aaronhuaynate66 | test(evals): expand synthetic dataset to 15 cases (placenta previa, APP, oligohidramnios, ITU, hipotiroidismo, complex case, scanned) | 2026-05-25 |
 | `9d4630d` | aaronhuaynate66 | refactor(extractor): introduce multi-provider adapter pattern (anthropic + vertex-medgemma stub) | 2026-05-25 |
@@ -230,9 +233,6 @@ Auto-generado leyendo `docs/decisions/`.
 | `16b66c4` | aaronhuaynate66 | feat(web): instrument key events for GA4 and Clarity with PHI guardrails | 2026-05-22 |
 | `2016e43` | aaronhuaynate66 | feat(web): integrate GA4 and Microsoft Clarity with consent gating and PHI sanitization | 2026-05-22 |
 | `4dcf177` | aaronhuaynate66 | feat(web): add cookie consent banner and PHI masking for analytics readiness | 2026-05-22 |
-| `391aed9` | aaronhuaynate66 | feat(web): add inline editing for selected fields with edit tracking | 2026-05-22 |
-| `338a486` | aaronhuaynate66 | feat(web): add evidence traceability with EvidenceModal and per-field references | 2026-05-22 |
-| `a5b3946` | aaronhuaynate66 | fix(api): parse ALLOWED_ORIGINS as CSV from env var (closes deployment regression) | 2026-05-22 |
 
 ---
 
