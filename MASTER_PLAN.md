@@ -2,19 +2,19 @@
 
 ## Estado general
 
-Última actualización: `2026-05-25T15:54:22Z`  
+Última actualización: `2026-05-25T21:16:51Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `61d3895`
+**Hash del último commit:** `a606af5`
 
 ## Progreso general
 
 ```
-██████████████████████░░░░░░░░░░░░░░░░░░ 12/22 issues cerrados (55%)
+████████████████████████░░░░░░░░░░░░░░░░ 13/22 issues cerrados (59%)
 ```
 
-✅ Cerrados: 12 | 🔄 En progreso: 0 | ⬜ Pendientes: 10 | 🚨 Bloqueantes: 4
+✅ Cerrados: 13 | 🔄 En progreso: 0 | ⬜ Pendientes: 9 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -149,7 +149,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | #5 | [[DATA] Acceso a 150-200 historias obstétricas desidentificadas para benchmark R0](https://github.com/aaronhuaynate66/sica-platform/issues/5) | bloqueante, data, fase-1, r0 | ⬜ Abierto |
 | #6 | [[MERCADO] Análisis competitivo Perú/LatAm con field research](https://github.com/aaronhuaynate66/sica-platform/issues/6) | fase-1, investigacion, mercado | ⬜ Abierto |
 | #7 | [[GTM] Identificar 5 KOLs target para Distribution Engine](https://github.com/aaronhuaynate66/sica-platform/issues/7) | distribution-engine, fase-1, gtm | ⬜ Abierto |
-| #22 | [Migración: sica-platform de Documents a Projects](https://github.com/aaronhuaynate66/sica-platform/issues/22) | infra | ⬜ Abierto |
+| #22 | [Migración: sica-platform de Documents a Projects](https://github.com/aaronhuaynate66/sica-platform/issues/22) | infra | ✅ Cerrado |
 
 ---
 
@@ -199,7 +199,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 - ✅ [#18](https://github.com/aaronhuaynate66/sica-platform/issues/18) Evidencia trazable per-field en UI
 - ✅ [#19](https://github.com/aaronhuaynate66/sica-platform/issues/19) Editor inline para campos clave del resumen
 - ✅ [#21](https://github.com/aaronhuaynate66/sica-platform/issues/21) Integración GA4 + Microsoft Clarity
-- ⬜ [#22](https://github.com/aaronhuaynate66/sica-platform/issues/22) Migración: sica-platform de Documents a Projects
+- ✅ [#22](https://github.com/aaronhuaynate66/sica-platform/issues/22) Migración: sica-platform de Documents a Projects
 
 ---
 
@@ -223,6 +223,7 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `a606af5` | aaronhuaynate66 | chore: validate post-migration push from Projects path | 2026-05-25 |
 | `61d3895` | aaronhuaynate66 | test(evals): expand synthetic dataset to 15 cases (placenta previa, APP, oligohidramnios, ITU, hipotiroidismo, complex case, scanned) | 2026-05-25 |
 | `9d4630d` | aaronhuaynate66 | refactor(extractor): introduce multi-provider adapter pattern (anthropic + vertex-medgemma stub) | 2026-05-25 |
 | `21681ac` | aaronhuaynate66 | chore(repo): add pre-commit hooks for lint and security checks | 2026-05-25 |
@@ -232,7 +233,6 @@ Auto-generado leyendo `docs/decisions/`.
 | `391aed9` | aaronhuaynate66 | feat(web): add inline editing for selected fields with edit tracking | 2026-05-22 |
 | `338a486` | aaronhuaynate66 | feat(web): add evidence traceability with EvidenceModal and per-field references | 2026-05-22 |
 | `a5b3946` | aaronhuaynate66 | fix(api): parse ALLOWED_ORIGINS as CSV from env var (closes deployment regression) | 2026-05-22 |
-| `a02ae05` | aaronhuaynate66 | feat(api): prepare for Render deployment with render.yaml and improved CORS/health | 2026-05-22 |
 
 ---
 
