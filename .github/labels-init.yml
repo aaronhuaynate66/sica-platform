@@ -17,7 +17,7 @@
 
 - name: "harness-failure"
   color: "d93f0b"
-  description: "Auto-aplicado por el workflow harness-gate.yml cuando el gate falla. Se remueve cuando vuelve a pasar."
+  description: "Auto-aplicado cuando harness-gate.yml falla. Se remueve cuando el gate vuelve a pasar."
 
 - name: "retroactive"
   color: "c5def5"
