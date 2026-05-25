@@ -7,7 +7,14 @@ cambia ahí y la API queda en sync automáticamente.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
+
+# Capacidades reconocidas por el endpoint /providers. Mantener cerrado por
+# Literal evita que un provider declare una capability inventada — toda
+# adición pasa por revisión y por update del frontend que las lee.
+ProviderCapability = Literal["tool_use", "vision", "streaming", "long_context"]
 
 
 class HealthResponse(BaseModel):
@@ -67,6 +74,79 @@ class ModelInfo(BaseModel):
             "ID del LLMProvider que atiende este modelo (anthropic, "
             "vertex-medgemma, etc.). None si no hay provider implementado aún."
         ),
+    )
+
+
+class ProviderModelInfo(BaseModel):
+    """Modelo dentro de un provider, en el shape rico de GET /providers."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(description="Identificador del modelo (ej. claude-sonnet-4-5-20250929).")
+    is_default: bool = Field(
+        description=(
+            "True si es el primer modelo declarado en ``provider.supported_models``. "
+            "Convención del registry: el primero es el default operativo del provider."
+        ),
+    )
+
+
+class ProviderInfo(BaseModel):
+    """Vista rica de un LLMProvider más sus modelos."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider_id: str = Field(description="ID estable: anthropic, vertex-medgemma, etc.")
+    is_available: bool = Field(
+        description=(
+            "True si ``provider.is_available()`` retornó True en runtime "
+            "(credenciales presentes, dependencias listas)."
+        ),
+    )
+    available_note: str | None = Field(
+        default=None,
+        description=(
+            "Cuando ``is_available`` es False, explica por qué (env vars faltantes, "
+            "stub pendiente). None cuando el provider está operativo."
+        ),
+    )
+    models: list[ProviderModelInfo] = Field(
+        default_factory=list,
+        description="Modelos que este provider declara en ``supported_models``.",
+    )
+    capabilities: list[ProviderCapability] = Field(
+        default_factory=list,
+        description=(
+            "Capacidades estáticas declaradas para el provider. Hoy es metadata "
+            "del endpoint (PROVIDER_CAPABILITIES); en R1 se mueve a metadata del "
+            "LLMProvider base."
+        ),
+    )
+
+
+class ProvidersResponse(BaseModel):
+    """Body de respuesta de GET /providers — shape rico agrupado por provider."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    providers: list[ProviderInfo] = Field(
+        default_factory=list,
+        description="Todos los providers registrados, disponibles o no.",
+    )
+    default_provider_id: str = Field(
+        description=(
+            "Provider que el extractor usa por default en R0 (ADR 0004). "
+            "Distinto del modelo default — ese vive en ``models[].is_default`` "
+            "dentro del provider correspondiente."
+        ),
+    )
+    total_providers: int = Field(
+        ge=0,
+        description="Cuántos providers están registrados (independiente de availability).",
+    )
+    available_count: int = Field(
+        ge=0,
+        description="Cuántos providers reportan ``is_available()`` True en este runtime.",
     )
 
 

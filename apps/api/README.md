@@ -9,7 +9,8 @@ Backend HTTP de SICA. Expone el `clinical-extractor` como API REST y servirá co
 | Método | Path | Descripción |
 |---|---|---|
 | `GET` | `/health` | Liveness + readiness. Reporta `extractor_available`. |
-| `GET` | `/models` | Lista declarativa de modelos según ADR 0004. |
+| `GET` | `/models` | Lista plana de modelos según ADR 0004 (retrocompatible). |
+| `GET` | `/providers` | Shape rico agrupado por provider con modelos, capabilities y availability. |
 | `POST` | `/extract` | Multipart `file` (PDF) → `ObstetricSummary` JSON. |
 
 ### `GET /health`
@@ -36,7 +37,48 @@ Devuelve un array con cada modelo declarado en la política de routing. Cada ite
 }
 ```
 
-La lista es **estática en R0** (hard-coded desde ADR 0004 Nivel 1). En R1+ pasará a leer del registry vivo del orquestador.
+La lista es **estática en R0** (hard-coded desde ADR 0004 Nivel 1) cruzada con el estado runtime del registry de providers (`is_available`, `provider_id`). En R1+ pasará a leer del registry vivo del orquestador.
+
+### `GET /providers`
+
+Vista jerárquica de los `LLMProvider` registrados en `clinical_extractor.providers.DEFAULT_REGISTRY`, junto con los modelos que cada uno soporta, sus capabilities y por qué un provider no está operativo (cuando aplique). Diseñado para UIs nuevas o dashboards que necesiten estructura completa.
+
+Response:
+
+```json
+{
+  "providers": [
+    {
+      "provider_id": "anthropic",
+      "is_available": true,
+      "available_note": null,
+      "models": [
+        {"id": "claude-sonnet-4-5-20250929", "is_default": true},
+        {"id": "claude-opus-4-7", "is_default": false},
+        {"id": "claude-haiku-4-5-20251001", "is_default": false}
+      ],
+      "capabilities": ["tool_use", "vision", "streaming", "long_context"]
+    },
+    {
+      "provider_id": "vertex-medgemma",
+      "is_available": false,
+      "available_note": "Pendiente: GCP credentials no configuradas y extract() sin implementar. Ver issue #12 y vertex_medgemma_provider.py.",
+      "models": [
+        {"id": "medgemma-4b-it", "is_default": true}
+      ],
+      "capabilities": []
+    }
+  ],
+  "default_provider_id": "anthropic",
+  "total_providers": 2,
+  "available_count": 1
+}
+```
+
+Cuándo usar cada uno:
+
+- `/providers` → UIs nuevas, dashboards, herramientas que necesitan estructura completa por provider.
+- `/models` → frontend legacy y listados planos. **El shape no se cambia** — los dos endpoints conviven.
 
 ### `POST /extract`
 

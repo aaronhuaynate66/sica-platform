@@ -14,6 +14,7 @@ from sica_api import __version__
 from sica_api.routes import extract as extract_routes
 from sica_api.routes import health as health_routes
 from sica_api.routes import models as models_routes
+from sica_api.routes import providers as providers_routes
 from sica_api.settings import get_settings
 
 
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_routes.router)
     app.include_router(models_routes.router)
+    app.include_router(providers_routes.router)
     app.include_router(extract_routes.router)
 
     @app.exception_handler(Exception)

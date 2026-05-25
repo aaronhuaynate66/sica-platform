@@ -16,6 +16,8 @@ MedSigLIP), ``is_available=False`` y ``provider_id=None`` — quedará en
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter
 
 from sica_api.schemas import ModelInfo
@@ -25,7 +27,7 @@ router = APIRouter(tags=["models"])
 
 # Lista derivada de ADR 0004 Nivel 1.
 # El orden refleja prioridad de evaluación, no de uso.
-_MODELS_POLICY: list[dict] = [
+_MODELS_POLICY: list[dict[str, Any]] = [
     {
         "id": "claude-sonnet-4-5-20250929",
         "provider": "anthropic",

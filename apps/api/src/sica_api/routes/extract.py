@@ -51,7 +51,7 @@ def _default_extractor(pdf_path: Path, *, api_key: str) -> dict[str, Any]:
 
     os.environ["ANTHROPIC_API_KEY"] = api_key
 
-    from clinical_extractor.extractor import (  # type: ignore[import-not-found]
+    from clinical_extractor.extractor import (
         ExtractionError,
         extract_from_pdf,
     )
