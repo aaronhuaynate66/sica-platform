@@ -23,7 +23,7 @@ import os
 import time
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import ValidationError
 
@@ -223,6 +223,15 @@ def extract_from_pdf(
             raise ProviderNotAvailableError(msg)
 
         # 3. Construir request y delegar al provider
+        # case_id: filename sin extensión. Identifica el caso en Langfuse
+        # y en telemetría. Si el path no se puede expresar (caso edge),
+        # cae a None y el provider usa "unknown_case" como tag.
+        case_id_for_trace: str | None
+        try:
+            case_id_for_trace = pdf_path.stem or None
+        except Exception:
+            case_id_for_trace = None
+
         req = ExtractionRequest(
             document_text=document_text,
             prompt=resolved_prompt,
@@ -232,6 +241,7 @@ def extract_from_pdf(
             initial_backoff=resolved_initial_backoff,
             max_backoff=resolved_max_backoff,
             timeout_seconds=resolved_timeout,
+            case_id=case_id_for_trace,
         )
 
         try:
@@ -301,8 +311,8 @@ def _call_model_with_retry(
     max_retries: int,
     initial_backoff: float,
     max_backoff: float,
-    sleep_fn=time.sleep,
-) -> tuple[dict, dict[str, int] | None, int]:
+    sleep_fn: Any = time.sleep,
+) -> tuple[dict[str, Any], dict[str, int] | None, int]:
     """Compat shim — delega al provider Anthropic con el client inyectado.
 
     Usado por tests existentes (test_hardening.py). Mantiene la firma vieja.
@@ -324,7 +334,7 @@ def _call_model_with_retry(
         raise ExtractionError(str(exc)) from exc
 
 
-def _build_extraction_tool():
+def _build_extraction_tool() -> Any:
     """Compat shim — re-exporta del provider."""
     from clinical_extractor.providers.anthropic_provider import (
         _build_extraction_tool as _bet,

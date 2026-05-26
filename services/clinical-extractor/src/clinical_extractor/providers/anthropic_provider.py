@@ -32,6 +32,25 @@ if TYPE_CHECKING:
 
     from clinical_extractor.prompts import VersionedPrompt
 
+
+def _safe_trace(**kwargs: Any) -> None:
+    """Wrapper defensivo: aún si tracing.py fallara al importar, no rompe extract.
+
+    Este wrapper existe porque ``trace_extraction`` ya tiene try/except
+    interno, pero el ``import`` mismo podría romperse si el módulo de
+    settings tiene un bug. Doble cinturón = el extractor no puede caerse
+    por la observability.
+    """
+    try:
+        from clinical_extractor.tracing import trace_extraction
+
+        trace_extraction(**kwargs)
+    except Exception:
+        # Logger ya advirtió desde tracing.py si fue ese path; si fue
+        # ImportError o algo más exótico, swalloweamos silencioso.
+        # Re-raise rompería la regla "tracing no debe romper extract".
+        return
+
 TOOL_NAME = "record_obstetric_summary"
 
 # Excepciones que SÍ disparan retry (transitorias).
@@ -99,11 +118,45 @@ class AnthropicProvider(LLMProvider):
 
         client = self._resolve_client(timeout_seconds=request.timeout_seconds)
         started = time.perf_counter()
-        payload, usage, retries = _call_with_retry(
-            client=client,
-            request=request,
-        )
+        case_id_for_trace = request.case_id or "unknown_case"
+
+        try:
+            payload, usage, retries = _call_with_retry(
+                client=client,
+                request=request,
+            )
+        except Exception as exc:
+            # Tracing del error ANTES de re-raise — sin esto la falla queda
+            # invisible en Langfuse aunque sí en stdout/telemetry.
+            latency_ms = int((time.perf_counter() - started) * 1000)
+            _safe_trace(
+                case_id=case_id_for_trace,
+                model=request.model_id,
+                provider_id=self._PROVIDER_ID,
+                input_tokens=None,
+                output_tokens=None,
+                latency_ms=latency_ms,
+                output_json=None,
+                error=f"{type(exc).__name__}: {exc}",
+                metadata={"retries": "unknown_at_failure"},
+            )
+            raise
+
         latency_ms = int((time.perf_counter() - started) * 1000)
+
+        # Trace exitoso. Por diseño no debe romper la respuesta — _safe_trace
+        # envuelve cualquier excepción de Langfuse.
+        _safe_trace(
+            case_id=case_id_for_trace,
+            model=request.model_id,
+            provider_id=self._PROVIDER_ID,
+            input_tokens=usage["input_tokens"] if usage else None,
+            output_tokens=usage["output_tokens"] if usage else None,
+            latency_ms=latency_ms,
+            output_json=payload,
+            error=None,
+            metadata={"retries": retries},
+        )
 
         return ExtractionResponse(
             parsed_output=payload,
@@ -149,7 +202,7 @@ def _build_extraction_tool() -> ToolParam:
 def _backoff_delay(attempt: int, initial: float, maximum: float) -> float:
     base = min(initial * (2**attempt), maximum)
     jitter = base * 0.2 * (random.random() * 2 - 1)
-    return max(0.0, base + jitter)
+    return float(max(0.0, base + jitter))
 
 
 def _call_once(

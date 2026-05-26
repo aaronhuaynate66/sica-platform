@@ -29,6 +29,7 @@ from dotenv import load_dotenv
 from clinical_extractor import __version__, telemetry
 from clinical_extractor.extractor import ExtractionError, extract_from_pdf
 from clinical_extractor.prompts import ACTIVE_PROMPT_VERSION
+from clinical_extractor.tracing import shutdown_tracing
 
 
 @click.group()
@@ -83,9 +84,11 @@ def extract(
         summary = extract_from_pdf(pdf_path, model=model, max_tokens=max_tokens)
     except ExtractionError as exc:
         click.echo(f"✗ ExtractionError: {exc}", err=True)
+        shutdown_tracing()
         sys.exit(1)
     except Exception as exc:
         click.echo(f"✗ Error inesperado: {exc}", err=True)
+        shutdown_tracing()
         sys.exit(2)
 
     indent = 2 if pretty else None
@@ -100,6 +103,10 @@ def extract(
 
     click.echo(f"  confidence_score: {summary.confidence_score:.2f}", err=True)
     click.echo(f"  evidence_spans: {len(summary.evidence_spans)}", err=True)
+    # Flush garantizado al final del comando — sin esto los traces de
+    # corridas cortas pueden no llegar a Langfuse antes de que el proceso
+    # muera (el SDK flushea async cada N segs).
+    shutdown_tracing()
 
 
 # =========================================================================
@@ -239,7 +246,10 @@ def extract_batch(
         click.echo("  errores:", err=True)
         for pdf, err in failed:
             click.echo(f"    {pdf.name}: {err}", err=True)
+        shutdown_tracing()
         sys.exit(1)
+    # Flush también en path exitoso del batch.
+    shutdown_tracing()
 
 
 if __name__ == "__main__":

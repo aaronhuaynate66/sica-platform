@@ -25,8 +25,14 @@ dependencies = [
     "anthropic>=0.39.0",
     "pypdf>=5.1.0",
     "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
     "python-dotenv>=1.0.1",
     "click>=8.1.7",
+    # Pin <4 a propósito: Langfuse v4 introdujo cambios breaking en
+    # nombres de env vars (LANGFUSE_BASEURL → LANGFUSE_BASE_URL) y la
+    # API de CallbackHandler. Quedamos en v3.x estable; reevaluar v4
+    # cuando madure. Ver ADR 0007.
+    "langfuse>=3.0.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -91,7 +97,7 @@ check_untyped_defs = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["pypdf.*"]
+module = ["pypdf.*", "langfuse.*"]
 ignore_missing_imports = true
 
 # =========================================================================

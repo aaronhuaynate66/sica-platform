@@ -32,7 +32,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from typing import Any
+from typing import IO, Any
 
 TELEMETRY_LOGGER_NAME = "clinical_extractor.telemetry"
 
@@ -48,7 +48,7 @@ class _JsonLineFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
-def configure_stream_handler(stream=sys.stderr, level: int = logging.INFO) -> None:
+def configure_stream_handler(stream: IO[str] = sys.stderr, level: int = logging.INFO) -> None:
     """Conecta el telemetry logger a un stream con formato JSON-line.
 
     Idempotente: re-llamar no duplica handlers.

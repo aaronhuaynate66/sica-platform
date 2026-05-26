@@ -45,6 +45,10 @@ class ExtractionRequest:
         initial_backoff: Espera inicial entre reintentos (segundos).
         max_backoff: Tope del backoff exponencial (segundos).
         timeout_seconds: Timeout por request al modelo.
+        case_id: Identificador opcional del caso (típicamente el nombre del
+            PDF sin extensión). Se propaga a Langfuse para que cada trace en
+            el dashboard sea identificable. None desactiva el tag — el trace
+            usa un fallback genérico.
         extra: Hooks específicos del provider (ej. ``{"region": "us-central1"}``
             para Vertex). Cada provider documenta qué claves espera.
     """
@@ -57,6 +61,7 @@ class ExtractionRequest:
     initial_backoff: float = 1.0
     max_backoff: float = 16.0
     timeout_seconds: float = 60.0
+    case_id: str | None = None  # Identificador opcional para observability (Langfuse).
     extra: dict[str, Any] = field(default_factory=dict)
 
 
