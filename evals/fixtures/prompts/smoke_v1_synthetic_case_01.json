@@ -1,0 +1,146 @@
+{
+  "baseline_comparison": {
+    "baseline_confidence": 0.95,
+    "baseline_evidence_spans": 12,
+    "baseline_id": "6fcf4c62 (Bloque Langfuse 1, evals/fixtures/baselines/claude_sonnet_4_5_synthetic_case_01.baseline.json)",
+    "current_confidence": 0.95,
+    "current_evidence_spans": 11,
+    "verdict": "No-regression. Confidence identico (0.95). Diferencia en evidence_spans (12 vs 11) es non-determinism normal del LLM, no del prompt — el prompt es char-by-char identico al legacy (verificado pre-commit). Hash del prompt: 9241ec0d."
+  },
+  "captured_at": "2026-05-26T20:30:48Z",
+  "extracted_output": {
+    "active_problems": [
+      "Anemia leve gestacional",
+      "Segunda gestación, cesárea previa (2022)"
+    ],
+    "confidence_score": 0.95,
+    "evidence_spans": [
+      {
+        "claim": "Edad 32 años",
+        "source_page": 1,
+        "source_text": "Edad:\n32 años"
+      },
+      {
+        "claim": "FUM 15/09/2025",
+        "source_page": 1,
+        "source_text": "FUM:\n15/09/2025"
+      },
+      {
+        "claim": "FPP 22/06/2026",
+        "source_page": 1,
+        "source_text": "FPP:\n22/06/2026"
+      },
+      {
+        "claim": "EG 28 semanas 2 días",
+        "source_page": 1,
+        "source_text": "EG actual (por FUM):\n28 semanas 2 días"
+      },
+      {
+        "claim": "Hemoglobina 10.8 g/dL",
+        "source_page": 1,
+        "source_text": "Hemoglobina\n10.8\ng/dL\nAnemia leve gestacional"
+      },
+      {
+        "claim": "TSH 2.1 mUI/L",
+        "source_page": 1,
+        "source_text": "TSH\n2.1\nmUI/L\nDentro de rango"
+      },
+      {
+        "claim": "Glucosa basal 92 mg/dL",
+        "source_page": 1,
+        "source_text": "Glucosa basal\n92\nmg/dL\nNormal"
+      },
+      {
+        "claim": "Fecha laboratorios 02/04/2026",
+        "source_page": 1,
+        "source_text": "LABORATORIOS (último control: 02/04/2026)"
+      },
+      {
+        "claim": "G2 P1, cesárea previa 2022",
+        "source_page": 1,
+        "source_text": "Fórmula obstétrica: G2 P1 (1 cesárea segmentaria, 2022)"
+      },
+      {
+        "claim": "Anemia leve en embarazo anterior",
+        "source_page": 1,
+        "source_text": "Complicación previa: anemia leve en tercer trimestre del embarazo anterior, manejada con sulfato ferroso\noral."
+      },
+      {
+        "claim": "Plan cesárea programada 39 semanas",
+        "source_page": 2,
+        "source_text": "Plan de parto: cesárea programada por cesárea previa, a coordinar a las 39 sem."
+      }
+    ],
+    "fpp": "2026-06-22",
+    "fum": "2025-09-15",
+    "gestational_age_weeks": 28.3,
+    "lab_results": [
+      {
+        "abnormal": true,
+        "date": "2026-04-02",
+        "name": "Hemoglobina",
+        "unit": "g/dL",
+        "value": "10.8"
+      },
+      {
+        "abnormal": false,
+        "date": "2026-04-02",
+        "name": "TSH",
+        "unit": "mUI/L",
+        "value": "2.1"
+      },
+      {
+        "abnormal": false,
+        "date": "2026-04-02",
+        "name": "Glucosa basal",
+        "unit": "mg/dL",
+        "value": "92"
+      },
+      {
+        "abnormal": false,
+        "date": "2026-04-02",
+        "name": "HIV (ELISA)",
+        "unit": null,
+        "value": "No reactivo"
+      },
+      {
+        "abnormal": false,
+        "date": "2026-04-02",
+        "name": "Sífilis (RPR)",
+        "unit": null,
+        "value": "No reactivo"
+      }
+    ],
+    "notes_summary": "Paciente de 32 años, G2P1, embarazo actual de 28 semanas 2 días por FUM. Cesárea previa en 2022 por desproporción céfalo-pélvica. Cursando con anemia leve gestacional (Hb 10.8 g/dL) en tratamiento con sulfato ferroso. Controles prenatales regulares, sin signos de alarma, ecografía de semana 20 sin alteraciones estructurales. Plan de cesárea programada a las 39 semanas.",
+    "patient_age": 32,
+    "risk_factors": [
+      "Cesárea previa",
+      "Anemia leve gestacional",
+      "Antecedente de anemia en embarazo anterior"
+    ]
+  },
+  "extraction_metadata": {
+    "confidence_score": 0.95,
+    "evidence_spans_count": 11,
+    "input_tokens": 4261,
+    "latency_ms": 21864,
+    "model_used": "claude-sonnet-4-5-20250929",
+    "output_tokens": 1379,
+    "retry_count": 0
+  },
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/synthetic_case_01.pdf",
+    "sha256": "b68c637adbfc2f7b52dc9d7bd3755df668d4d55c3c0bcb94ba66a0c529dd364b"
+  },
+  "prompt": {
+    "hash": "9241ec0d2de94600537f47652cf0315a3fff05f6081878d9087881dff6d86482",
+    "name": "extract_obstetric",
+    "short_hash": "9241ec0d",
+    "system_len": 2204,
+    "user_template_len": 437,
+    "version": 1,
+    "version_string": "extract_obstetric_v1"
+  },
+  "purpose": "Verifica que el extractor cargando el prompt desde el nuevo registry (commit 6baa80d) produce output funcional contra Anthropic real. No es baseline de regresion (eso vive en evals/fixtures/baselines/); es evidencia de la transicion B1 -> B2 sin regresion observable.",
+  "snapshot_type": "registry-integration-smoke"
+}
