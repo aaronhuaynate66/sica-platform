@@ -130,6 +130,22 @@ class TestLangfuseSettings:
         settings = LangfuseSettings()
         assert settings.base_url == "https://us.cloud.langfuse.com"
 
+    def test_environment_defaults_to_development(self, monkeypatch) -> None:
+        """Default fail-safe: sin env var explícita, traces caen en 'development'.
+
+        Sin esto, smoke tests locales contaminan el dashboard 'production'
+        (ver ADR 0007 § actualización 2026-05-26).
+        """
+        monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
+        settings = LangfuseSettings()
+        assert settings.tracing_environment == "development"
+
+    def test_environment_can_be_overridden_to_production(self, monkeypatch) -> None:
+        """Render production setea LANGFUSE_TRACING_ENVIRONMENT=production via env var."""
+        monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", "production")
+        settings = LangfuseSettings()
+        assert settings.tracing_environment == "production"
+
 
 # =========================================================================
 # get_langfuse_client

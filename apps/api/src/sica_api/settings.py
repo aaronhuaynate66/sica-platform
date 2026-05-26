@@ -81,10 +81,13 @@ class Settings(BaseSettings):
         description="Endpoint del API de Langfuse Cloud (LANGFUSE_BASE_URL).",
     )
     langfuse_tracing_environment: str = Field(
-        default="production",
+        default="development",
         description=(
-            "Tag de entorno (LANGFUSE_TRACING_ENVIRONMENT). En CI usar 'ci'; "
-            "en local 'dev'."
+            "Tag de entorno (LANGFUSE_TRACING_ENVIRONMENT). Default 'development' "
+            "es fail-safe: protege el dashboard 'production' de tests locales / "
+            "CI que olviden setear la var. Render production setea esta env var "
+            "explícitamente a 'production' en su Environment vars. Ver ADR 0007 "
+            "§ actualización 2026-05-26 default environment."
         ),
     )
 

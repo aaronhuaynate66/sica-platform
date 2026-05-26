@@ -280,3 +280,52 @@ El prompt completo del fix (qué archivos tocar, qué tests agregar, dónde pone
 7. **Observability sobre observability**: bugs en el sistema de tracing son difíciles porque silenciosamente fallan (try/except absorbe errores por diseño). El smoke test del feature pasó en local (warm container), pero falló parcialmente en producción (cold start) sin generar logs ni excepciones visibles. **Regla nueva:** después de deployar cambios de tracing, validar contra producción tanto en path warm como cold (esperar 15+ min y reintentar). No bastar con un solo curl exitoso.
 
 8. **Render free tier no es serverless puro pero comparte el problema**: aunque Render es nominalmente "long-running containers", el free tier los suspende post-response cuando no hay tráfico, replicando la semántica de serverless ephemeral. Cualquier librería que asuma "el proceso vive más allá del response" — SDK con flush async, log aggregators con buffer, métricas via push — sufre el mismo síntoma. **Regla operativa:** cuando se introduzca una nueva dependencia con buffer/batch async en `apps/api`, validar explícitamente que entrega bajo cold-start. Documentar fallback síncrono en el ADR correspondiente.
+
+## Actualización 2026-05-26 — Default environment cambiado a `development`
+
+Tras varios días corriendo, la inspección del dashboard de Langfuse reveló **contaminación cruzada entre entornos**: traces generadas por smoke tests locales (CLI `clinical-extractor extract`, pytest sin fixture aislante, scripts ad-hoc) aparecían con `environment=production`, mezcladas con traces reales del API en Render.
+
+### Causa raíz
+
+El campo `LangfuseSettings.tracing_environment` (en `clinical_extractor/settings.py` y `apps/api/settings.py`) tenía como default `"production"`. Cualquier proceso que importara el SDK SIN setear explícitamente `LANGFUSE_TRACING_ENVIRONMENT` heredaba ese default → traces locales etiquetadas como `production`.
+
+Esto era **fail-open**: el comportamiento más peligroso (contaminar el entorno crítico) era el comportamiento por default.
+
+### Cambio
+
+Default cambiado a `"development"` en ambos módulos:
+
+- `services/clinical-extractor/src/clinical_extractor/settings.py::LangfuseSettings.tracing_environment`
+- `apps/api/src/sica_api/settings.py::Settings.langfuse_tracing_environment`
+
+Ahora el default es **fail-safe**:
+
+- **Local dev sin env var explícita** → traces caen en dashboard `development` (segregado).
+- **CI sin override** → mismo: `development`.
+- **Render production**: setea `LANGFUSE_TRACING_ENVIRONMENT=production` explícitamente en sus Environment vars → override respetado, traces caen en dashboard `production` correctamente.
+
+### Cómo verificar
+
+- **Local**: arrancar `clinical-extractor extract` sin tocar nada, ver que el trace en Langfuse aparece con `environment=development`.
+- **Producción**: smoke contra `POST https://sica-api-d1gq.onrender.com/extract` debe seguir generando traces con `environment=production` (override de Render UI prevalece).
+
+### Tests que congelan el contrato
+
+Cuatro tests nuevos (2 por paquete):
+
+- `services/clinical-extractor/tests/test_tracing.py::TestLangfuseSettings::test_environment_defaults_to_development`
+- `services/clinical-extractor/tests/test_tracing.py::TestLangfuseSettings::test_environment_can_be_overridden_to_production`
+- `apps/api/tests/test_settings.py::test_langfuse_tracing_environment_defaults_to_development`
+- `apps/api/tests/test_settings.py::test_langfuse_tracing_environment_overridable_to_production`
+
+Si en el futuro alguien intenta volver el default a `"production"` "por consistencia", estos tests rompen en CI y forzan re-justificación.
+
+### Cleanup retroactivo
+
+Mismo día se ejecutó un cleanup del dashboard borrando 6 traces de smoke tests locales que habían quedado etiquetadas como `production` por el bug. Quedaron en el dashboard 6 traces legítimas (todas con `api_extract_request` como root span — vienen del API real, no del CLI directo).
+
+### Pre-requisito de deploy
+
+**Antes de hacer redeploy** con este cambio, verificar en **Render → service `sica-api` → Settings → Environment** que la var `LANGFUSE_TRACING_ENVIRONMENT=production` esté seteada. Sin esa env var, después del próximo deploy las traces reales del API caerían en `development` (no es data loss, pero el dashboard quedaría dividido raramente).
+
+Históricamente (sesión #14 cuando se configuraron las creds de Langfuse) la var **debería** estar seteada en Render. Si no lo está, agregarla manualmente desde la UI con valor `production` y trigger deploy.

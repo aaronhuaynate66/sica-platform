@@ -62,10 +62,15 @@ class LangfuseSettings(BaseSettings):
         ),
     )
     tracing_environment: str = Field(
-        default="production",
+        default="development",
         description=(
             "Tag de entorno para separar prod/staging/dev en el dashboard "
-            "(LANGFUSE_TRACING_ENVIRONMENT). En CI override a 'ci' o 'test'."
+            "(LANGFUSE_TRACING_ENVIRONMENT). Default 'development' es fail-safe: "
+            "si un dev olvida setear la var en su entorno local, sus smoke tests "
+            "caen en el dashboard 'development', NO contaminan 'production'. "
+            "Render production setea LANGFUSE_TRACING_ENVIRONMENT=production "
+            "explícitamente en su Environment vars (ver ADR 0007 § actualización "
+            "2026-05-26 default environment)."
         ),
     )
 

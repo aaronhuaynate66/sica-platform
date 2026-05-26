@@ -79,3 +79,34 @@ def test_allowed_origins_empty_string_resolves_to_empty_list(
     monkeypatch.setenv("ALLOWED_ORIGINS", "")
     s = Settings()
     assert s.allowed_origins == []
+
+
+# =========================================================================
+# Langfuse tracing environment — fix de default 2026-05-26 (ADR 0007)
+# =========================================================================
+
+
+def test_langfuse_tracing_environment_defaults_to_development(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default fail-safe: sin LANGFUSE_TRACING_ENVIRONMENT explícita, smoke
+    tests locales caen en 'development' y NO contaminan 'production'.
+
+    Bug histórico: el default era 'production' → cualquier curl local sin
+    env var explícita aparecía en el dashboard production. Fix en ADR 0007
+    § actualización 2026-05-26.
+    """
+    monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
+    s = Settings()
+    assert s.langfuse_tracing_environment == "development"
+
+
+def test_langfuse_tracing_environment_overridable_to_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Render production setea explícitamente LANGFUSE_TRACING_ENVIRONMENT=production
+    en sus Environment vars — debe respetarse override.
+    """
+    monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", "production")
+    s = Settings()
+    assert s.langfuse_tracing_environment == "production"
