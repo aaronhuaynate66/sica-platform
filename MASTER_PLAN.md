@@ -2,19 +2,19 @@
 
 ## Estado general
 
-Última actualización: `2026-05-25T21:16:51Z`  
+Última actualización: `2026-05-26T15:40:10Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `eb3708e`
+**Hash del último commit:** `2b53e29`
 
 ## Progreso general
 
 ```
-████████████████████████░░░░░░░░░░░░░░░░ 13/22 issues cerrados (59%)
+█████████████████████████░░░░░░░░░░░░░░░ 14/22 issues cerrados (64%)
 ```
 
-✅ Cerrados: 13 | 🔄 En progreso: 0 | ⬜ Pendientes: 9 | 🚨 Bloqueantes: 4
+✅ Cerrados: 14 | 🔄 En progreso: 0 | ⬜ Pendientes: 8 | 🚨 Bloqueantes: 4
 
 ---
 
@@ -50,7 +50,7 @@ gantt
 
 | Release | Período | Estado | Progreso |
 |---------|---------|--------|----------|
-| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████████░ 86% |
+| R0 Foundation | May–Jul 2026 | 🔄 Activo | █████████░ 93% |
 | R1 Resumen Obstétrico | Jul–Oct 2026 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R2 Shadow Mode | Oct 2026–Ene 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
 | R3 Handoff Materno-Neonatal | Ene–Abr 2027 | ⬜ Pendiente | ░░░░░░░░░░ 0% |
@@ -69,7 +69,7 @@ gantt
 **Gate de salida:** MedGemma 4B ≥85% factualidad, ≤5% omisiones críticas
 
 ```
-██████████████████████████████████░░░░░░ 12/14 issues cerrados (86%)
+█████████████████████████████████████░░░ 13/14 issues cerrados (93%)
 ```
 
 | # | Issue | Labels | Estado | Cerrado |
@@ -80,7 +80,7 @@ gantt
 | #11 | [[R0] Definir métricas de factualidad: span-level accuracy + critical omissions](https://github.com/aaronhuaynate66/sica-platform/issues/11) | fase-1, r0 | ✅ Cerrado | 2026-05-22 |
 | #12 | [[R0] Investigar viabilidad de MedGemma 4B local en el entorno del partner](https://github.com/aaronhuaynate66/sica-platform/issues/12) | fase-1, r0 | ⬜ Abierto | — |
 | #13 | [[R0] Crear primer ADR sobre política de routing de modelos (MedGemma vs Gemini vs Claude)](https://github.com/aaronhuaynate66/sica-platform/issues/13) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
-| #14 | [[R0] Setup de Langfuse self-hosted o decisión de servicio gestionado](https://github.com/aaronhuaynate66/sica-platform/issues/14) | fase-1, r0 | ⬜ Abierto | — |
+| #14 | [[R0] Setup de Langfuse self-hosted o decisión de servicio gestionado](https://github.com/aaronhuaynate66/sica-platform/issues/14) | fase-1, r0 | ✅ Cerrado | 2026-05-26 |
 | #15 | [[R0] Documentar políticas de seguridad y manejo de PHI antes del primer dato real](https://github.com/aaronhuaynate66/sica-platform/issues/15) | fase-1, r0 | ✅ Cerrado | 2026-05-21 |
 | #16 | [Deploy apps/api a producción (Render)](https://github.com/aaronhuaynate66/sica-platform/issues/16) | retroactive | ✅ Cerrado | 2026-05-22 |
 | #17 | [Conectar apps/web con apps/api en producción](https://github.com/aaronhuaynate66/sica-platform/issues/17) | retroactive | ✅ Cerrado | 2026-05-22 |
@@ -190,7 +190,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 
 - ✅ [#8](https://github.com/aaronhuaynate66/sica-platform/issues/8) [R0] Setup técnico del monorepo
 - ✅ [#9](https://github.com/aaronhuaynate66/sica-platform/issues/9) [R0] Validar pipeline clinical-extractor en synthetic_case_01
-- ⬜ [#14](https://github.com/aaronhuaynate66/sica-platform/issues/14) [R0] Setup de Langfuse self-hosted o decisión de servicio gestionado
+- ✅ [#14](https://github.com/aaronhuaynate66/sica-platform/issues/14) [R0] Setup de Langfuse self-hosted o decisión de servicio gestionado
 
 ### Sin categorizar
 
@@ -212,6 +212,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | 0003 | [Security and PHI handling policy](docs/decisions/0003-security-and-phi-policy.md) | Accepted | 2026-05-21 |
 | 0004 | [Política de routing de modelos AI](docs/decisions/0004-model-routing-policy.md) | Accepted | 2026-05-21 |
 | 0005 | [Decisiones metodológicas de evaluación clínica](docs/decisions/0005-evaluation-methodology.md) | Accepted | 2026-05-22 |
+| 0006 | [Render Dashboard UI tiene precedencia sobre `render.yaml`](docs/decisions/0006-render-config-precedence.md) | Accepted — 2026-05-25 (actualizado 2026-05-26: validación empírica del plan de remediación; ver § Plan de remediación intentado y descartado) | 2026-05-25 |
 
 Auto-generado leyendo `docs/decisions/`.
 
@@ -223,16 +224,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `2b53e29` | aaronhuaynate66 | feat(extractor): integrate Langfuse SDK for LLM observability (closes #14) | 2026-05-26 |
+| `5215463` | aaronhuaynate66 | docs(adr): update ADR-0006 with empirical validation — Render UI buildCommand is dura, not soft | 2026-05-26 |
+| `d74df95` | aaronhuaynate66 | chore(infra): sync render.yaml buildCommand with what production actually runs (ADR-0006 prep) | 2026-05-26 |
+| `6df25a0` | aaronhuaynate66 | docs(adr): document render UI vs yaml precedence incident (ADR-0006) | 2026-05-26 |
+| `1483dc6` | aaronhuaynate66 | fix(api): install clinical_extractor in Render + harden /health check (production bug) | 2026-05-25 |
+| `9606b8d` | aaronhuaynate66 | feat(api): add GET /providers endpoint with rich provider+model shape (closes Bloque E TODO) | 2026-05-25 |
+| `6a8f4ae` | aaronhuaynate66 | fix(labels): shorten harness-failure description to fit GitHub 100-char limit | 2026-05-25 |
 | `eb3708e` | aaronhuaynate66 | test(evals): add gate integration tests end-to-end | 2026-05-25 |
 | `4fbc8b4` | aaronhuaynate66 | feat(ci): add harness gate labels, setup scripts, and contributing docs | 2026-05-25 |
 | `0764302` | aaronhuaynate66 | feat(ci): add harness gate workflow with metric thresholds (closes #10 enforcement) | 2026-05-25 |
-| `a606af5` | aaronhuaynate66 | chore: validate post-migration push from Projects path | 2026-05-25 |
-| `61d3895` | aaronhuaynate66 | test(evals): expand synthetic dataset to 15 cases (placenta previa, APP, oligohidramnios, ITU, hipotiroidismo, complex case, scanned) | 2026-05-25 |
-| `9d4630d` | aaronhuaynate66 | refactor(extractor): introduce multi-provider adapter pattern (anthropic + vertex-medgemma stub) | 2026-05-25 |
-| `21681ac` | aaronhuaynate66 | chore(repo): add pre-commit hooks for lint and security checks | 2026-05-25 |
-| `16b66c4` | aaronhuaynate66 | feat(web): instrument key events for GA4 and Clarity with PHI guardrails | 2026-05-22 |
-| `2016e43` | aaronhuaynate66 | feat(web): integrate GA4 and Microsoft Clarity with consent gating and PHI sanitization | 2026-05-22 |
-| `4dcf177` | aaronhuaynate66 | feat(web): add cookie consent banner and PHI masking for analytics readiness | 2026-05-22 |
 
 ---
 
