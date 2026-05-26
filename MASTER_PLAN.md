@@ -2,11 +2,11 @@
 
 ## Estado general
 
-Última actualización: `2026-05-26T15:40:10Z`  
+Última actualización: `2026-05-26T15:52:20Z`  
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `2b53e29`
+**Hash del último commit:** `6baa80d`
 
 ## Progreso general
 
@@ -213,6 +213,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | 0004 | [Política de routing de modelos AI](docs/decisions/0004-model-routing-policy.md) | Accepted | 2026-05-21 |
 | 0005 | [Decisiones metodológicas de evaluación clínica](docs/decisions/0005-evaluation-methodology.md) | Accepted | 2026-05-22 |
 | 0006 | [Render Dashboard UI tiene precedencia sobre `render.yaml`](docs/decisions/0006-render-config-precedence.md) | Accepted — 2026-05-25 (actualizado 2026-05-26: validación empírica del plan de remediación; ver § Plan de remediación intentado y descartado) | 2026-05-25 |
+| 0007 | [Langfuse Cloud para observability LLM](docs/decisions/0007-langfuse-observability.md) | Accepted — 2026-05-26 — Implementado | 2026-05-26 |
 
 Auto-generado leyendo `docs/decisions/`.
 
@@ -224,16 +225,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
-| `2b53e29` | aaronhuaynate66 | feat(extractor): integrate Langfuse SDK for LLM observability (closes #14) | 2026-05-26 |
-| `5215463` | aaronhuaynate66 | docs(adr): update ADR-0006 with empirical validation — Render UI buildCommand is dura, not soft | 2026-05-26 |
-| `d74df95` | aaronhuaynate66 | chore(infra): sync render.yaml buildCommand with what production actually runs (ADR-0006 prep) | 2026-05-26 |
-| `6df25a0` | aaronhuaynate66 | docs(adr): document render UI vs yaml precedence incident (ADR-0006) | 2026-05-26 |
-| `1483dc6` | aaronhuaynate66 | fix(api): install clinical_extractor in Render + harden /health check (production bug) | 2026-05-25 |
-| `9606b8d` | aaronhuaynate66 | feat(api): add GET /providers endpoint with rich provider+model shape (closes Bloque E TODO) | 2026-05-25 |
-| `6a8f4ae` | aaronhuaynate66 | fix(labels): shorten harness-failure description to fit GitHub 100-char limit | 2026-05-25 |
-| `eb3708e` | aaronhuaynate66 | test(evals): add gate integration tests end-to-end | 2026-05-25 |
-| `4fbc8b4` | aaronhuaynate66 | feat(ci): add harness gate labels, setup scripts, and contributing docs | 2026-05-25 |
-| `0764302` | aaronhuaynate66 | feat(ci): add harness gate workflow with metric thresholds (closes #10 enforcement) | 2026-05-25 |
+| `6baa80d` | aaronhuaynate66 | feat(prompts): add versioned prompt registry with deterministic hashing | 2026-05-26 |
+| `57a9a17` | aaronhuaynate66 | test(evals): add longitudinal continuity tests for Lucia case (4 controls) | 2026-05-26 |
+| `4675b5c` | aaronhuaynate66 | feat(evals): add longitudinal Lucia extractions + baseline sem16 (validates continuity across 4 controls) | 2026-05-26 |
+| `d66e449` | aaronhuaynate66 | feat(data): add longitudinal dataset Lucia Mendoza 4 controls (16-24-32-38 sem) with gestational diabetes | 2026-05-26 |
+| `c653f2b` | aaronhuaynate66 | chore(ci): extend lint to evals/ package | 2026-05-26 |
+| `1f19e4c` | aaronhuaynate66 | chore(repo): replace individual PDF entries in .gitignore with wildcard patterns | 2026-05-26 |
+| `c2450d9` | aaronhuaynate66 | fix(api): use upload filename as case_id instead of tempfile name | 2026-05-26 |
+| `a1592a7` | aaronhuaynate66 | docs(adr): document cold start race condition in Langfuse + Render free tier | 2026-05-26 |
+| `6e6a745` | aaronhuaynate66 | docs(adr): update ADR-0007 with trace context propagation | 2026-05-26 |
+| `d160aec` | aaronhuaynate66 | feat(extractor): support parent_trace_id for hierarchical traces | 2026-05-26 |
 
 ---
 
