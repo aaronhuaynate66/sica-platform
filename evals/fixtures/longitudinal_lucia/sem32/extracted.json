@@ -1,0 +1,130 @@
+{
+  "active_problems": [
+    "Diabetes gestacional mal controlada con dieta",
+    "Macrosomía fetal incipiente (PFE p85)",
+    "Polihidramnios leve (ILA 22 cm)",
+    "Edemas pretibiales leves"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "Edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "FUR 27/12/2023",
+      "source_page": 1,
+      "source_text": "FUR:\n27/12/2023"
+    },
+    {
+      "claim": "FPP 03/10/2024",
+      "source_page": 1,
+      "source_text": "FPP:\n03/10/2024"
+    },
+    {
+      "claim": "EG 32 semanas + 4 días",
+      "source_page": 1,
+      "source_text": "EG actual:\n32 semanas + 4 días"
+    },
+    {
+      "claim": "Diabetes gestacional diagnosticada sem 24",
+      "source_page": 1,
+      "source_text": "**DIABETES\nGESTACIONAL** diagnosticada en sem 24 (10/06/2024) por PTOG alterada."
+    },
+    {
+      "claim": "Glicemia basal promedio 102 mg/dL alterado",
+      "source_page": 1,
+      "source_text": "Glicemia basal — promedio\n102\nmg/dL\nALTERADO (objetivo <95)"
+    },
+    {
+      "claim": "Glicemia 1h post-prandial promedio 145 mg/dL alterado",
+      "source_page": 1,
+      "source_text": "Glicemia 1 h post-prandial — promedio\n145\nmg/dL\nALTERADO (objetivo <140)"
+    },
+    {
+      "claim": "HbA1c 6.2%",
+      "source_page": 1,
+      "source_text": "HbA1c\n6.2\n%\nAlto para embarazo (objetivo <6.0)"
+    },
+    {
+      "claim": "Peso fetal estimado 2,100 g percentil 85 tendencia a macrosomía",
+      "source_page": 1,
+      "source_text": "Peso fetal estimado: 2,100 g (percentil 85 — TENDENCIA A MACROSOMÍA)."
+    },
+    {
+      "claim": "Polihidramnios leve ILA 22 cm",
+      "source_page": 1,
+      "source_text": "Líquido amniótico: ILA 22 cm (POLIHIDRAMNIOS leve — asociado a DG)."
+    },
+    {
+      "claim": "Sobrepeso pre-gestacional IMC 25.6",
+      "source_page": 1,
+      "source_text": "Sobrepeso pre-gestacional (IMC 25.6)."
+    },
+    {
+      "claim": "Antecedente familiar DM2 (madre)",
+      "source_page": 1,
+      "source_text": "Antecedente familiar DM2 (madre)."
+    },
+    {
+      "claim": "G2 P1",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1."
+    },
+    {
+      "claim": "Edemas pretibiales leves",
+      "source_page": 1,
+      "source_text": "Edemas:\nPretibiales +/4 (leves)"
+    }
+  ],
+  "fpp": "2024-10-03",
+  "fum": "2023-12-27",
+  "gestational_age_weeks": 32.57,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "Glicemia basal — promedio",
+      "unit": "mg/dL",
+      "value": "102"
+    },
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "Glicemia 1 h post-prandial — promedio",
+      "unit": "mg/dL",
+      "value": "145"
+    },
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "HbA1c",
+      "unit": "%",
+      "value": "6.2"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Proteinuria cualitativa",
+      "unit": null,
+      "value": "Negativo"
+    }
+  ],
+  "notes_summary": "Paciente de 28 años, G2P1, cursando embarazo de 32 semanas + 4 días con diabetes gestacional diagnosticada en semana 24. A pesar de adherencia estricta a la dieta, las glicemias se han elevado en las últimas 2 semanas (basal promedio 102 mg/dL, post-prandial 145 mg/dL, HbA1c 6.2%). Ecografía muestra peso fetal estimado en percentil 85 con tendencia a macrosomía y polihidramnios leve asociado. Se decide inicio de insulina NPH 10 UI nocturnas con seguimiento estrecho en 1 semana.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Diabetes gestacional",
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "Antecedente familiar DM2 (madre)",
+    "Tendencia a macrosomía fetal",
+    "Polihidramnios"
+  ]
+}
