@@ -133,3 +133,93 @@ Esta decisión se revisa explícitamente en uno de estos triggers:
 - **Apps/api o futuro orquestador necesitan tracing propio.** Definir propagación de trace context cross-service.
 
 Hasta entonces, **Langfuse Cloud US con SDK v3.x y sample_rate=1.0** es la configuración de producción.
+
+## Actualización 2026-05-26 — Trace context propagation (apps/api → extractor)
+
+Implementada la propagación de `trace_id` desde el endpoint `POST /extract` de `apps/api` hacia el `clinical-extractor`, materializando uno de los triggers de revisión documentados arriba (*"Apps/api o futuro orquestador necesitan tracing propio"*).
+
+### Antes
+
+`apps/api` → `extractor` → 2 traces top-level **separadas** en el dashboard:
+
+- `api_extract_request` (sin observations) — creada por `apps/api`, mostraba latencia HTTP pero no el detalle del LLM call.
+- `extract_<case_id>` (1 generation, sin span padre) — creada por el extractor, mostraba el LLM call pero sin contexto del request HTTP.
+
+Visualmente: 2 entradas separadas en el dashboard, difícil correlacionar una con la otra. Para debuggear "este request fue lento", había que cruzar timestamps a mano.
+
+### Después
+
+`apps/api` → `extractor` → **1 trace** con jerarquía padre-hijo. Estructura observada en el smoke E2E (2026-05-26 16:10 UTC):
+
+```
+TRACE fa8cca2e  name=extract_<case_id>
+  metadata: request_id=7937b8eb, service=sica-api, endpoint=POST /extract
+  observations (2):
+    SPAN       name=api_extract_request          id=e6934dfb  parent=ROOT
+    GENERATION name=extract_<case_id>            id=80275b0c  parent=e6934dfb
+               model=claude-sonnet-4-5-20250929
+```
+
+Visualmente: 1 entrada en el dashboard con expansión jerárquica. Click en el trace muestra:
+
+- **SPAN root** `api_extract_request` (latencia HTTP total, request_id, pdf_filename, pdf_size_bytes en metadata).
+- **GENERATION child** `extract_<case_id>` (latencia del extractor, tokens, costo USD, model, output_json del extractor).
+
+### Implementación
+
+**`apps/api` (commit `b70538d`)**:
+
+- Nuevo módulo `sica_api.tracing` con `start_extract_trace()` y `finish_extract_trace()`.
+- `start_extract_trace` crea un `span` root via `client.start_observation(as_type="span", name="api_extract_request", metadata={...})`. Devuelve `{trace_id, span_id, span, request_id}`.
+- `routes/extract.py` invoca `start_extract_trace` antes del extractor y pasa `parent_trace_id` + `parent_span_id` como kwargs.
+- En path exitoso: `finish_extract_trace(success=True, output_summary={...sin PHI...})` actualiza el span con outcome y latencia.
+- En path de error: `finish_extract_trace(success=False, error=str(exc))` antes de devolver 500.
+- **Output summary del span padre intencionalmente reducido**: contiene `confidence_score`, `num_evidence_spans`, `num_active_problems`, `num_lab_results`, `uploaded_filename`, `size_bytes`. NO incluye `notes_summary`, `lab_results[].value`, ni campos clínicos completos. El detalle clínico vive en el `output_json` de la generation child (creado por el extractor). Esto limita la superficie de PHI cuando se vincule a usuarios reales.
+
+**`clinical-extractor` (commit `d160aec`)**:
+
+- `ExtractionRequest` agrega 2 campos opcionales: `parent_trace_id: str | None` y `parent_span_id: str | None`.
+- `clinical_extractor.tracing.trace_extraction` acepta los mismos kwargs y construye `trace_context: TraceContext = {"trace_id": ..., "parent_span_id": ...}` (omite `parent_span_id` si es None). Pasa el `trace_context` a `client.start_observation`. El SDK enchufa la generation bajo el trace existente.
+- `AnthropicProvider.extract` propaga `request.parent_trace_id` y `request.parent_span_id` a `_safe_trace` en ambos paths (success y error).
+- `extract_from_pdf` acepta los kwargs y los propaga al `ExtractionRequest`. Default `None` mantiene retrocompatibilidad — código que no pase parent_trace_id ve el comportamiento original (trace top-level propio).
+
+### API de Langfuse v3 — qué SÍ se usa y qué NO
+
+Decisión sutil sobre qué llamadas del SDK invocar:
+
+- **`client.trace()`** — método del SDK v1/v2 que el prompt original sugería. **NO existe en v3**. Reemplazado por `start_observation(as_type="span"|"generation"|...)`.
+- **`client.start_observation(as_type="span")`** — usado por `apps/api` para el root.
+- **`client.start_observation(as_type="generation", trace_context={...})`** — usado por el extractor para anidar bajo el span del API.
+- **`client.start_generation()`** — todavía en v3 pero **deprecated** (será removido en v4). Evitamos.
+- **`TraceContext`** — TypedDict definido en `langfuse.types`. Shape: `{"trace_id": str, "parent_span_id": str (NotRequired)}`.
+
+### Beneficios concretos
+
+- **Debugging end-to-end**: en el dashboard, click en una trace muestra el árbol completo HTTP → LLM. Sin saltar entre vistas.
+- **Latencia network medible**: `(span.latency - generation.latency)` da la latencia de network/overhead entre `apps/api` y Anthropic. Hoy es subóptima (~6-7s en el smoke) — telemetría que antes no existía.
+- **Distinción de timeout**: si un request falla, ahora podemos ver si fue timeout del LLM (generation con duration > timeout_seconds) o timeout del HTTP (span sin generation visible).
+- **Future-proof para multi-provider**: con MedGemma operativo, un único request puede llamar a Claude Y MedGemma como 2 generation children del mismo span padre. El dashboard ya soporta esta jerarquía sin cambios adicionales.
+- **Output summary sin PHI**: el span padre (visible primero en el dashboard) lleva metadata operacional segura. El generation child con detalle clínico sigue siendo el único lugar donde está el `output_json` completo — y será el primero en redactar / hostear self-hosted cuando se procese PHI real.
+
+### Limitación conocida
+
+El `case_id` del extractor se deriva del `pdf_path.stem` que en producción es el **tempfile** que crea `apps/api` (e.g. `sica-api-qiubyhjd`), no el filename original del upload. Como resultado, en el dashboard la generation tiene `case_id=sica-api-qiubyhjd` en vez de `case_id=synthetic_case_01`. El filename original SÍ está en `metadata.uploaded_filename` del span padre — recuperable, pero no es el campo principal de la generation. **TODO menor:** propagar el filename original como `case_id` explícito desde `apps/api` (vía un nuevo kwarg `case_id` en `extract_from_pdf` que override el derivado del path). No bloqueante.
+
+### Smoke test verificado
+
+- **Comando**: `POST http://127.0.0.1:8765/extract` con `synthetic_case_01.pdf`.
+- **Response**: HTTP 200 en 18.6s, JSON válido (`patient_age=32, gestational_age_weeks=28.3, confidence_score=0.95`).
+- **Costo Anthropic**: ~USD 0.04 (consistente con smoke previo).
+- **Trace en Langfuse**: `id=fa8cca2e`, 2 observations, jerarquía padre-hijo confirmada via API pública (`GET /api/public/traces/{id}`).
+
+### Tests
+
+- **apps/api**: 67/67 pasando. 22 nuevos (15 en `test_tracing.py` + 7 en `test_extract_with_tracing.py`).
+- **clinical-extractor**: 85/85 pasando. 4 nuevos en `test_tracing.py` (parent_id propagation).
+- Ruff clean en ambos. Mypy clean en ambos.
+
+### Commits asociados
+
+- `b70538d` — feat(api): add Langfuse tracing to POST /extract endpoint
+- `d160aec` — feat(extractor): support parent_trace_id for hierarchical traces
+- (commit del ADR) — docs(adr): update ADR-0007 with trace context propagation
