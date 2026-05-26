@@ -18,21 +18,26 @@ services:
     # (reporta extractor_available=true cuando el módulo no está cargado).
     #
     # Decisiones:
-    # - Sin `-e` para clinical-extractor: editable installs con paths fuera
-    #   del rootDir a veces dejan egg-links que el runtime de Render no
-    #   resuelve. Instalación non-editable produce un wheel real en
-    #   site-packages.
-    # - `python -c "import clinical_extractor"` post-install hace el fallo
-    #   loud: si por cualquier razón el install no expuso el módulo, Render
-    #   aborta el deploy en vez de servir respuestas degradadas en silencio.
-    buildCommand: |
-      set -e
-      pip install --upgrade pip
-      # Compatible con `sh` (Render). Sin pushd/popd (bash extensions).
-      EXTRACTOR_DIR="$PWD/../../services/clinical-extractor"
-      pip install "$EXTRACTOR_DIR"
-      python -c "import clinical_extractor; print(f'clinical_extractor OK: {clinical_extractor.__version__}')"
-      pip install -e .
+    # - **Path absoluto** `/opt/render/project/src/services/clinical-extractor`:
+    #   es el mount point canónico de Render para el repo checkeado. No depende
+    #   de `$PWD`, ni del shell (sh vs bash), ni de cómo Render resuelva el
+    #   rootDir. Es exactamente el path que actualmente funciona en producción
+    #   (configurado en el campo Build Command de la UI de Render — ver ADR
+    #   0006 sobre la precedencia UI > render.yaml).
+    # - **One-liner con `&&`**: fail-fast implícito. Si pip install del extractor
+    #   falla, el `&&` corta y el deploy aborta. No necesitamos `set -e` ni
+    #   sanity check post-install — el install de `sica-api` que sigue va a
+    #   fallar si el extractor no quedó disponible como dependencia transitiva.
+    # - **Sin `-e`** para clinical-extractor: editable installs con paths fuera
+    #   del rootDir pueden dejar egg-links frágiles. Instalación non-editable
+    #   produce un wheel real en site-packages.
+    #
+    # ADR 0006: este buildCommand está sincronizado con lo que la UI de Render
+    # ejecuta hoy, pero render.yaml está siendo IGNORADO mientras el campo
+    # Build Command de la UI tenga un valor. Plan de remediación: vaciar el
+    # campo de UI en sesión controlada → render.yaml pasa a ser fuente de
+    # verdad. Ver docs/decisions/0006-render-config-precedence.md.
+    buildCommand: "pip install --upgrade pip && pip install /opt/render/project/src/services/clinical-extractor && pip install -e ."
     startCommand: uvicorn sica_api.main:app --host 0.0.0.0 --port $PORT
     pythonVersion: "3.13"
     healthCheckPath: /health
