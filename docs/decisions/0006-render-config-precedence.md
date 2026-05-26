@@ -1,9 +1,9 @@
 # 0006. Render Dashboard UI tiene precedencia sobre `render.yaml`
 
-- **Status:** Accepted
+- **Status:** Accepted — 2026-05-25 (actualizado 2026-05-26: validación empírica del plan de remediación; ver § Plan de remediación intentado y descartado)
 - **Date:** 2026-05-25
 - **Deciders:** Aaron Huaynate (founder / CTO)
-- **Tags:** infra, deploy, render, deuda-tecnica, postmortem
+- **Tags:** infra, deploy, render, restriccion-plataforma, postmortem
 - **Related:** [ADR 0001](0001-monorepo-turborepo.md) (monorepo — origen del problema de paths cross-package), `apps/api/RENDER.md`, `render.yaml`
 
 ## Context
@@ -73,6 +73,16 @@ Estado declarativo del repo:
 - Un comentario en `render.yaml` advierte sobre la precedencia de UI y referencia este ADR.
 - `apps/api/RENDER.md` documenta el procedimiento de "vaciar UI + verificar yaml" como **runbook futuro**.
 
+### Actualización 2026-05-26 — la decisión es permanente, no temporal
+
+Al intentar ejecutar el Plan de remediación documentado más abajo, se descubrió que **Render no permite guardar el campo Build Command vacío**. La UI rechaza la operación con error literal `Cannot be blank` al hacer Save Changes. Probado en el plan free, sobre el servicio creado vía UI (no vía Blueprint puro).
+
+Esto cambia la naturaleza de esta decisión:
+
+- **Ya no es deuda técnica con plan de remediación.** El `buildCommand` de UI **es la fuente de verdad definitiva** para Render — no por elección operativa nuestra sino por **restricción de la plataforma**.
+- `render.yaml` queda como **espejo sincronizado a mano** para audit trail y rollback (si se rota la cuenta de Render hay que reconstruir el servicio y este yaml es la documentación canónica del comando que debe ir en la UI).
+- El resto de campos de `render.yaml` (`startCommand`, `envVars`, `pythonVersion`, `healthCheckPath`, `autoDeploy`, etc.) **sí los lee y respeta Render** — la restricción aplica únicamente al campo Build Command. Ver § Implicaciones operativas.
+
 ## Consequences
 
 ### Positive
@@ -93,37 +103,85 @@ Estado declarativo del repo:
 
 - Render no documenta la precedencia UI > yaml en una sola página obvia. Está dispersa en la sección de Blueprints. Cualquier servicio nuevo en este workspace **debería crearse vía Blueprint puro** (sin UI override) o **vaciar explícitamente los campos** después del primer setup. Documentado en el plan de remediación.
 
-## Plan de remediación
+## Plan de remediación intentado y descartado
 
-Sesión futura controlada (~30 min, no urgente, schedulear cuando `/extract` esté sin tráfico real):
+> Esta sección reemplaza al Plan de remediación original (versión 2026-05-25) tras la validación empírica del 2026-05-26.
 
-1. **Pre-checks (5 min).**
-   - Verificar que `HEAD` de `main` tiene `render.yaml` con `buildCommand` correcto (path absoluto + sanity check + install de `sica-api`).
-   - Levantar `apps/api` localmente con `uvicorn` y verificar `/health`, `/providers`, `/models` responden bien con el extractor instalado.
-   - Bajar el screenshot del `buildCommand` actual de la UI de Render para tener rollback rápido.
+**Fecha del intento:** 2026-05-26.
 
-2. **Aplicación del fix (5 min).**
-   - En la UI de Render → service `sica-api` → Settings → Build Command → **vaciar el campo** (string vacío, no whitespace).
-   - Settings → Save.
-   - Trigger **Manual Deploy** con "Clear build cache & deploy" para forzar build sin layers cacheados.
+**Pasos ejecutados:**
 
-3. **Verificación post-deploy (10 min).**
-   - `curl https://sica-api-d1gq.onrender.com/health` → `extractor_available: true`.
-   - `curl https://sica-api-d1gq.onrender.com/providers | jq` → 2 providers, anthropic disponible.
-   - `curl https://sica-api-d1gq.onrender.com/models` → 9 items, primeros con `is_available: true`.
-   - **Si todo OK:** confirmar que se está ejecutando el `buildCommand` de `render.yaml` (debería poder verse en los build logs de Render).
-   - **Si algo falla:** restaurar el valor del campo en UI usando el screenshot del paso 1. Producción vuelve a estado pre-remediación en <2 min.
+1. **Sincronización previa del yaml.** Commit `d74df95` — `chore(infra): sync render.yaml buildCommand with what production actually runs (ADR-0006 prep)`. Reemplazó el bloque multilínea con `set -e` por el one-liner con path absoluto, idéntico al string que ejecuta la UI de Render. Objetivo: que el switchover sea no-op.
 
-4. **Cierre (10 min).**
-   - Si éxito: editar este ADR agregando una sección **Migration log** con fecha de remediación y commit hash que verificó el comportamiento.
-   - Si éxito: eliminar el comentario en `render.yaml` que advierte sobre la precedencia UI.
-   - Si fallido: documentar qué falló y postergar.
+2. **Intento de vaciar el campo en UI.** Dashboard de Render → service `sica-api` → Settings → Build Command → borrar todo el contenido del input → Save Changes.
 
-**Trigger explícito para correr la remediación:**
+3. **Resultado.** Render rechazó la operación con error literal:
 
-- Llega un segundo contributor con permisos de Render → primero remediar para que todo cambio pase por PR.
-- Hay un service más en Render (futuro `sica-eval` o `sica-orchestrator`) → mejor unificar todos vía Blueprint antes de que la deuda se multiplique.
-- Auditoría de compliance Ley 29733 / DPIA pide trazabilidad de configuración de infra → forzado.
+   > **Cannot be blank**
+
+   No es validación cliente-side bypasseable: el endpoint del backend de Render devuelve el error y el campo no se persiste. Probado en plan **free** sobre el servicio `sica-api` creado vía UI (no vía Blueprint puro).
+
+**Conclusión.** La restricción es **de la plataforma**, no del setup del servicio. El campo Build Command es **required no-nullable** en la UI de Render para servicios web. Vaciarlo para forzar uso de `render.yaml` no es una operación que la plataforma permita.
+
+**Implicaciones para la decisión original:**
+
+- ❌ "Plan de remediación" como path al estado ideal **ya no existe**.
+- ✅ La UI de Render queda como **fuente de verdad de jure y de facto** para el `buildCommand`.
+- ⚠️ Cambios futuros al `buildCommand` ahora deben aplicarse **siempre en ambos lugares** (UI + yaml), tratando el yaml como espejo documentado.
+
+**Caminos alternativos no descartados** (queda registro para sesiones futuras si la deuda se vuelve crítica):
+
+- **Blueprint deployment puro.** Recrear el servicio desde cero declarándolo vía Blueprint (sin `Create Web Service` desde UI). En servicios creados así, los campos de UI pueden venir vacíos por default y `render.yaml` es autoritativo. Costo: migración del servicio existente con downtime, nueva URL pública, reconfigurar `ALLOWED_ORIGINS` en frontend, posiblemente reconfigurar secrets. No aplica en R0/R1 — sólo justificable cuando lleguemos a 3+ servicios en Render o cuando audit trail regulatorio lo exija.
+- **Plan paid + soporte de Render.** Plan paid puede tener overrides distintos; consultar a Render support si la restricción aplica también ahí. No prioritario.
+
+## Implicaciones operativas
+
+Con la restricción confirmada como permanente, queda explícito qué partes de `render.yaml` son autoritativas y qué partes son espejo:
+
+### Qué Render SÍ lee y respeta de `render.yaml`
+
+Para el servicio `sica-api`, los siguientes campos del yaml **funcionan como fuente de verdad** — editarlos en el repo y pushear a `main` con `autoDeploy: true` aplica el cambio en el siguiente deploy:
+
+- `startCommand` — comando de arranque del web service (uvicorn).
+- `envVars` — variables de entorno declarativas (incluyendo `sync: false` para secrets que se setean a mano en UI, como `ANTHROPIC_API_KEY`).
+- `pythonVersion` — versión de Python del runtime.
+- `healthCheckPath` — path para liveness check de Render.
+- `autoDeploy` — flag de auto-deploy en push a `main`.
+- `region`, `plan`, `rootDir`, `runtime` — config base del servicio.
+
+### Qué Render IGNORA de `render.yaml`
+
+- `buildCommand` — **siempre** toma el valor del campo en UI, que no puede estar vacío.
+
+### Regla operativa: cambios al `buildCommand`
+
+**Cualquier modificación futura al `buildCommand` debe aplicarse en AMBOS lugares para mantener sincronía documental:**
+
+1. **UI de Render** (efecto real en producción):
+   - Dashboard → service `sica-api` → Settings → Build Command → editar → Save Changes.
+   - Trigger Manual Deploy con "Clear build cache & deploy" si el cambio toca dependencias del extractor.
+   - Verificar `/health` y `/providers` post-deploy (`extractor_available: true`, `total_providers: 2`).
+
+2. **`render.yaml` en el repo** (audit trail + documentación):
+   - PR (o commit directo a `main` si trabajamos en modo autónomo) con el `buildCommand` actualizado y commit message que liste el cambio.
+   - El yaml NO afecta producción por sí solo, pero **es la única fuente trazable en git** del comando que está corriendo en Render.
+
+**Anti-patrón a evitar:** modificar SOLO el yaml asumiendo que `autoDeploy` lo aplicará. Eso fue exactamente el bug del 22-may→25-may de este ADR.
+
+### Caso "rotación / migración de cuenta de Render"
+
+Si por algún motivo se rota la cuenta de Render, se migra a otra org, o se recrea el servicio desde cero:
+
+- El `buildCommand` en UI **se pierde** (no vive en el repo).
+- `render.yaml` queda como **única documentación** del comando que debe ir en el nuevo servicio.
+- Procedimiento documentado en `apps/api/RENDER.md` (runbook): crear servicio nuevo + copiar exactamente el `buildCommand` del yaml al campo UI + configurar secrets faltantes.
+
+### Servicios futuros en Render
+
+Cuando se agregue un segundo servicio (futuro `sica-eval`, `sica-orchestrator`, etc.):
+
+- **Evaluar Blueprint deployment puro** como alternativa antes de crearlo vía UI. Si Blueprint resulta autoritativo para `buildCommand` ahí, vale la pena migrar `sica-api` también (downtime planificado).
+- Si por simplicidad operativa se crea vía UI: aplicar la misma regla de "doble fuente sincronizada a mano" desde el día uno, y referenciar este ADR en el `RENDER.md` del nuevo servicio.
 
 ## Lecciones aprendidas
 
@@ -136,6 +194,8 @@ Sesión futura controlada (~30 min, no urgente, schedulear cuando `/extract` est
 4. **Smoke tests end-to-end contra producción importan.** En 3 días desde el primer deploy, nunca se había hecho un smoke contra `/extract` real ni inspeccionado `/models` en producción. `extractor_available: true` en `/health` se había tomado como suficiente. **Regla nueva:** después de cada deploy nuevo de cualquier servicio, smoke contra **al menos un endpoint que toque el camino crítico** (no solo liveness).
 
 5. **Health checks deben ser honestos por diseño, no por accidente.** El `/health` original solo verificaba la env var, lo que constituía una **mentira silenciosa** cuando el módulo no estaba instalado. El fix `extractor_available = settings.extractor_available AND extractor_module_available()` materializa que `extractor_available` significa "el endpoint `/extract` va a funcionar", no "tengo configurada la credencial".
+
+6. **Render UI tiene precedencia DURA sobre `render.yaml` para el campo Build Command — no es una preferencia de orden, es una restricción que impide vaciar el campo.** Confirmado empíricamente el 2026-05-26: la UI devuelve `Cannot be blank` al intentar guardar el campo vacío. Esto significa que **no existe el path "yaml-autoritativo" para `buildCommand`** en servicios creados vía UI; la única ruta a yaml-autoritativo es Blueprint deployment puro (con migración del servicio). Para todos los demás campos (`startCommand`, `envVars`, `pythonVersion`, `healthCheckPath`, `autoDeploy`, etc.), el yaml SÍ es autoritativo. **Heurística:** asumir que "yaml > UI" es una preferencia configurable es un anti-patrón; la jerarquía la define cada plataforma y a veces es no-overridable.
 
 ## References
 
