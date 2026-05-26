@@ -8,6 +8,8 @@ violaciones, y guía de próximos pasos.
 
 from __future__ import annotations
 
+from typing import Any
+
 from tabulate import tabulate
 
 from sica_evals.comparators.gate_comparator import GateResult
@@ -34,7 +36,7 @@ def _metric_label(name: str) -> str:
     }.get(name, name)
 
 
-def _threshold_label(rule: dict, ttype: str) -> str:
+def _threshold_label(rule: dict[str, Any], ttype: str) -> str:
     if ttype == "relative_decline":
         return f"max -{rule.get('max_decline_pp', 0)}"
     if ttype == "absolute_max":
@@ -48,7 +50,7 @@ def render_gate_report(
     actual: HarnessReport,
     baseline: HarnessReport | None,
     gate_result: GateResult,
-    thresholds_config: dict,
+    thresholds_config: dict[str, Any],
 ) -> str:
     """Markdown listo para postear como PR comment."""
     lines: list[str] = []

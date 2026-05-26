@@ -209,7 +209,7 @@ def render_html(report: HarnessReport) -> str:
         meta_rows.append((k, json.dumps(v) if not isinstance(v, str) else v))
 
     # Jinja2 escapes by default via the |e filter we use explicitly where needed.
-    return _TEMPLATE.render(
+    rendered: str = _TEMPLATE.render(
         report=report,
         gate_pass=gate_pass,
         factual_gate=FACTUAL_ACCURACY_GATE,
@@ -219,3 +219,4 @@ def render_html(report: HarnessReport) -> str:
         # html.escape kept available if a future template needs it
         _esc=html.escape,
     )
+    return rendered

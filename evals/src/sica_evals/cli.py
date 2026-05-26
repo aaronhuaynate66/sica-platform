@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import click
 from tabulate import tabulate
@@ -320,7 +321,7 @@ def run(
 
     # ---------- Gate evaluation (opt-in) ----------
     gate_result: GateResult | None = None
-    thresholds_config: dict | None = None
+    thresholds_config: dict[str, Any] | None = None
     baseline = _load_baseline(baseline_path)
 
     if thresholds_file is not None:

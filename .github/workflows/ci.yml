@@ -67,27 +67,43 @@ jobs:
         run: pnpm type-check
 
   # =========================================================================
-  # lint-python — corre solo si hay pyproject.toml en services/
-  # Ejecuta ruff + mypy sobre cada servicio Python.
+  # lint-python — corre sobre todos los paquetes Python del monorepo.
+  # Ejecuta ruff + mypy + pytest sobre cada uno.
+  #
+  # Paquetes auto-detectados: cualquier pyproject.toml bajo services/ +
+  # evals/ (paquete top-level). Si en el futuro se agrega otro paquete
+  # Python en otro path, extender la variable PKG_DIRS abajo.
   # =========================================================================
   lint-python:
     name: Lint (Python)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    env:
+      # Lista explícita de directorios con pyproject.toml a lintear/testear.
+      # Mantener sincronizada con la realidad del monorepo. Auto-detectar
+      # con `find` sería más limpio pero menos auditable — esta lista
+      # explícita obliga a un commit cuando se agrega un paquete nuevo.
+      PKG_DIRS: "services/clinical-extractor evals"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Detectar servicios Python
+      - name: Detectar paquetes Python
         id: detect
         shell: bash
         run: |
-          if find services -mindepth 2 -name 'pyproject.toml' -print -quit 2>/dev/null | grep -q .; then
-            echo "has_python=true" >> "$GITHUB_OUTPUT"
-            echo "Found Python services — running lint + type check."
-          else
-            echo "has_python=false" >> "$GITHUB_OUTPUT"
-            echo "No Python services found in services/ — skipping (success)."
+          found="false"
+          for dir in $PKG_DIRS; do
+            if [ -f "$dir/pyproject.toml" ]; then
+              found="true"
+              echo "  ✓ $dir/pyproject.toml"
+            else
+              echo "::warning::$dir/pyproject.toml no existe — skip"
+            fi
+          done
+          echo "has_python=$found" >> "$GITHUB_OUTPUT"
+          if [ "$found" = "false" ]; then
+            echo "No Python packages found — skipping (success)."
           fi
 
       - name: Setup Python
@@ -101,27 +117,27 @@ jobs:
         if: steps.detect.outputs.has_python == 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy
+          pip install ruff mypy pytest
 
       - name: Ruff check
         if: steps.detect.outputs.has_python == 'true'
         shell: bash
         run: |
           set -e
-          for svc in services/*/pyproject.toml; do
-            dir="$(dirname "$svc")"
+          for dir in $PKG_DIRS; do
+            [ -f "$dir/pyproject.toml" ] || continue
             echo "::group::ruff $dir"
             (cd "$dir" && ruff check .)
             echo "::endgroup::"
           done
 
-      - name: Install service deps + mypy
+      - name: Install package deps
         if: steps.detect.outputs.has_python == 'true'
         shell: bash
         run: |
           set -e
-          for svc in services/*/pyproject.toml; do
-            dir="$(dirname "$svc")"
+          for dir in $PKG_DIRS; do
+            [ -f "$dir/pyproject.toml" ] || continue
             echo "::group::install $dir"
             (cd "$dir" && pip install -e ".[dev]" || pip install -e .)
             echo "::endgroup::"
@@ -132,9 +148,23 @@ jobs:
         shell: bash
         run: |
           set -e
-          for svc in services/*/pyproject.toml; do
-            dir="$(dirname "$svc")"
+          for dir in $PKG_DIRS; do
+            [ -f "$dir/pyproject.toml" ] || continue
             echo "::group::mypy $dir"
             (cd "$dir" && mypy src) || true  # mypy advisory en R0; se vuelve obligatorio en R1
+            echo "::endgroup::"
+          done
+
+      - name: Pytest
+        if: steps.detect.outputs.has_python == 'true'
+        shell: bash
+        run: |
+          set -e
+          for dir in $PKG_DIRS; do
+            [ -f "$dir/pyproject.toml" ] || continue
+            # Skip si no hay tests/ — paquetes nuevos pueden no tenerlos aún.
+            [ -d "$dir/tests" ] || { echo "$dir sin tests/ — skip"; continue; }
+            echo "::group::pytest $dir"
+            (cd "$dir" && pytest)
             echo "::endgroup::"
           done

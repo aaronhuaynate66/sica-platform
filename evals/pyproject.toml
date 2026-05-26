@@ -93,8 +93,9 @@ check_untyped_defs = true
 ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
-module = ["tabulate.*", "jinja2.*", "yaml.*"]
+module = ["tabulate.*", "jinja2.*", "yaml.*", "clinical_extractor.*"]
 ignore_missing_imports = true
+follow_imports = "silent"
 
 # =========================================================================
 # pytest

@@ -43,7 +43,7 @@ class ClinicalExtractorWrapper:
         """
         self._model = model
         self._env_path = env_path
-        self._extractor: Any = None  # type: ignore[no-any-unimported]
+        self._extractor: Any = None
         self.extractor_version = "unknown"
         self.model_used = model or "unknown"
 
