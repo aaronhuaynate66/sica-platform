@@ -1,0 +1,39 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "Lucia Mendoza Quispe (paciente sintetica) — control prenatal sem 32. Escenario: control_prenatal_deterioro_metabolico_inicio_insulina.",
+  "case_id": "longitudinal_lucia_sem32",
+  "complications_present": [
+    "diabetes_gestacional",
+    "macrosomia_fetal_incipiente",
+    "polihidramnios_leve"
+  ],
+  "created_at": "2026-05-26T00:00:00Z",
+  "expected_critical_findings": [
+    "inicio_insulina_nph",
+    "hba1c_elevada",
+    "pfe_percentil_85",
+    "ila_22"
+  ],
+  "human_reviewer": null,
+  "longitudinal": {
+    "hc_id": "HCL-2024-08847",
+    "paciente": "Lucia Mendoza Quispe",
+    "patient_id": "47812936",
+    "scenario_global": "embarazo_con_diabetes_gestacional_aparicion_y_evolucion",
+    "sequence": 3,
+    "total": 4
+  },
+  "non_determinism_note": "Este caso longitudinal evalua continuidad clinica entre 4 controles del mismo embarazo. El extractor debe preservar identidad, progresion temporal y aparicion gradual de complicaciones. Diferencias menores en wording son benignas; invenciones de patologias no presentes o perdidas de continuidad son criticas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/longitudinal_lucia_sem32.pdf",
+    "sha256": "fb19e27745f4689787498087ed0a88e351e3a369b018085a49a5768ee36b0164",
+    "size_bytes": 5726
+  },
+  "produced_by": {
+    "command": "services/clinical-extractor/scripts/generate_longitudinal_pdfs.py",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [],
+  "schema_version": "longitudinal_v0 (initial)",
+  "weeks_gestation": 32
+}

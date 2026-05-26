@@ -56,6 +56,9 @@ historias/
 # siendo bloqueado por la regla `*.pdf` de arriba (default-deny preservado).
 !services/clinical-extractor/data/
 !services/clinical-extractor/data/synthetic_*.pdf
+# Dataset longitudinal — múltiples PDFs del mismo embarazo a lo largo del tiempo.
+# Mismo contrato de naming: prefijo "longitudinal_" + paciente sintético + sem.
+!services/clinical-extractor/data/longitudinal_*.pdf
 !evals/fixtures/
 !evals/fixtures/**/*.pdf
 # UI demo: copia local del PDF sintético para la app web. Single-file

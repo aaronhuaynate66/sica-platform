@@ -1,0 +1,38 @@
+{
+  "baseline_type": "non-clinical (synthetic data, AI-generated reference)",
+  "case_description": "Lucia Mendoza Quispe (paciente sintetica) — control prenatal sem 24. Escenario: control_prenatal_diagnostico_diabetes_gestacional.",
+  "case_id": "longitudinal_lucia_sem24",
+  "complications_present": [
+    "diabetes_gestacional"
+  ],
+  "created_at": "2026-05-26T00:00:00Z",
+  "expected_critical_findings": [
+    "diabetes_gestacional_diagnosticada",
+    "ptog_alterada_2h",
+    "inicio_dieta_diabetes",
+    "interconsulta_endocrinologia",
+    "interconsulta_nutricion"
+  ],
+  "human_reviewer": null,
+  "longitudinal": {
+    "hc_id": "HCL-2024-08847",
+    "paciente": "Lucia Mendoza Quispe",
+    "patient_id": "47812936",
+    "scenario_global": "embarazo_con_diabetes_gestacional_aparicion_y_evolucion",
+    "sequence": 2,
+    "total": 4
+  },
+  "non_determinism_note": "Este caso longitudinal evalua continuidad clinica entre 4 controles del mismo embarazo. El extractor debe preservar identidad, progresion temporal y aparicion gradual de complicaciones. Diferencias menores en wording son benignas; invenciones de patologias no presentes o perdidas de continuidad son criticas.",
+  "pdf_source": {
+    "path": "services/clinical-extractor/data/longitudinal_lucia_sem24.pdf",
+    "sha256": "49f36f1dc277c85acd50446af0450eb439347e81d54c58e37be043e973445cba",
+    "size_bytes": 5354
+  },
+  "produced_by": {
+    "command": "services/clinical-extractor/scripts/generate_longitudinal_pdfs.py",
+    "service": "clinical-extractor"
+  },
+  "related_issues": [],
+  "schema_version": "longitudinal_v0 (initial)",
+  "weeks_gestation": 24
+}
