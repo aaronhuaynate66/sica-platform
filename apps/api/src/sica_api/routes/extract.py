@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import tempfile
+import time
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -25,6 +26,12 @@ from fastapi import APIRouter, Depends, File, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from sica_api.settings import Settings, get_settings
+from sica_api.tracing import (
+    finish_extract_trace,
+    get_span_id_from_context,
+    get_trace_id_from_context,
+    start_extract_trace,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -46,7 +53,13 @@ _CHUNK_BYTES = 64 * 1024
 # --------------------------------------------------------------------------- #
 
 
-def _default_extractor(pdf_path: Path, *, api_key: str) -> dict[str, Any]:
+def _default_extractor(
+    pdf_path: Path,
+    *,
+    api_key: str,
+    parent_trace_id: str | None = None,
+    parent_span_id: str | None = None,
+) -> dict[str, Any]:
     import os
 
     os.environ["ANTHROPIC_API_KEY"] = api_key
@@ -57,7 +70,11 @@ def _default_extractor(pdf_path: Path, *, api_key: str) -> dict[str, Any]:
     )
 
     try:
-        summary = extract_from_pdf(pdf_path)
+        summary = extract_from_pdf(
+            pdf_path,
+            parent_trace_id=parent_trace_id,
+            parent_span_id=parent_span_id,
+        )
     except ExtractionError:
         raise
     # model_dump returns Any from a Pydantic model, but we know it's a dict[str, Any].
@@ -184,7 +201,19 @@ async def extract(
             },
         )
 
-    # ---- 4. Persist temp PDF (extractor espera Path)
+    # ---- 4. Iniciar trace padre (no-op si Langfuse deshabilitado)
+    # Se hace ANTES del extractor para que el trace_id viaje como parent.
+    # ``start_extract_trace`` jamás levanta — graceful degradation absoluta.
+    trace_context = start_extract_trace(
+        request_id=request_id,
+        pdf_filename=filename,
+        pdf_size_bytes=len(received),
+    )
+    parent_trace_id = get_trace_id_from_context(trace_context)
+    parent_span_id = get_span_id_from_context(trace_context)
+    extract_started = time.perf_counter()
+
+    # ---- 5. Persist temp PDF (extractor espera Path)
     tmp_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
@@ -193,12 +222,18 @@ async def extract(
             tmp.write(received)
             tmp_path = Path(tmp.name)
 
-        # ---- 5. Ejecutar extractor
+        # ---- 6. Ejecutar extractor (con trace context propagado)
         try:
             assert settings.anthropic_api_key is not None  # narrowing for mypy
-            payload = extractor(tmp_path, api_key=settings.anthropic_api_key)
+            payload = extractor(
+                tmp_path,
+                api_key=settings.anthropic_api_key,
+                parent_trace_id=parent_trace_id,
+                parent_span_id=parent_span_id,
+            )
         except Exception as exc:
             error_id = str(uuid.uuid4())
+            latency_ms = (time.perf_counter() - extract_started) * 1000
             logger.exception(
                 "extract failed",
                 extra={
@@ -206,6 +241,19 @@ async def extract(
                     "error_id": error_id,
                     "size_bytes": len(received),
                     "exception_type": type(exc).__name__,
+                },
+            )
+            # Cierra el trace padre con outcome de error. No-op si tracing
+            # deshabilitado. Nunca levanta — el cliente recibe el 500 igual.
+            finish_extract_trace(
+                trace_context,
+                success=False,
+                latency_ms=latency_ms,
+                error=f"{type(exc).__name__}: {exc}",
+                output_summary={
+                    "error_id": error_id,
+                    "uploaded_filename": filename,
+                    "size_bytes": len(received),
                 },
             )
             return JSONResponse(
@@ -222,9 +270,10 @@ async def extract(
                 },
             )
 
-        # ---- 6. Success
+        # ---- 7. Success
         # NOTE: avoid `filename` as an extra key — it's a reserved
         # LogRecord attribute and the logging module raises KeyError.
+        latency_ms = (time.perf_counter() - extract_started) * 1000
         logger.info(
             "extract ok",
             extra={
@@ -232,6 +281,24 @@ async def extract(
                 "uploaded_filename": filename,
                 "size_bytes": len(received),
             },
+        )
+        # Resumen seguro para Langfuse — NUNCA pasar el payload completo
+        # como output del span padre. El generation child del extractor ya
+        # tiene el output_json detallado; acá sólo metadata operacional.
+        # Esto es importante para limitar superficie de PHI cuando exista.
+        output_summary: dict[str, Any] = {
+            "confidence_score": payload.get("confidence_score"),
+            "num_evidence_spans": len(payload.get("evidence_spans") or []),
+            "num_active_problems": len(payload.get("active_problems") or []),
+            "num_lab_results": len(payload.get("lab_results") or []),
+            "uploaded_filename": filename,
+            "size_bytes": len(received),
+        }
+        finish_extract_trace(
+            trace_context,
+            success=True,
+            latency_ms=latency_ms,
+            output_summary=output_summary,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,

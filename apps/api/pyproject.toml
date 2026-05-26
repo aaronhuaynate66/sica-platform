@@ -30,6 +30,8 @@ dependencies = [
     "python-multipart>=0.0.20",
     "anthropic>=0.39.0",
     "pypdf>=5.1.0",
+    # Pin <4 igual que clinical-extractor (ver ADR 0007).
+    "langfuse>=3.0.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -102,7 +104,7 @@ check_untyped_defs = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["pypdf.*", "clinical_extractor.*"]
+module = ["pypdf.*", "clinical_extractor.*", "langfuse.*"]
 ignore_missing_imports = true
 follow_imports = "silent"
 

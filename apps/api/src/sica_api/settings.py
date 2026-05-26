@@ -64,6 +64,30 @@ class Settings(BaseSettings):
         description="Nivel de logging.",
     )
 
+    # ---- Langfuse observability (opcional) -------------------------------
+    # Mirror del setup en services/clinical-extractor/settings.py. La API
+    # crea el trace padre del request HTTP; el extractor crea un generation
+    # span como child del mismo trace (ver ADR 0007 § trace context).
+    langfuse_public_key: str | None = Field(
+        default=None,
+        description="Langfuse public key (LANGFUSE_PUBLIC_KEY).",
+    )
+    langfuse_secret_key: str | None = Field(
+        default=None,
+        description="Langfuse secret key (LANGFUSE_SECRET_KEY).",
+    )
+    langfuse_base_url: str = Field(
+        default="https://us.cloud.langfuse.com",
+        description="Endpoint del API de Langfuse Cloud (LANGFUSE_BASE_URL).",
+    )
+    langfuse_tracing_environment: str = Field(
+        default="production",
+        description=(
+            "Tag de entorno (LANGFUSE_TRACING_ENVIRONMENT). En CI usar 'ci'; "
+            "en local 'dev'."
+        ),
+    )
+
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def _parse_origins(cls, v: object) -> object:
@@ -79,6 +103,21 @@ class Settings(BaseSettings):
     @property
     def extractor_available(self) -> bool:
         return bool(self.anthropic_api_key)
+
+    @property
+    def langfuse_enabled(self) -> bool:
+        """True sólo si las 3 vars críticas están presentes y no vacías.
+
+        Mirror de ``LangfuseSettings.enabled`` en clinical-extractor: el
+        flag NO se setea como env var separada para evitar que un operador
+        active observability sin tener credenciales (warnings en cada
+        request).
+        """
+        return bool(
+            self.langfuse_public_key
+            and self.langfuse_secret_key
+            and self.langfuse_base_url
+        )
 
 
 @lru_cache(maxsize=1)

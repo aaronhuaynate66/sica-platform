@@ -53,9 +53,14 @@ def make_client():
 
 @pytest.fixture
 def fake_extractor():
-    """Returns a callable that mimics the clinical-extractor contract."""
+    """Returns a callable that mimics the clinical-extractor contract.
 
-    def _fake(pdf_path, *, api_key: str) -> dict[str, Any]:
+    ``**_kwargs`` swallow garantiza compat con cualquier kwarg que el
+    handler agregue en el futuro (p. ej. ``parent_trace_id``,
+    ``parent_span_id`` introducidos por el tracing jerárquico).
+    """
+
+    def _fake(pdf_path, *, api_key: str, **_kwargs: Any) -> dict[str, Any]:
         return {
             "patient_age": 32,
             "gestational_age_weeks": 28.3,
@@ -76,10 +81,43 @@ def fake_extractor():
 def failing_extractor():
     """Extractor that always raises — exercises the 500 path."""
 
-    def _boom(pdf_path, *, api_key: str):
+    def _boom(pdf_path, *, api_key: str, **_kwargs: Any):
         raise RuntimeError("simulated extractor failure")
 
     return _boom
+
+
+@pytest.fixture(autouse=True)
+def _disable_langfuse_in_tests(monkeypatch):
+    """Aísla TODOS los tests de Langfuse Cloud.
+
+    Igual que en clinical-extractor, los tests del API que ejercen
+    ``POST /extract`` con un fake extractor invocan internamente
+    ``start_extract_trace``. Si el entorno tiene LANGFUSE_* presentes
+    (CI o local con .env del clinical-extractor cargado al sys), los
+    tests mandarían traces reales con datos sintéticos al dashboard.
+
+    Solución defensiva: en cada test borramos las env vars y limpiamos
+    el cache del cliente. Tests que quieran simular Langfuse habilitado
+    deben usar ``monkeypatch.setenv`` + patching del SDK explícitamente.
+    """
+    for var in (
+        "LANGFUSE_PUBLIC_KEY",
+        "LANGFUSE_SECRET_KEY",
+        "LANGFUSE_BASE_URL",
+        "LANGFUSE_TRACING_ENVIRONMENT",
+    ):
+        monkeypatch.delenv(var, raising=False)
+    # Limpiar cache del cliente (también del settings global) si ya
+    # fue inicializado por un test anterior.
+    from sica_api import tracing as _tracing
+    from sica_api.settings import get_settings as _get_settings
+
+    _tracing.get_langfuse_client.cache_clear()
+    _get_settings.cache_clear()
+    yield
+    _tracing.get_langfuse_client.cache_clear()
+    _get_settings.cache_clear()
 
 
 @pytest.fixture
