@@ -46,28 +46,20 @@ historias/
 # PDFs por defecto bloqueados (pueden contener PHI)
 *.pdf
 
-# EXCEPCIONES EXPLÍCITAS — solo para datos 100% sintéticos y marcados
-# Cada excepción aquí debe estar explícitamente revisada por un humano
-# y el contenido debe llevar el header "DATOS SINTÉTICOS - NO ES PACIENTE REAL".
+# EXCEPCIONES EXPLÍCITAS — solo para datos 100% sintéticos y marcados.
+# Política: cada PDF permitido aquí debe llevar el header
+# "DATOS SINTÉTICOS - NO ES PACIENTE REAL" + revisión humana.
+#
+# Wildcards en vez de líneas-por-archivo para que agregar un caso 16+ no
+# requiera tocar este archivo. La convención de naming `synthetic_*.pdf` es
+# el contrato — cualquier PDF cuyo nombre NO empieza con "synthetic_" sigue
+# siendo bloqueado por la regla `*.pdf` de arriba (default-deny preservado).
 !services/clinical-extractor/data/
-!services/clinical-extractor/data/synthetic_case_01.pdf
-!services/clinical-extractor/data/synthetic_case_02_preeclampsia.pdf
-!services/clinical-extractor/data/synthetic_case_03_gemelar.pdf
-!services/clinical-extractor/data/synthetic_case_04_rpm.pdf
-!services/clinical-extractor/data/synthetic_case_05_diabetes_gestacional.pdf
-!services/clinical-extractor/data/synthetic_case_06_anemia_severa.pdf
-!services/clinical-extractor/data/synthetic_case_07_manuscrito.pdf
-!services/clinical-extractor/data/synthetic_case_08_placenta_previa.pdf
-!services/clinical-extractor/data/synthetic_case_09_amenaza_parto_prematuro.pdf
-!services/clinical-extractor/data/synthetic_case_10_oligohidramnios.pdf
-!services/clinical-extractor/data/synthetic_case_11_hipotiroidismo.pdf
-!services/clinical-extractor/data/synthetic_case_12_itu.pdf
-!services/clinical-extractor/data/synthetic_case_13_adolescente_vulnerable.pdf
-!services/clinical-extractor/data/synthetic_case_14_caso_complejo.pdf
-!services/clinical-extractor/data/synthetic_case_15_pdf_escaneado_borroso.pdf
+!services/clinical-extractor/data/synthetic_*.pdf
 !evals/fixtures/
 !evals/fixtures/**/*.pdf
-# UI demo: copia local del PDF sintético para la app web. Marcado como demo.
+# UI demo: copia local del PDF sintético para la app web. Single-file
+# exception explícita — apps/web/public/ NO está globalmente unbloqueado.
 !apps/web/public/synthetic_case_01.pdf
 
 # sica-evals: reportes generados por el harness — NUNCA commitear
