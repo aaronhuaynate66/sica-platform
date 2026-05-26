@@ -143,6 +143,7 @@ def extract_from_pdf(
     timeout_seconds: float | None = None,
     parent_trace_id: str | None = None,
     parent_span_id: str | None = None,
+    case_id: str | None = None,
 ) -> ObstetricSummary:
     """Extrae un ``ObstetricSummary`` desde un PDF nativo de historia obstétrica.
 
@@ -158,6 +159,13 @@ def extract_from_pdf(
         initial_backoff: Espera inicial entre reintentos en segundos.
         max_backoff: Tope del backoff exponencial en segundos.
         timeout_seconds: Timeout total por request al modelo.
+        parent_trace_id: Trace ID del span padre en Langfuse — si está
+            presente, la generation cuelga como child. Ver ADR 0007.
+        parent_span_id: Span ID del padre, mejora la anidación visual.
+        case_id: Identificador estable del caso para observability.
+            Override del default (que es ``pdf_path.stem``). Útil cuando
+            ``pdf_path`` es un tempfile (e.g. ``apps/api`` pasa aquí el
+            filename original del upload). Si None, se deriva del path.
 
     Returns:
         ObstetricSummary validado.
@@ -225,14 +233,19 @@ def extract_from_pdf(
             raise ProviderNotAvailableError(msg)
 
         # 3. Construir request y delegar al provider
-        # case_id: filename sin extensión. Identifica el caso en Langfuse
-        # y en telemetría. Si el path no se puede expresar (caso edge),
-        # cae a None y el provider usa "unknown_case" como tag.
+        # case_id: 1) explícito del caller (apps/api propaga el filename
+        # original del upload, NO el tempfile), 2) fallback a pdf_path.stem
+        # (CLI / batch jobs locales donde el path SÍ es el filename real),
+        # 3) None — el provider usa "unknown_case" como tag.
+        # Identifica el caso en Langfuse + telemetría.
         case_id_for_trace: str | None
-        try:
-            case_id_for_trace = pdf_path.stem or None
-        except Exception:
-            case_id_for_trace = None
+        if case_id:
+            case_id_for_trace = case_id
+        else:
+            try:
+                case_id_for_trace = pdf_path.stem or None
+            except Exception:
+                case_id_for_trace = None
 
         req = ExtractionRequest(
             document_text=document_text,

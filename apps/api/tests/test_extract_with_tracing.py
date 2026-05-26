@@ -119,6 +119,83 @@ def test_extract_works_when_langfuse_disabled(
     assert body["confidence_score"] == 0.91
 
 
+def test_extract_propagates_case_id_from_upload_filename(
+    make_client, minimal_pdf_bytes
+) -> None:
+    """case_id pasado al extractor debe ser el stem del filename del upload,
+    NO el tempfile name. Ese era el bug pre-fix (ADR 0007 § Limitación conocida)."""
+    received_kwargs: dict[str, Any] = {}
+
+    def _spy_extractor(pdf_path, *, api_key: str, **kwargs: Any) -> dict[str, Any]:
+        received_kwargs.update(kwargs)
+        return {
+            "patient_age": 30,
+            "gestational_age_weeks": 25.0,
+            "fum": "2025-09-15",
+            "fpp": "2026-06-22",
+            "active_problems": [],
+            "risk_factors": [],
+            "lab_results": [],
+            "notes_summary": "test",
+            "confidence_score": 0.9,
+            "evidence_spans": [],
+        }
+
+    client = make_client(extractor=_spy_extractor)
+    response = client.post(
+        "/extract",
+        files={"file": ("synthetic_case_01.pdf", minimal_pdf_bytes, "application/pdf")},
+    )
+    assert response.status_code == 200
+    # case_id sin extensión: "synthetic_case_01" (no "synthetic_case_01.pdf").
+    assert received_kwargs.get("case_id") == "synthetic_case_01"
+
+
+def test_extract_case_id_strips_pdf_extension(make_client, minimal_pdf_bytes) -> None:
+    """Filename con .pdf debe quedar sin la extensión en el case_id."""
+    received_kwargs: dict[str, Any] = {}
+
+    def _spy_extractor(pdf_path, *, api_key: str, **kwargs: Any) -> dict[str, Any]:
+        received_kwargs.update(kwargs)
+        return {
+            "patient_age": 30,
+            "gestational_age_weeks": 25.0,
+            "fum": "2025-09-15",
+            "fpp": "2026-06-22",
+            "active_problems": [],
+            "risk_factors": [],
+            "lab_results": [],
+            "notes_summary": "t",
+            "confidence_score": 0.9,
+            "evidence_spans": [],
+        }
+
+    client = make_client(extractor=_spy_extractor)
+    client.post(
+        "/extract",
+        files={
+            "file": ("paciente_xyz.pdf", minimal_pdf_bytes, "application/pdf"),
+        },
+    )
+    assert received_kwargs.get("case_id") == "paciente_xyz"
+
+
+def test_extract_case_id_in_trace_metadata(
+    make_client, fake_extractor, minimal_pdf_bytes
+) -> None:
+    """start_extract_trace debe recibir pdf_filename con el nombre original."""
+    client = make_client(extractor=fake_extractor)
+    with patch("sica_api.routes.extract.start_extract_trace") as mock_start:
+        mock_start.return_value = None
+        client.post(
+            "/extract",
+            files={"file": ("synthetic_case_05_dm.pdf", minimal_pdf_bytes, "application/pdf")},
+        )
+    mock_start.assert_called_once()
+    # El span padre lleva el filename original (sin stripear) para auditoría.
+    assert mock_start.call_args.kwargs["pdf_filename"] == "synthetic_case_05_dm.pdf"
+
+
 def test_extract_propagates_trace_ids_to_extractor(
     make_client, minimal_pdf_bytes
 ) -> None:

@@ -59,6 +59,7 @@ def _default_extractor(
     api_key: str,
     parent_trace_id: str | None = None,
     parent_span_id: str | None = None,
+    case_id: str | None = None,
 ) -> dict[str, Any]:
     import os
 
@@ -74,6 +75,7 @@ def _default_extractor(
             pdf_path,
             parent_trace_id=parent_trace_id,
             parent_span_id=parent_span_id,
+            case_id=case_id,
         )
     except ExtractionError:
         raise
@@ -138,6 +140,13 @@ async def extract(
     # ---- 2. Content-type sanity check (no autoritativo, sólo señal temprana)
     content_type = (file.content_type or "").lower()
     filename = file.filename or "<unnamed>"
+    # case_id estable para observability: filename del upload sin extensión,
+    # ej "synthetic_case_01.pdf" → "synthetic_case_01". Si no hay filename
+    # útil (UploadFile sin nombre), cae a "uploaded_pdf". Esto evita que el
+    # dashboard de Langfuse muestre el nombre del tempfile (sica-api-XXXX),
+    # que es lo que ocurría antes — ver ADR 0007 § Limitación conocida.
+    case_id_from_upload = Path(filename).stem if filename and filename != "<unnamed>" else ""
+    case_id_for_extractor = case_id_from_upload or "uploaded_pdf"
     if content_type and "pdf" not in content_type:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -230,6 +239,7 @@ async def extract(
                 api_key=settings.anthropic_api_key,
                 parent_trace_id=parent_trace_id,
                 parent_span_id=parent_span_id,
+                case_id=case_id_for_extractor,
             )
         except Exception as exc:
             error_id = str(uuid.uuid4())
