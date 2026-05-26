@@ -229,6 +229,91 @@ class TestTraceExtraction:
                 output_tokens=5,
             )
 
+    def test_trace_without_parent_id_creates_top_level(self, monkeypatch) -> None:
+        """Sin parent_trace_id, no se pasa trace_context al SDK (trace top-level)."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="x",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+            )
+        call_kwargs = mock_client.start_observation.call_args.kwargs
+        assert call_kwargs.get("trace_context") is None
+
+    def test_trace_with_parent_id_creates_child(self, monkeypatch) -> None:
+        """Con parent_trace_id, el observation se crea con trace_context."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="child_case",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+                parent_trace_id="PARENT-TRACE-123",
+                parent_span_id="PARENT-SPAN-456",
+            )
+        ctx = mock_client.start_observation.call_args.kwargs["trace_context"]
+        assert ctx is not None
+        assert ctx["trace_id"] == "PARENT-TRACE-123"
+        assert ctx["parent_span_id"] == "PARENT-SPAN-456"
+
+    def test_trace_with_parent_id_but_no_span_id_omits_parent_span(
+        self, monkeypatch
+    ) -> None:
+        """parent_trace_id sin parent_span_id genera trace_context sin parent_span_id."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="x",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+                parent_trace_id="PARENT-T",
+            )
+        ctx = mock_client.start_observation.call_args.kwargs["trace_context"]
+        assert ctx == {"trace_id": "PARENT-T"}
+
+    def test_anthropic_provider_propagates_parent_trace_id(self, monkeypatch) -> None:
+        """AnthropicProvider.extract debe pasar parent_trace_id desde ExtractionRequest."""
+        _patch_settings_enabled(monkeypatch, True)
+
+        from clinical_extractor.providers import AnthropicProvider
+
+        anth_client = MagicMock()
+        anth_client.messages.create.return_value = _mock_anthropic_response(_valid_payload())
+        provider = AnthropicProvider(client=anth_client)
+        request_with_parent = ExtractionRequest(
+            document_text="Test.",
+            prompt=get_active_prompt(),
+            model_id="claude-sonnet-4-5-20250929",
+            max_retries=2,
+            initial_backoff=0.001,
+            max_backoff=0.001,
+            case_id="propagation_case",
+            parent_trace_id="API-TRACE-XYZ",
+            parent_span_id="API-SPAN-789",
+        )
+
+        # Espía sobre trace_extraction (el path real del provider).
+        with patch("clinical_extractor.tracing.trace_extraction") as mock_trace:
+            provider.extract(request_with_parent)
+
+        mock_trace.assert_called_once()
+        kwargs = mock_trace.call_args.kwargs
+        assert kwargs["parent_trace_id"] == "API-TRACE-XYZ"
+        assert kwargs["parent_span_id"] == "API-SPAN-789"
+
     def test_marks_as_error_when_extraction_failed(self, monkeypatch) -> None:
         _patch_settings_enabled(monkeypatch, True)
         mock_client = MagicMock()

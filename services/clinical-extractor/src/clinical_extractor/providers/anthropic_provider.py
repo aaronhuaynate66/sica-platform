@@ -139,6 +139,8 @@ class AnthropicProvider(LLMProvider):
                 output_json=None,
                 error=f"{type(exc).__name__}: {exc}",
                 metadata={"retries": "unknown_at_failure"},
+                parent_trace_id=request.parent_trace_id,
+                parent_span_id=request.parent_span_id,
             )
             raise
 
@@ -156,6 +158,8 @@ class AnthropicProvider(LLMProvider):
             output_json=payload,
             error=None,
             metadata={"retries": retries},
+            parent_trace_id=request.parent_trace_id,
+            parent_span_id=request.parent_span_id,
         )
 
         return ExtractionResponse(

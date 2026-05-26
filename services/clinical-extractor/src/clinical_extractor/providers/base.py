@@ -49,6 +49,13 @@ class ExtractionRequest:
             PDF sin extensión). Se propaga a Langfuse para que cada trace en
             el dashboard sea identificable. None desactiva el tag — el trace
             usa un fallback genérico.
+        parent_trace_id: Si el caller (apps/api, orquestador) ya inició un
+            trace en Langfuse, este es el ``trace_id`` del padre. El provider
+            crea su generation como child del mismo trace. Si ``None``, el
+            provider crea un trace top-level propio. Ver ADR 0007 § Trace
+            context propagation.
+        parent_span_id: ``span.id`` del span root del caller. Opcional —
+            mejora la jerarquía visual en el dashboard, no afecta agrupación.
         extra: Hooks específicos del provider (ej. ``{"region": "us-central1"}``
             para Vertex). Cada provider documenta qué claves espera.
     """
@@ -62,6 +69,11 @@ class ExtractionRequest:
     max_backoff: float = 16.0
     timeout_seconds: float = 60.0
     case_id: str | None = None  # Identificador opcional para observability (Langfuse).
+    # Trace context para anidar este request bajo un span padre (apps/api o un
+    # orquestador futuro). Si ambos None, el provider crea un trace top-level.
+    # Ver ADR 0007 § Trace context propagation.
+    parent_trace_id: str | None = None
+    parent_span_id: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 

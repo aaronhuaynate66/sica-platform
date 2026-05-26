@@ -105,6 +105,8 @@ def trace_extraction(
     output_json: dict[str, Any] | None = None,
     error: str | None = None,
     metadata: dict[str, Any] | None = None,
+    parent_trace_id: str | None = None,
+    parent_span_id: str | None = None,
 ) -> None:
     """Registra una extracción en Langfuse como ``generation`` observation.
 
@@ -127,6 +129,13 @@ def trace_extraction(
             y ``status_message=error`` en el trace.
         metadata: Pares clave/valor adicionales. Se mergean con los
             defaults (``provider_id``, ``extractor_version``, etc.).
+        parent_trace_id: Si está presente, la generation se crea como child
+            del trace identificado por este ID (vía ``trace_context``).
+            Permite que el dashboard muestre jerarquía padre-hijo cuando
+            el caller (apps/api, orquestador) ya inició un trace propio.
+            Ver ADR 0007 § Trace context propagation.
+        parent_span_id: ``span.id`` del span padre. Opcional — afina la
+            anidación visual cuando hay múltiples spans en el mismo trace.
     """
     client = get_langfuse_client()
     if client is None:
@@ -174,19 +183,35 @@ def trace_extraction(
         if cost_usd is not None:
             cost_details = {"total": cost_usd}
 
+        # ``trace_context`` enchufa esta generation bajo un trace existente
+        # cuando el caller propagó IDs. TypedDict shape:
+        # {"trace_id": str, "parent_span_id": str (NotRequired)}.
+        trace_context: dict[str, str] | None = None
+        if parent_trace_id:
+            trace_context = {"trace_id": parent_trace_id}
+            if parent_span_id:
+                trace_context["parent_span_id"] = parent_span_id
+
         # ``start_observation(as_type="generation")`` es la API canónica en
-        # v3 (start_generation está deprecated). End explícito al final.
-        generation = client.start_observation(
-            name=f"extract_{case_id}",
-            as_type="generation",
-            model=model,
-            output=output_json,
-            metadata=full_metadata,
-            usage_details=usage_details or None,
-            cost_details=cost_details,
-            level="ERROR" if error else "DEFAULT",
-            status_message=error,
-        )
+        # v3 (start_generation está deprecated). El SDK declara overloads
+        # por cada literal de ``as_type`` (span, generation, embedding,
+        # evaluator, guardrail, ...) y con ``trace_context`` opcional
+        # mypy strict no logra elegir uno — "too many unions". Suprimimos
+        # el error puntualmente; runtime es válido y los tests lo cubren.
+        kwargs: dict[str, Any] = {
+            "name": f"extract_{case_id}",
+            "as_type": "generation",
+            "model": model,
+            "output": output_json,
+            "metadata": full_metadata,
+            "usage_details": usage_details or None,
+            "cost_details": cost_details,
+            "level": "ERROR" if error else "DEFAULT",
+            "status_message": error,
+        }
+        if trace_context is not None:
+            kwargs["trace_context"] = trace_context
+        generation = client.start_observation(**kwargs)
         generation.end()
 
         # Flush asíncrono — la corrida CLI llama shutdown_tracing() para

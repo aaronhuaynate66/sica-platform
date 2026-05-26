@@ -141,6 +141,8 @@ def extract_from_pdf(
     initial_backoff: float | None = None,
     max_backoff: float | None = None,
     timeout_seconds: float | None = None,
+    parent_trace_id: str | None = None,
+    parent_span_id: str | None = None,
 ) -> ObstetricSummary:
     """Extrae un ``ObstetricSummary`` desde un PDF nativo de historia obstétrica.
 
@@ -242,6 +244,8 @@ def extract_from_pdf(
             max_backoff=resolved_max_backoff,
             timeout_seconds=resolved_timeout,
             case_id=case_id_for_trace,
+            parent_trace_id=parent_trace_id,
+            parent_span_id=parent_span_id,
         )
 
         try:
