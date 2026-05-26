@@ -222,4 +222,61 @@ El `case_id` del extractor se deriva del `pdf_path.stem` que en producción es e
 
 - `b70538d` — feat(api): add Langfuse tracing to POST /extract endpoint
 - `d160aec` — feat(extractor): support parent_trace_id for hierarchical traces
-- (commit del ADR) — docs(adr): update ADR-0007 with trace context propagation
+- `6e6a745` — docs(adr): update ADR-0007 with trace context propagation
+
+## Actualización 2026-05-26 — Cold start race condition en Render free tier
+
+Después del deploy a producción de los commits `b70538d` y `d160aec`, el smoke test reveló un comportamiento bifurcado dependiendo del estado del container Render. La extracción funciona en ambos casos, pero la entrega de las observations al dashboard de Langfuse depende del timing del container.
+
+### Warm requests (container ya despierto)
+
+- Trace top-level + SPAN root + GENERATION child **llegan completos** al dashboard.
+- Jerarquía padre-hijo visible (`parent_id` del GENERATION apunta al `id` del SPAN).
+- Verificado con trace `bfc9cc3d` (`env=production`, `request_id=3035ebbf`, 2026-05-26T18:30:44Z): 2 observations correctamente anidadas, `usage.input=4261, usage.output=1251`.
+
+### Cold start requests (después de >15 min idle)
+
+- Trace top-level **sí llega** al dashboard (1 HTTP call inmediato del SDK con la metadata).
+- SPAN + GENERATION **se pierden** — el batch async no completa antes de que el container se suspenda post-response.
+- Verificado con traces `7e701353` y `c32e7ef0`: `observations=0` en ambas, **incluso 2 horas después** del request. No es delay, son perdidas.
+
+### Causa
+
+- Langfuse SDK v3 usa **batching async** + background thread para flush — diseñado para no bloquear el response HTTP. Las observations se acumulan en una cola en memoria y se envían en batches.
+- Render free tier **suspende el container** después del HTTP response cuando no hay tráfico activo. El proceso Python se pausa o termina sin garantizar drain de threads background.
+- Background thread interrumpido antes de drenar la cola → observations se quedan en memoria del container suspendido y nunca llegan al backend.
+- Es un **trade-off conocido** del SDK: batching async favorece latencia del request principal, perjudica entornos ephemeral donde el container no garantiza tiempo post-response.
+
+### Estado: TODO no bloqueante
+
+**Cuándo aplica el problema:**
+
+- **Free tier de Render** (containers ephemeral, suspensión post-response).
+- **Vercel serverless functions** (similar — function instance termina al return).
+- **AWS Lambda** y similares (mismo patrón).
+- Cualquier entorno donde el container suspende post-response.
+
+**Por qué no es urgente en R0:**
+
+- No hay tráfico real todavía — sólo smoke tests manuales del founder.
+- Cold start ocurre solo en primer request después de >15 min idle. Con tráfico real (1+ request por min), el container queda warm permanentemente.
+- En R1+ shadow mode con sesiones de revisión clínica regulares (≥5 PDFs/día concentrados), el container estará warm prácticamente siempre.
+- La solución está identificada y queda prompted para implementar cuando sea necesario — no requiere investigación adicional, sólo aplicar el patrón documentado abajo.
+
+### Fix planificado (R1)
+
+Cuando R1 traiga tráfico real y la pérdida de cold-start traces se vuelva visible:
+
+- **Agregar flush sincrónico (bloqueante)** al final de `POST /extract` antes del response HTTP. Reemplaza el flush async del SDK por uno que espere a que la cola esté drenada.
+- **`client.flush()` síncrono** llamado explícitamente en `apps/api/src/sica_api/tracing.py::finish_extract_trace`, dentro del mismo try/except que envuelve `span.end()`.
+- **También en el extractor** (`clinical_extractor/tracing.py::trace_extraction`) para drenar su cliente al final de la generation. El SDK actualmente sólo dispara un flush async — necesitamos forzar bloqueante.
+- **Costo:** +200-500ms latencia por request (el bloqueo dura lo que tarde el HTTP request del SDK al backend de Langfuse).
+- **Beneficio:** 100% delivery garantizada, sin pérdida por cold-start.
+
+El prompt completo del fix (qué archivos tocar, qué tests agregar, dónde poner el `client.flush()` exacto) está documentado en las notas de sesión del 2026-05-26. Una sesión `feat(observability): force sync flush for cold-start resilience` debería ser ~20 min.
+
+### Lecciones aprendidas
+
+7. **Observability sobre observability**: bugs en el sistema de tracing son difíciles porque silenciosamente fallan (try/except absorbe errores por diseño). El smoke test del feature pasó en local (warm container), pero falló parcialmente en producción (cold start) sin generar logs ni excepciones visibles. **Regla nueva:** después de deployar cambios de tracing, validar contra producción tanto en path warm como cold (esperar 15+ min y reintentar). No bastar con un solo curl exitoso.
+
+8. **Render free tier no es serverless puro pero comparte el problema**: aunque Render es nominalmente "long-running containers", el free tier los suspende post-response cuando no hay tráfico, replicando la semántica de serverless ephemeral. Cualquier librería que asuma "el proceso vive más allá del response" — SDK con flush async, log aggregators con buffer, métricas via push — sufre el mismo síntoma. **Regla operativa:** cuando se introduzca una nueva dependencia con buffer/batch async en `apps/api`, validar explícitamente que entrega bajo cold-start. Documentar fallback síncrono en el ADR correspondiente.
