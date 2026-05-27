@@ -65,17 +65,46 @@ PROVIDER_ALIASES: dict[str, str] = {
 
 VALID_PROVIDERS: frozenset[str] = frozenset(PROVIDER_ALIASES.keys())
 
+# Import del redactor PHI del extractor (ADR-0009). Coupling explícito:
+# ``apps/api`` depende de ``clinical_extractor`` en runtime (render.yaml lo
+# instala); en entornos minimalistas sin el extractor, el handler tampoco
+# corre porque ``/extract`` ya quedaría 503 por settings.extractor_available.
+# Aun así degradamos gracefully con un fallback que solo limpia whitespace
+# si el import falla — el sistema sigue respondiendo, sin PHI redaction.
+try:
+    from clinical_extractor.phi import redact_phi as _redact_phi
+
+    _redact_phi_available = True
+except ImportError:  # pragma: no cover — entorno minimalista
+    _redact_phi = None
+    _redact_phi_available = False
+
 
 def _safe_provider_error_detail(exc: BaseException) -> str:
-    """Sanitiza el mensaje de excepción del provider para el response.
+    """Sanitiza el mensaje de excepción del provider para el response HTTP.
 
-    Trunca a 200 chars y remueve newlines / tabs. NO incluye traceback ni
-    paths absolutos. Para mensajes vacíos devuelve un fallback genérico.
+    Pipeline (en orden):
+
+    1. Aplica ``redact_phi`` sobre el string crudo (defensa: patterns inline
+       de DNI peruano 8-dig, móvil 9-dig prefijo 9, email). Ver ADR-0009.
+    2. Colapsa whitespace (newlines / tabs → single space).
+    3. Trunca a 200 chars.
+
+    NUNCA incluye traceback ni paths absolutos. Para mensajes vacíos devuelve
+    un fallback genérico. Si ``clinical_extractor.phi`` no se pudo importar
+    (entorno minimalista), el paso 1 se saltea — el sistema sigue funcionando
+    pero sin redaction de PHI; el deployment de producción tiene el extractor
+    instalado, por lo que el path 1 corre.
     """
     raw = str(exc).strip()
     if not raw:
         return "El provider no está disponible en este entorno."
-    cleaned = " ".join(raw.split())
+    # Paso 1: redact PHI inline (DNI / teléfono / email). redact_phi sobre str
+    # aplica los patterns y devuelve un string nuevo. Es idempotente y puro.
+    sanitized = _redact_phi(raw) if _redact_phi_available and _redact_phi is not None else raw
+    # Paso 2: colapsar whitespace para no romper el JSON con saltos de línea.
+    cleaned = " ".join(sanitized.split())
+    # Paso 3: truncar.
     return cleaned[:200]
 
 
@@ -177,16 +206,23 @@ async def extract(
     # también lo daría, pero hacerlo explícito documenta la decisión.
     requested_provider = (provider or DEFAULT_PROVIDER).lower()
     if requested_provider not in VALID_PROVIDERS:
+        # Defensa PHI (ADR-0009): el cliente puede enviar cualquier string
+        # como query param; sanitizamos antes de eco en el response.
+        safe_provider_echo = (
+            _redact_phi(provider)
+            if _redact_phi_available and _redact_phi is not None
+            else provider
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             headers=response_headers,
             content={
                 "error": "invalid_provider",
                 "detail": (
-                    f"Provider '{provider}' no es válido. "
+                    f"Provider '{safe_provider_echo}' no es válido. "
                     f"Valores aceptados: {sorted(VALID_PROVIDERS)}."
                 ),
-                "provider": provider,
+                "provider": safe_provider_echo,
                 "request_id": request_id,
             },
         )
@@ -219,13 +255,21 @@ async def extract(
     case_id_from_upload = Path(filename).stem if filename and filename != "<unnamed>" else ""
     case_id_for_extractor = case_id_from_upload or "uploaded_pdf"
     if content_type and "pdf" not in content_type:
+        # Defensa PHI (ADR-0009): content_type proviene del cliente; sanitizar
+        # antes de eco. En la práctica nunca trae PHI, pero defense in depth.
+        safe_content_type_echo = (
+            _redact_phi(content_type)
+            if _redact_phi_available and _redact_phi is not None
+            else content_type
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             headers=response_headers,
             content={
                 "error": "not_a_pdf",
                 "detail": (
-                    f"El archivo declara content-type '{content_type}', se esperaba application/pdf."
+                    f"El archivo declara content-type '{safe_content_type_echo}', "
+                    "se esperaba application/pdf."
                 ),
                 "request_id": request_id,
             },
@@ -352,11 +396,17 @@ async def extract(
             )
             # Cierra el trace padre con outcome de error. No-op si tracing
             # deshabilitado. Nunca levanta — el cliente recibe el error igual.
+            # ADR-0009: el ``error`` string va a Langfuse Cloud como metadata.
+            # Pasa por ``_safe_provider_error_detail`` para redactar PHI inline
+            # (DNI / teléfono / email) que el provider haya puesto en la excepción.
+            sanitized_error_for_trace = (
+                f"{exc_type}: {_safe_provider_error_detail(exc)}"
+            )
             finish_extract_trace(
                 trace_context,
                 success=False,
                 latency_ms=latency_ms,
-                error=f"{exc_type}: {exc}",
+                error=sanitized_error_for_trace,
                 output_summary={
                     "error_id": error_id,
                     "uploaded_filename": filename,
