@@ -198,3 +198,67 @@ Hasta entonces, **redaction local antes del SDK Langfuse** es la configuración 
 | Fecha | Cambio | Autor | ADR superseder |
 |---|---|---|---|
 | 2026-05-27 | Creación inicial | Aaron Huaynate | — |
+| 2026-05-27 | Agregada detección de keys PHI en texto plano (`_redact_phi_keys_in_text`). Ver sección "Actualización 2026-05-27 — Detección de keys PHI en texto plano" abajo. | Aaron Huaynate | — |
+
+## Actualización 2026-05-27 — Detección de keys PHI en texto plano
+
+### Contexto
+
+El sanitizer original (`_redact_string_content`) cubría dos clases de PHI:
+
+1. **Patterns inline** sobre strings: DNI peruano, móvil peruano, email.
+2. **Keys PHI en dicts** vía `redact_phi` recursivo.
+
+Faltaba una tercera clase: **keys PHI con valor en texto plano** dentro de strings. Mensajes de excepción de providers y logs estructurados pueden serializar PHI como `"nombre=Maria Lopez"` o `"dni: 47812936 patient"` — ese formato escapaba al sanitizer porque la "key" no es key de dict sino texto adyacente a su valor.
+
+El TODO #3 del commit `5fc1c95` documentó este agujero explícitamente: "Maria Lopez puede pasar — la clave nombre solo se detecta cuando es key de un dict". Cerrar este agujero antes del primer PDF real es bloqueante.
+
+### Cambio
+
+Agregada función nueva `_redact_phi_keys_in_text(text)` en `clinical_extractor/phi.py`:
+
+- Regex construida una sola vez al import-time con la alternancia completa de `PHI_FIELDS_EXACT` ordenada por longitud descendente (matchear "nombre_paciente" antes que "nombre" para evitar partial matches).
+- Case-insensitive **solo** para la key (vía `(?i:...)` scope-limited) — el resto del pattern es case-sensitive para que las heurísticas de uppercase del lookahead funcionen.
+- Value capturado con cap de 80 chars máx (no-greedy).
+- Lookahead define dónde para de capturar el value:
+  1. Delimitador (`,;)}\n`).
+  2. Whitespace + palabra lowercase 4+ chars (con tildes).
+  3. Whitespace + abreviación uppercase 2+ chars seguida de `\s`/`=`/`:`/`$` (captura sentinelas como `DNI`, `HC`).
+  4. Whitespace + otra key PHI seguida de separador.
+  5. Fin de string.
+
+Integrada en `_redact_string_content` después de los patterns inline. Orden importa:
+
+1. Patterns inline primero (cubren PHI suelto: `"failed lookup of 47812936"`).
+2. Key-in-text después (cubre PHI contextual: `"nombre=Maria"`).
+
+### Casos cubiertos
+
+| Input | Output |
+|---|---|
+| `nombre=Maria Lopez` | `nombre=[REDACTED]` |
+| `nombre: Maria Lopez` | `nombre: [REDACTED]` |
+| `Failed for patient nombre=Maria Lopez DNI 47812936 control` | `Failed for patient nombre=[REDACTED] DNI [REDACTED] control` |
+| `patient nombre=Maria dni=47812936 telefono=987654321` | `patient nombre=[REDACTED] dni=[REDACTED] telefono=[REDACTED]` |
+| `NOMBRE=Maria` (case-insensitive) | `NOMBRE=[REDACTED]` |
+| `nombre =  Maria` (espacios variables) | `nombre =  [REDACTED]` |
+| `https://example.com/api?nombre=foo` (URL en log) | `https://example.com/api?nombre=[REDACTED]` |
+
+### Casos NO cubiertos (limitaciones residuales documentadas)
+
+1. **NER (Named Entity Recognition) no implementado**. Nombres mencionados sin key explícita pasan: `"la paciente Maria Lopez no presenta anemia"` → mismo string sin redactar. Aceptable para R1 porque el riesgo es bajo en contexto técnico (errores de SDK no suelen narrar prosa con nombres). Revisar si emerge necesidad operacional.
+
+2. **Values muy largos (>80 chars) sin delimitador interno**. La regex es all-or-nothing: si el lookahead no triggerea dentro del cap de 80 chars, el match completo falla y el name se preserva. Trade-off aceptado: preferimos texto sin redactar (mensaje claro) que truncate parcial que filtre el sufijo del nombre.
+
+3. **JSON serializado como string** (`'{"nombre": "Maria"}'`). La quote entre key y `:` rompe el separator pattern. Esto NO es un agujero real porque dicts Python/JSON reales (no serializados como string) se redactan vía la rama `isinstance(payload, dict)` de `redact_phi`.
+
+### Tests
+
+- **14 unit tests nuevos** en `services/clinical-extractor/tests/test_phi.py` cubriendo: separator `=`/`:`, múltiples keys en una sola línea, case-insensitive, variaciones de whitespace, keys no-PHI preservadas, idempotencia, dict con value string, payload clínico realista, value >80 chars (limitación), URLs con PHI, regresión de email, JSON serializado, sanity unit del helper directo.
+- **2 integration tests nuevos** en `apps/api/tests/test_phi_in_error_responses.py` cubriendo: unit del helper `_safe_provider_error_detail` con key-in-text, E2E via TestClient para 503 con `nombre=Maria Lopez DNI 47812936`.
+
+### Compat
+
+- `redact_phi` y `redact_filename` mantienen el contrato público sin cambios.
+- Tests pre-existentes: 24 originales de `test_phi.py` + 13 originales de `test_phi_in_error_responses.py` siguen verdes sin modificación.
+- `_redact_string_content` ahora compuesta de dos capas; el orden (inline → key-in-text) garantiza idempotencia: aplicar dos veces da el mismo resultado.

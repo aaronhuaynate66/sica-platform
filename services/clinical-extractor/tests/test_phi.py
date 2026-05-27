@@ -263,3 +263,162 @@ def test_redact_phi_on_realistic_obstetric_summary_with_injected_phi() -> None:
     assert result["active_problems"] == ["Embarazo de bajo riesgo"]
     assert result["lab_results"][0]["value"] == "11.2"
     assert result["confidence_score"] == 0.94
+
+
+# =========================================================================
+# Key-in-text detection (ADR-0009 actualización 2026-05-27)
+# =========================================================================
+
+
+from clinical_extractor.phi import _redact_phi_keys_in_text, _redact_string_content  # noqa: E402
+
+
+def test_redact_key_nombre_with_equals() -> None:
+    """``nombre=Maria Lopez`` → ``nombre=[REDACTED]`` (separator =)."""
+    assert _redact_string_content("nombre=Maria Lopez") == f"nombre={REDACTED_MARKER}"
+
+
+def test_redact_key_nombre_with_colon() -> None:
+    """``nombre: Maria Lopez`` → ``nombre: [REDACTED]`` (separator :)."""
+    assert _redact_string_content("nombre: Maria Lopez") == f"nombre: {REDACTED_MARKER}"
+
+
+def test_redact_dni_with_key_in_text() -> None:
+    """``dni: 47812936``: ambos caminos (DNI pattern + key-in-text) lo redactan.
+
+    El DNI pattern fire primero sobre los 8 dígitos. Luego key-in-text
+    procesa ``dni: [REDACTED]`` — el value ya es ``[REDACTED]``, así que
+    el reemplazo es idempotente. Resultado: ``dni: [REDACTED]``.
+    """
+    assert _redact_string_content("dni: 47812936") == f"dni: {REDACTED_MARKER}"
+
+
+def test_redact_multiple_keys_in_text() -> None:
+    """Múltiples key-in-text en un mismo string se redactan todas."""
+    input_text = "patient nombre=Maria dni=47812936 telefono=987654321"
+    expected = (
+        f"patient nombre={REDACTED_MARKER} dni={REDACTED_MARKER} "
+        f"telefono={REDACTED_MARKER}"
+    )
+    assert _redact_string_content(input_text) == expected
+
+
+def test_redact_phi_in_error_message_example() -> None:
+    """Caso realista de mensaje de excepción con PHI mixto.
+
+    "Failed for patient nombre=Maria Lopez DNI 47812936 control"
+
+    Pipeline:
+    1. DNI inline → "...DNI [REDACTED] control"
+    2. key-in-text "nombre=" — el value captura hasta " DNI [REDACTED]"
+       (lookahead detecta abreviación uppercase "DNI" como sentinela).
+       Resultado del value: "Maria Lopez". Replace → "nombre=[REDACTED]".
+
+    Final: "Failed for patient nombre=[REDACTED] DNI [REDACTED] control".
+    """
+    input_text = "Failed for patient nombre=Maria Lopez DNI 47812936 control"
+    expected = f"Failed for patient nombre={REDACTED_MARKER} DNI {REDACTED_MARKER} control"
+    assert _redact_string_content(input_text) == expected
+
+
+def test_redact_does_not_affect_non_phi_keys() -> None:
+    """Keys que NO son PHI (edad, gestational_age_weeks) pasan sin tocar."""
+    input_text = "edad=28 gestational_age_weeks=24"
+    assert _redact_string_content(input_text) == input_text
+
+
+def test_redact_key_in_text_case_insensitive() -> None:
+    """El match de la key es case-insensitive — preserva el case del input."""
+    assert _redact_string_content("NOMBRE=Maria") == f"NOMBRE={REDACTED_MARKER}"
+    assert _redact_string_content("Nombre: Maria") == f"Nombre: {REDACTED_MARKER}"
+
+
+def test_redact_key_in_text_separator_variations() -> None:
+    """El separator (incluyendo whitespace) se preserva en el output."""
+    # Espacios alrededor del `=`.
+    assert _redact_string_content("nombre =  Maria") == f"nombre =  {REDACTED_MARKER}"
+    # Espacio antes del `:`, sin espacio después.
+    assert _redact_string_content("nombre :Maria") == f"nombre :{REDACTED_MARKER}"
+
+
+def test_redact_keys_in_nested_string_value() -> None:
+    """En un dict con value string, la key-in-text aplica al value."""
+    result = redact_phi({"error": "nombre=Maria"})
+    assert result == {"error": f"nombre={REDACTED_MARKER}"}
+
+
+def test_redact_phi_idempotent_with_key_in_text() -> None:
+    """``redact_phi`` aplicada dos veces sobre key-in-text es estable."""
+    x = "nombre=Maria Lopez"
+    y = redact_phi(x)
+    z = redact_phi(y)
+    assert y == z
+    assert y == f"nombre={REDACTED_MARKER}"
+
+
+def test_redact_phi_preserves_clinical_data_after_key_in_text() -> None:
+    """Estructuras clínicas grandes pasan sin cambio (sanity de no-rotura)."""
+    payload = {
+        "gestational_age_weeks": 24,
+        "active_problems": ["DG"],
+        "notes_summary": "Paciente con DG controlada",
+        "metadata": {"version": "0.1.0"},
+    }
+    result = redact_phi(payload)
+    assert result == payload
+
+
+def test_key_in_text_with_value_longer_than_80_chars_does_not_redact() -> None:
+    """Limitación documentada: si el value supera 80 chars sin un sentinela
+    interno, el regex falla y el name NO se redacta.
+
+    Trade-off aceptado en ADR-0009: preferimos all-or-nothing antes que un
+    truncate parcial que pueda dejar el sufijo del nombre visible.
+    """
+    # >80 chars sin delimitador interno: solo nombres propios y conectivas
+    # de 2-3 letras que no triggerean el lookahead [a-z]{4,}.
+    very_long_name = (
+        "Maria Lopez de la Torre del Valle Hidalgo de Espinoza del "
+        "Castillo y Aragon de los Tres Reinos Sagrados"
+    )
+    input_text = f"nombre={very_long_name}"
+    result = _redact_string_content(input_text)
+    # El name pasa SIN redactar — limitación documentada.
+    assert result == input_text, (
+        "Cuando el value supera 80 chars sin sentinela, el redactor key-in-text"
+        " falla y el name se preserva intacto"
+    )
+
+
+def test_key_in_text_redacts_url_query_param_with_phi() -> None:
+    """URLs con PHI en query params SÍ se redactan — los URLs en logs son
+    un vector real de leak."""
+    input_text = "https://example.com/api?nombre=foo"
+    expected = f"https://example.com/api?nombre={REDACTED_MARKER}"
+    assert _redact_string_content(input_text) == expected
+
+
+def test_email_pattern_still_works_after_integration() -> None:
+    """Regresión: la integración con key-in-text no rompe el email pattern."""
+    assert _redact_string_content("user maria@test.com") == f"user {REDACTED_MARKER}"
+
+
+def test_key_in_text_does_not_match_inside_json_serialized_dict() -> None:
+    """JSON serializado (con quote entre key y colon) NO matchea key-in-text.
+
+    Razón: el separator pattern ``\\s*[=:]\\s*`` no tolera la quote
+    inmediatamente después de la key. Los dicts Python/JSON se redactan
+    vía la rama de ``isinstance(payload, dict)`` de ``redact_phi``, no
+    vía la rama de ``isinstance(payload, str)``.
+    """
+    # String que representa un JSON serializado.
+    input_text = '{"nombre": "Maria"}'
+    # No matchea key-in-text porque después de "nombre" hay `"`, no `=` o `:`.
+    assert _redact_string_content(input_text) == input_text
+
+
+def test_key_in_text_helper_returns_string_unchanged_when_no_phi() -> None:
+    """Sanity unit del helper directo: string sin PHI keys pasa sin cambio."""
+    assert _redact_phi_keys_in_text("hello world") == "hello world"
+    assert _redact_phi_keys_in_text("") == ""
+    assert _redact_phi_keys_in_text("edad=28") == "edad=28"

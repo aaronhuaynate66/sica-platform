@@ -128,7 +128,15 @@ Cuando exista BAA con Langfuse Enterprise, self-hosted, o cambio regulatorio que
 
 3. **Falsos negativos del regex.** Un DNI escrito como `4781-2936` o con espacios no matchea el pattern actual. En la práctica el modelo del extractor no normaliza así; auditoría externa pendiente para validar.
 
-4. **Error messages en responses HTTP.** El sanitizer aplica `redact_phi` sobre patterns inline (DNI, teléfono, email). Si un mensaje de excepción tiene un campo con clave PHI dentro del string (e.g. `"Failed for patient nombre=Maria"`), la palabra "Maria" puede pasar — la clave `nombre` solo se detecta cuando es key de un dict, no cuando es texto plano. Mejora pendiente para R2 si emerge el caso.
+4. **Sanitizer de excepciones (mejorado 2026-05-27).** Detecta tres clases de PHI en mensajes de excepción y logs:
+   - **Patterns inline**: DNI peruano (8 dígitos), móvil peruano (9 dígitos prefijo 9), email.
+   - **Keys PHI con valor en texto plano** (e.g. `"nombre=Maria Lopez"` → `"nombre=[REDACTED]"`). Cubre el patrón `{phi_key}{=|:}{value}` para cualquier key de `PHI_FIELDS_EXACT`, con lookahead que detecta sentinelas (delimitadores, palabras lowercase comunes, abreviaciones uppercase como `DNI`/`HC`, otra key PHI, fin de string).
+   - **Keys PHI en dicts** (vía `redact_phi` recursivo sobre estructuras).
+
+   **Limitaciones residuales**:
+   - Nombres mencionados **sin key** (e.g. `"la paciente Maria Lopez no presenta..."`) no se detectan — requiere NER. Aceptado para R1; revisar si emerge necesidad operacional.
+   - Values muy largos (>80 chars) sin delimitador interno NO se redactan (all-or-nothing por diseño — preferimos preservar el contexto que truncate parcial que filtre sufijo del nombre).
+   - JSON serializado como string (`'{"nombre": "Maria"}'`) NO matchea key-in-text porque la quote entre key y `:` bloquea el regex. Cuando esto llega como dict real (no string), sí se redacta por la rama dict de `redact_phi`.
 
 5. **Logs locales NO se redactan.** Acceso a logs del host es equivalente a acceso a PHI. Tratar logs como información sensible:
    - No exportar logs a sistemas externos sin política de retención + control de acceso.
@@ -164,3 +172,4 @@ Antes de exponer SICA a un partner clínico formal o procesar volumen significat
 | Fecha | Cambio | Autor |
 |---|---|---|
 | 2026-05-27 | Creación inicial. Captura los 5 puntos operacionales identificados al cierre de la sesión de implementación del redactor. | Aaron Huaynate |
+| 2026-05-27 | Sanitizer de excepciones extendido con detección de keys PHI en texto plano (`nombre=Maria` → `nombre=[REDACTED]`). Actualizado el punto #4 de "Limitaciones conocidas" para reflejar la nueva capacidad. | Aaron Huaynate |

@@ -222,6 +222,58 @@ def test_400_invalid_content_type_redacts_user_echo(make_client) -> None:
 # =========================================================================
 
 
+def test_helper_redacts_key_in_text_pattern() -> None:
+    """ADR-0009 actualización 2026-05-27: el helper redacta valores asociados
+    a keys PHI cuando aparecen en texto plano dentro del mensaje de excepción.
+
+    El sanitizer existente capturaba PHI inline (DNI / móvil / email), pero
+    NO capturaba el patrón ``nombre=Maria`` cuando aparecía dentro de un
+    string libre. Ahora sí.
+    """
+
+    class _FakeExc(Exception):
+        pass
+
+    exc = _FakeExc("Failed for nombre=Maria Lopez DNI 47812936 control")
+    detail = _safe_provider_error_detail(exc)
+    # "Maria Lopez" no debe aparecer (era PHI con key en texto).
+    assert "Maria Lopez" not in detail
+    # "47812936" tampoco (PHI inline).
+    assert "47812936" not in detail
+    # El contexto del error sigue siendo legible.
+    assert "Failed for" in detail
+    assert "control" in detail
+    # Marcador presente al menos una vez.
+    assert "[REDACTED]" in detail
+
+
+def test_503_response_redacts_nombre_with_key_in_text(
+    make_client, minimal_pdf_bytes
+) -> None:
+    """E2E: si el provider levanta una excepción con ``nombre=Maria Lopez`` en
+    el mensaje, el response 503 al cliente NO contiene el nombre."""
+
+    def _phi_provider(pdf_path, *, api_key: str, **kwargs: Any) -> dict[str, Any]:
+        from clinical_extractor.providers.base import ProviderNotAvailableError
+
+        raise ProviderNotAvailableError(
+            "Failed for patient nombre=Maria Lopez DNI 47812936 control aborted"
+        )
+
+    client = make_client(extractor=_phi_provider)
+    response = client.post(
+        "/extract?provider=vertex",
+        files={"file": ("synthetic.pdf", minimal_pdf_bytes, "application/pdf")},
+    )
+    assert response.status_code == 503
+    body = response.json()
+    # Ni el nombre ni el DNI deben aparecer.
+    assert "Maria Lopez" not in body["detail"]
+    assert "47812936" not in body["detail"]
+    # El marcador y el contexto sí.
+    assert "[REDACTED]" in body["detail"]
+
+
 def test_helper_works_when_redactor_unavailable(monkeypatch) -> None:
     """Si el módulo PHI del extractor no se pudo importar, el helper degrada
     a sólo whitespace/truncate sin crashear."""
