@@ -29,6 +29,10 @@ from dotenv import load_dotenv
 from clinical_extractor import __version__, telemetry
 from clinical_extractor.extractor import ExtractionError, extract_from_pdf
 from clinical_extractor.prompts import ACTIVE_PROMPT_VERSION
+from clinical_extractor.prompts.registry import (
+    get_active_prompt as _registry_get_active,
+)
+from clinical_extractor.prompts.registry import list_versions as _list_prompt_versions
 from clinical_extractor.tracing import shutdown_tracing
 
 
@@ -65,6 +69,16 @@ def cli() -> None:
     help="Override del max_tokens. Default: variable env CLAUDE_MAX_TOKENS.",
 )
 @click.option(
+    "--prompt-version",
+    type=int,
+    default=None,
+    help=(
+        "Versión específica (entero) del prompt extract_obstetric a usar. "
+        "Default: latest disponible en el registry. Forzar una versión es "
+        "útil para A/B manual o reproducir corridas viejas. Ver ADR 0008."
+    ),
+)
+@click.option(
     "--pretty/--compact",
     default=True,
     help="Pretty-print del JSON (default) o JSON compacto.",
@@ -74,14 +88,50 @@ def extract(
     output: Path | None,
     model: str | None,
     max_tokens: int | None,
+    prompt_version: int | None,
     pretty: bool,
 ) -> None:
     """Extrae un resumen obstétrico estructurado desde PDF_PATH."""
     click.echo(f"⟶ extracting {pdf_path}", err=True)
+
+    # Resolver el prompt para loggear con hash + indicador de origen.
+    # Si la versión solicitada no existe, fallamos rápido con mensaje legible
+    # (evita levantar deep dentro del extractor con traceback completo).
+    try:
+        if prompt_version is None:
+            prompt_pv = _registry_get_active("extract_obstetric")
+            source_tag = "latest"
+        else:
+            prompt_pv = _registry_get_active(
+                "extract_obstetric", version_override=prompt_version
+            )
+            source_tag = "forced via CLI"
+    except FileNotFoundError as exc:
+        available = _list_prompt_versions("extract_obstetric")
+        click.echo(
+            f"✗ Prompt 'extract_obstetric' v{prompt_version} no existe. "
+            f"Disponibles: {available}. ({exc})",
+            err=True,
+        )
+        shutdown_tracing()
+        sys.exit(1)
+
+    click.echo(
+        f"  prompt activo: {prompt_pv.version_string} "
+        f"(hash={prompt_pv.short_hash}) [{source_tag}]",
+        err=True,
+    )
+    # Preservar el log legacy para no romper greps/automatización que matchee
+    # exactamente "prompt version: 0.1.0".
     click.echo(f"  prompt version: {ACTIVE_PROMPT_VERSION}", err=True)
 
     try:
-        summary = extract_from_pdf(pdf_path, model=model, max_tokens=max_tokens)
+        summary = extract_from_pdf(
+            pdf_path,
+            model=model,
+            max_tokens=max_tokens,
+            prompt_version=prompt_version,
+        )
     except ExtractionError as exc:
         click.echo(f"✗ ExtractionError: {exc}", err=True)
         shutdown_tracing()

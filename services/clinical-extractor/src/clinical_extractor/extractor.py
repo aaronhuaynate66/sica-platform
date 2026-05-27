@@ -109,6 +109,54 @@ def _read_pdf_text(pdf_path: Path) -> tuple[str, int]:
     return full_text, len(reader.pages)
 
 
+def _resolve_prompt(prompt_version: int | None) -> VersionedPrompt:
+    """Resuelve el prompt activo, con override opcional por versión entera.
+
+    - ``None`` → comportamiento legacy: ``prompts.get_active_prompt()`` (latest
+      via registry).
+    - ``int`` → carga la versión exacta de ``extract_obstetric`` del registry.
+      Si no existe, propaga ``FileNotFoundError`` envuelto en ``ExtractionError``
+      con detalle de versiones disponibles.
+
+    Devuelve un ``VersionedPrompt`` (NamedTuple legacy) para mantener compat
+    con el resto del pipeline que consume ``.system`` + ``.user_template``.
+    """
+    if prompt_version is None:
+        return get_active_prompt()
+
+    # Import diferido del registry (la API pública del prompts package no
+    # reexpone la entrada con override entero; el wrapper legacy solo acepta
+    # version string).
+    from clinical_extractor.prompts import VersionedPrompt as _VP
+    from clinical_extractor.prompts.registry import (
+        get_active_prompt as registry_get_active,
+    )
+    from clinical_extractor.prompts.registry import (
+        list_versions,
+    )
+
+    try:
+        pv = registry_get_active("extract_obstetric", version_override=prompt_version)
+    except FileNotFoundError as exc:
+        available = list_versions("extract_obstetric")
+        msg = (
+            f"Prompt 'extract_obstetric' versión {prompt_version} no existe. "
+            f"Versiones disponibles: {available}."
+        )
+        raise ExtractionError(msg) from exc
+
+    # Mapear el shape nuevo (registry.PromptVersion) al legacy (NamedTuple).
+    # version_string lleva forma "extract_obstetric_v1"; preservamos string
+    # legacy ("0.1.0") para v1 para no romper telemetría existente, y usamos
+    # version_string para v2+ cuando aparezcan.
+    legacy_version_string = "0.1.0" if pv.version == 1 else pv.version_string
+    return _VP(
+        version=legacy_version_string,
+        system=pv.system,
+        user_template=pv.user_template,
+    )
+
+
 def _resolve_provider(
     model_id: str,
     client: anthropic.Anthropic | None,
@@ -159,6 +207,7 @@ def extract_from_pdf(
     max_tokens: int | None = None,
     client: anthropic.Anthropic | None = None,
     prompt: VersionedPrompt | None = None,
+    prompt_version: int | None = None,
     max_retries: int | None = None,
     initial_backoff: float | None = None,
     max_backoff: float | None = None,
@@ -178,6 +227,14 @@ def extract_from_pdf(
         client: Cliente Anthropic preconfigurado (útil para tests). Si se inyecta,
             fuerza el uso de AnthropicProvider — ignora ``model`` si no es Claude.
         prompt: Versión del prompt a usar. Si None, se usa la activa por default.
+            Tiene precedencia sobre ``prompt_version`` cuando ambos están presentes.
+        prompt_version: Número entero de versión específica del prompt
+            ``extract_obstetric`` (e.g. ``1``). Resuelve vía
+            ``clinical_extractor.prompts.registry.get_active_prompt`` con
+            ``version_override``. Útil para reproducir corridas antiguas
+            o forzar una versión específica desde CLI. Si la versión no
+            existe, se levanta ``ExtractionError`` con detalle. Default
+            None → usa la última versión disponible (Fase 1: v1).
         max_retries: Reintentos en errores transitorios. Default: env o 3.
         initial_backoff: Espera inicial entre reintentos en segundos.
         max_backoff: Tope del backoff exponencial en segundos.
@@ -217,7 +274,7 @@ def extract_from_pdf(
     resolved_max_tokens = max_tokens or int(
         os.getenv("CLAUDE_MAX_TOKENS", str(DEFAULT_MAX_TOKENS))
     )
-    resolved_prompt = prompt or get_active_prompt()
+    resolved_prompt = prompt or _resolve_prompt(prompt_version)
     resolved_max_retries = (
         max_retries
         if max_retries is not None
