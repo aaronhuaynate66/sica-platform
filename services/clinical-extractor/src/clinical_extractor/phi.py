@@ -97,6 +97,84 @@ EMAIL_PATTERN = re.compile(r"\b[\w.-]+@[\w.-]+\.\w+\b")
 
 REDACTED_MARKER = "[REDACTED]"
 
+
+def _build_key_in_text_pattern() -> re.Pattern[str]:
+    """Construye regex que detecta ``{phi_key}{sep}{value}`` en texto plano.
+
+    El propósito es cubrir mensajes de excepción y logs que serializan PHI
+    como ``nombre=Maria`` o ``dni: 47812936`` — formato que la redacción
+    por key de dict (en ``redact_phi``) NO detecta, y que los patterns
+    inline (DNI / móvil / email) solo cubren parcialmente.
+
+    Estrategia:
+
+    - Alternancia con todas las keys de ``PHI_FIELDS_EXACT`` ordenadas por
+      longitud descendente (matchear "nombre_paciente" antes de "nombre").
+    - Case-insensitive **solo** para la key (``(?i:...)``). El resto del
+      pattern es case-sensitive para que las heurísticas de uppercase
+      (``[A-Z]{2,}``) sigan funcionando para detectar abreviaciones (DNI,
+      HC) como sentinelas de fin de value.
+    - Value: no-greedy, hasta 80 chars máx. Si el value es más largo que
+      eso sin un delimitador interior, la regex completa falla y el value
+      NO se redacta — limitación documentada en ADR-0009.
+    - Lookahead que define dónde STOP capturar el value:
+        1. Delimitador ``,;)}\n``
+        2. Whitespace + palabra "normal" (lowercase 4+ chars con tildes)
+        3. Whitespace + abreviación uppercase (``DNI``, ``HC``) seguida
+           de whitespace / ``=`` / ``:`` / fin
+        4. Whitespace + otra key PHI seguida de separador
+        5. Fin de string
+    """
+    keys_alternation = "|".join(
+        re.escape(k) for k in sorted(PHI_FIELDS_EXACT, key=len, reverse=True)
+    )
+    pattern = (
+        # Boundary antes de la key (no word char inmediatamente antes).
+        rf"(?<!\w)"
+        # Key (case-insensitive solo en este grupo) capturada por nombre.
+        rf"(?i:(?P<key>{keys_alternation}))"
+        # Separator: = o : con whitespace opcional alrededor.
+        rf"(?P<sep>\s*[=:]\s*)"
+        # Value: comienza con no-whitespace, no-greedy, hasta 80 chars sin
+        # ningún delimitador "duro" interno.
+        rf"(?P<value>\S[^,;)}}\n]{{0,80}}?)"
+        # Lookahead: define el fin del value (NO se consume).
+        rf"(?="
+        rf"\s*[,;)}}\n]"
+        rf"|\s+[a-záéíóúñ]{{4,}}"
+        rf"|\s+[A-ZÁÉÍÓÚÑ]{{2,}}(?=\s|[=:]|$)"
+        rf"|\s+(?i:{keys_alternation})\s*[=:]"
+        rf"|\s*$"
+        rf")"
+    )
+    return re.compile(pattern)
+
+
+# Compilado al import — costo de construcción se paga una sola vez por proceso.
+_KEY_IN_TEXT_PATTERN = _build_key_in_text_pattern()
+
+
+def _redact_phi_keys_in_text(text: str) -> str:
+    """Redacta valores asociados a keys PHI cuando aparecen en texto plano.
+
+    Ejemplos:
+
+    - ``"nombre=Maria Lopez"`` → ``"nombre=[REDACTED]"``
+    - ``"dni: 47812936"`` → ``"dni: [REDACTED]"``
+    - ``"patient nombre=Maria dni=47812936"`` →
+      ``"patient nombre=[REDACTED] dni=[REDACTED]"``
+
+    Complementa ``redact_phi`` (keys de dict) y los patterns inline
+    (DNI / teléfono / email) que cubren cada uno una superficie distinta.
+    """
+
+    def _replace(match: re.Match[str]) -> str:
+        # Preserva la key original (case del input) y el separator con
+        # whitespace original; solo reemplaza el value.
+        return f"{match.group('key')}{match.group('sep')}{REDACTED_MARKER}"
+
+    return _KEY_IN_TEXT_PATTERN.sub(_replace, text)
+
 # Prefijos de filename que NO contienen PHI (sintéticos, fixtures, longitudinales
 # del paciente didáctico "lucia"). Se preservan tal cual.
 _SAFE_FILENAME_PREFIXES: tuple[str, ...] = (
@@ -113,15 +191,25 @@ def _is_phi_field(key: str) -> bool:
 
 
 def _redact_string_content(value: str) -> str:
-    """Aplica redaction a un string por contenido (patrones).
+    """Aplica redaction a un string por contenido.
 
-    DNI / teléfono / email se reemplazan inline por ``[REDACTED]``,
-    preservando el resto del string. Idempotente: aplicar dos veces
-    da el mismo resultado.
+    Pipeline en dos capas (orden importa):
+
+    1. **Patterns inline** — DNI peruano (8 dígitos), móvil peruano (9 dígitos
+       prefijo 9), email. Se reemplazan donde aparezcan, sin necesidad de
+       key contextual. Captura PHI "suelto" dentro de prosa.
+    2. **Key-in-text** — secuencias ``{phi_key}{=|:}{value}`` donde la key
+       pertenece a ``PHI_FIELDS_EXACT``. Captura PHI con identificador
+       contextual (e.g. ``"nombre=Maria"``) que las patterns inline no ven.
+
+    Orden: inline primero porque algunas excepciones traen DNI/email SIN
+    una key adyacente (``"failed lookup of 47812936"``); ambas capas se
+    aplican y el resultado es estable (idempotente).
     """
     value = DNI_PATTERN.sub(REDACTED_MARKER, value)
     value = PHONE_PATTERN.sub(REDACTED_MARKER, value)
     value = EMAIL_PATTERN.sub(REDACTED_MARKER, value)
+    value = _redact_phi_keys_in_text(value)
     return value
 
 
