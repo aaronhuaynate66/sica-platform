@@ -315,5 +315,96 @@ afecten Niveles 1-5 requieren update de este ADR.
 | 2026-05-21 | Creación inicial. Umbrales del Nivel 2 marcados como objetivos hasta cierre de #12. | Aaron Huaynate | — |
 | 2026-05-22 | Nivel 2 ahora referencia `docs/evaluation/metrics-specification.md` como fuente de verdad de las definiciones matemáticas de las métricas. Decisiones metodológicas movidas a ADR 0005. Sin cambio funcional de umbrales. | Aaron Huaynate | — |
 | 2026-05-25 | Agregado Nivel 6 — Implementación concreta (adapter pattern). Documenta cómo Niveles 1-5 se materializan en `services/clinical-extractor/src/clinical_extractor/providers/`. `AnthropicProvider` production-ready; `VertexMedGemmaProvider` stub a la espera de issue #12. Sin cambio funcional de política. | Aaron Huaynate | — |
+| 2026-05-27 | Agregada sección "Actualización 2026-05-27 — Provider routing via query param". Expone el adapter pattern al cliente HTTP vía `POST /extract?provider=...`. Sin cambio en niveles 1-3; cambio operacional en cómo se invoca el routing. | Aaron Huaynate | — |
 
 `[TODO — revisión clínica/regulatoria firmada]` — El issue #13 lista como criterio de cierre "Revisión por al menos un asesor clínico/regulatorio firmada en el PR del ADR". Esta firma queda **pendiente** y debe completarse antes de que el ADR pase de policy interna a documento expuesto a partner. Cuando se obtenga, registrar en este log la fecha y firmante.
+
+## Actualización 2026-05-27 — Provider routing via query param
+
+El **Nivel 6** del ADR (adapter pattern multi-provider en el extractor) quedaba hasta ahora confinado al servicio `clinical-extractor`. El handler `POST /extract` de `apps/api` hardcodeaba Anthropic. Esta actualización expone la selección del provider al cliente HTTP **sin esperar a #12 (MedGemma)** para que cuando ese ticket cierre no haya refactor en la API.
+
+### Contexto
+
+- Adapter pattern multi-provider está implementado y testeado en el extractor desde el commit `9d4630d` (ver § Nivel 6).
+- `AnthropicProvider` es production-ready; `VertexMedGemmaProvider` sigue siendo stub a la espera de #12.
+- Cliente HTTP necesita seleccionar provider sin parsear headers ni inspeccionar el body.
+- Producción no se modifica — el contrato existente (sin query param → Anthropic) se preserva.
+
+### Decisión
+
+**Selector vía query parameter en `POST /extract?provider=<alias>`**:
+
+| Alias público | Provider interno (`provider_id` del registry) | Estado |
+|---|---|---|
+| `anthropic` (default) | `anthropic` | Operativo en R0/R1 (datos sintéticos solamente — ver ADR 0003 § veto Claude para PHI real) |
+| `vertex` | `vertex-medgemma` | Stub — devuelve 503 hasta cierre de #12 |
+
+Reglas operacionales:
+
+1. **Default sin query param**: `anthropic`. Preserva contrato actual; clientes existentes no requieren cambios.
+2. **Validación temprana**: cualquier valor fuera del set válido produce `400 Bad Request` **antes** de leer el body del PDF. No se desperdicia I/O.
+3. **Sin fallback automático**: si el provider seleccionado no está operativo o levanta `NotImplementedError`, el response es `503` con detail explícito. El cliente decide si orquesta reintento con otro provider.
+4. **Propagación al trace de Langfuse**: el alias público (`anthropic` / `vertex`) aparece en `metadata.provider` del span padre. Auditoría completa de qué provider atendió qué request.
+5. **Mapeo público → interno** vive en `apps/api/src/sica_api/routes/extract.py::PROVIDER_ALIASES`. Cambiar este mapeo requiere ADR (es contrato del query param).
+
+### Por qué query param y no header / body / path
+
+- **Visible en logs y access traces** sin parseo adicional (NGINX, Render, Vercel logs).
+- **Estándar REST** para selectores de routing (cf. `?version=`, `?region=`).
+- **Fácil de testear con curl** sin construir headers especiales.
+- **No mezcla request data con routing metadata** — el body queda exclusivamente para el PDF.
+- **Cacheable a futuro**: si en R3+ aparece un edge cache, el provider forma parte de la cache key vía query string, no header.
+
+### Por qué sin fallback automático
+
+- **Fallback silencioso oculta problemas**: si `vertex` cae 50%, el operador nunca lo nota porque cada request cae a Anthropic transparentemente.
+- **El cliente puede orquestar reintentos** con la información explícita del error (`error_type`, `provider`).
+- **Visibilidad de fallos es prioritaria en R1**: necesitamos saber cuándo y cuánto falla cada provider para decidir promoción a default (Nivel 1).
+- **Reconsideración R2+**: si emerge necesidad operacional (e.g. SLA con partner que exige uptime cross-provider), agregar fallback con flag explícito `?fallback=true` o policy declarativa.
+
+### Mapeo de errores
+
+| Excepción del extractor | HTTP code | Body |
+|---|---|---|
+| `ExtractionError` genérico | 500 | `error_id` + detail genérico (sin stack) |
+| `ProviderNotAvailableError` | 503 | `provider`, `error_type`, detail sanitizado |
+| `NotImplementedError` (stub) | 503 | idem |
+| Query param inválido | 400 | `error: invalid_provider`, lista de válidos |
+
+Sanitización del detail: `_safe_provider_error_detail` colapsa whitespace y trunca a 200 chars. **No expone**: stack trace, paths absolutos, contenido del PDF. Sí puede arrastrar parte del mensaje del provider — esto es **limitación conocida**: los providers no deben poner PHI en mensajes de excepción.
+
+### Consecuencias
+
+#### Positivas
+
+- **Cuando MedGemma esté wired (post-#12), apps/api no requiere refactor.** Solo cambia el comportamiento de `VertexMedGemmaProvider.extract` y el flag de `is_available()` — el query param ya está aceptando `vertex`.
+- **Auditoría granular en Langfuse**: cada trace lleva qué provider atendió, base para reporting "qué % del tráfico R1 corrió en cada provider".
+- **Clientes existentes**: zero impacto. Smoke local con `curl -X POST /extract` sigue dando 200 si Anthropic está configurado.
+- **Routing por contexto futuro**: el query param es la entrada natural para que un orquestador externo (frontend, batch pipeline) decida por sí mismo qué provider invocar caso por caso.
+
+#### Negativas
+
+- **Mapeo público → interno duplica nombres**: `vertex` ≠ `vertex-medgemma` requiere mantenimiento del dict `PROVIDER_ALIASES` sincronizado con `DEFAULT_REGISTRY`. Si en R2 se agrega un segundo modelo Vertex (e.g. Gemini), `vertex` se vuelve ambiguo y habrá que decidir si rompemos el alias o introducimos `?provider=vertex-medgemma` / `?provider=vertex-gemini` explícitos.
+- **El cliente debe conocer la lista válida**: no hay descubrimiento automático en el endpoint. Mitigación: `GET /providers` ya devuelve la lista jerárquica; el cliente puede consultar antes de elegir. **TODO menor**: agregar a `GET /providers` un campo `public_aliases` que liste los alias aceptados por `?provider=`.
+
+#### Neutras
+
+- **Costo del cambio**: 1 sesión (este commit + ADR). Sin redeploy especial.
+- **Compatibility con versiones futuras del adapter**: si en R3+ aparece un tercer provider, basta sumar entrada al `PROVIDER_ALIASES` y registrarlo en `DEFAULT_REGISTRY`. No requiere ADR (es operacional), siempre que el mapeo público no se rompa.
+
+### Plan R2+
+
+- **SLA por provider en `GET /providers`**: agregar `uptime_30d`, `latency_p95`, `error_rate` por provider para que el cliente decida con datos.
+- **Reconsiderar fallback** si emerge necesidad operacional concreta (con flag explícito `?fallback=...`, no implícito).
+- **Provider-specific rate limiting** una vez que haya tráfico real cross-provider.
+- **Campo `public_aliases` en `/providers`** para que el cliente descubra qué valores acepta `?provider=` sin leer el README.
+
+### Referencias
+
+- **Commit Fase A** (este cambio): `feat(api): add provider routing to POST /extract via ?provider= query param`.
+- **Archivos clave**:
+  - `apps/api/src/sica_api/routes/extract.py` — handler con query param + mapeo público.
+  - `services/clinical-extractor/src/clinical_extractor/extractor.py::extract_from_pdf` — kwarg `provider_id` nuevo.
+  - `apps/api/tests/test_extract_provider_routing.py` — 11 tests del contrato.
+- **README**: `apps/api/README.md § POST /extract` documenta el contrato cara al cliente.
+- **Issue relacionado**: #12 (viabilidad MedGemma 4B — sigue abierto).

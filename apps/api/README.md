@@ -84,16 +84,59 @@ Cuándo usar cada uno:
 
 Request: `multipart/form-data` con campo `file` (PDF, max `MAX_FILE_SIZE_MB`).
 
+Query parameters:
+
+| Parámetro | Default | Descripción |
+|---|---|---|
+| `provider` | `anthropic` | ID del provider LLM. Valores válidos: `anthropic` (default), `vertex`. `vertex` retorna 503 hasta que GCP MedGemma esté configurado (issue #12). Ver [ADR 0004 § Actualización 2026-05-27](../../docs/decisions/0004-model-routing-policy.md). |
+
+Ejemplos:
+
+```bash
+# Default (anthropic — sin query param, preserva contrato existente)
+POST /extract
+
+# Explícito
+POST /extract?provider=anthropic
+POST /extract?provider=vertex   # 503 mientras vertex sea stub
+```
+
 Respuestas:
 
 | Code | Cuando |
 |---|---|
 | `200` | Extracción OK. Body = `ObstetricSummary` JSON. |
-| `400` | No es PDF (content-type o magic bytes), o body vacío. |
+| `400` | No es PDF (content-type o magic bytes), body vacío, o `provider` inválido (`?provider=foo`). |
 | `413` | Archivo excede `MAX_FILE_SIZE_MB`. |
 | `422` | Body multipart inválido o falta `file`. |
-| `500` | Fallo interno. Body incluye `error_id` para correlación. Stack trace NUNCA se expone. |
-| `503` | `ANTHROPIC_API_KEY` ausente. |
+| `500` | Fallo interno del extractor. Body incluye `error_id` para correlación. Stack trace NUNCA se expone. |
+| `503` | `ANTHROPIC_API_KEY` ausente, **o** el provider seleccionado no está disponible (vertex sin GCP creds, NotImplementedError del stub). |
+
+Shape del error `400` (provider inválido):
+
+```json
+{
+  "error": "invalid_provider",
+  "detail": "Provider 'openai' no es válido. Valores aceptados: ['anthropic', 'vertex'].",
+  "provider": "openai",
+  "request_id": "..."
+}
+```
+
+Shape del error `503` (provider no disponible):
+
+```json
+{
+  "error": "provider_unavailable",
+  "detail": "Provider 'vertex' no disponible: VertexMedGemmaProvider.extract no está implementado. Pendiente sesión con GCP credentials (issue #12).",
+  "provider": "vertex",
+  "error_type": "NotImplementedError",
+  "request_id": "...",
+  "error_id": "..."
+}
+```
+
+Política de fallback: **ninguno**. Si el provider seleccionado falla, el cliente recibe el error explícito y decide si reintentar con otro provider. Fallback silencioso oculta problemas operacionales — ver ADR 0004 § Actualización 2026-05-27.
 
 Todas las respuestas incluyen header `X-Request-ID`. Errores 5xx adicionalmente incluyen `X-Error-ID`. El cliente debe loggear ambos.
 
@@ -125,6 +168,14 @@ curl http://localhost:8000/health
 curl http://localhost:8000/models
 
 curl -X POST http://localhost:8000/extract \
+  -F "file=@../../services/clinical-extractor/data/synthetic_case_01.pdf"
+
+# Con provider explícito (default si se omite):
+curl -X POST "http://localhost:8000/extract?provider=anthropic" \
+  -F "file=@../../services/clinical-extractor/data/synthetic_case_01.pdf"
+
+# Provider stub — devuelve 503 hasta que GCP MedGemma esté configurado:
+curl -X POST "http://localhost:8000/extract?provider=vertex" \
   -F "file=@../../services/clinical-extractor/data/synthetic_case_01.pdf"
 ```
 
