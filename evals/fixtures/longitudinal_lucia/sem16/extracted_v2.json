@@ -1,0 +1,126 @@
+{
+  "active_problems": [
+    "Sobrepeso pre-gestacional (IMC 25.6)"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "Edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "FUR 27/12/2023",
+      "source_page": 1,
+      "source_text": "FUR:\n27/12/2023"
+    },
+    {
+      "claim": "FPP 03/10/2024",
+      "source_page": 1,
+      "source_text": "FPP:\n03/10/2024"
+    },
+    {
+      "claim": "EG 16 semanas + 2 días",
+      "source_page": 1,
+      "source_text": "EG actual (por FUR):\n16 semanas + 2 días"
+    },
+    {
+      "claim": "IMC pre-gestacional 25.6 (sobrepeso leve)",
+      "source_page": 1,
+      "source_text": "IMC pre-gestacional:\n25.6 (sobrepeso leve)"
+    },
+    {
+      "claim": "Antecedente familiar de diabetes mellitus tipo 2",
+      "source_page": 1,
+      "source_text": "Familiares: madre con DIABETES MELLITUS\nTIPO 2 diagnosticada a los 50 años (antecedente relevante para riesgo de diabetes gestacional)."
+    },
+    {
+      "claim": "Hemoglobina 11.8 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n11.8\ng/dL\nDentro de rango"
+    },
+    {
+      "claim": "Glicemia en ayunas 92 mg/dL",
+      "source_page": 2,
+      "source_text": "Glicemia en ayunas\n92\nmg/dL\nLímite alto-normal"
+    },
+    {
+      "claim": "G2 P1",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1. Parto vaginal previo en 2019, RN de 3,200 g sin complicaciones."
+    },
+    {
+      "claim": "Sobrepeso pre-gestacional en diagnóstico",
+      "source_page": 2,
+      "source_text": "DIAGNÓSTICO\n1. Embarazo de 16 semanas + 2 días por FUR. 2. Sobrepeso pre-gestacional (IMC 25.6). 3. Antecedente familiar de DM2 —\nriesgo aumentado de diabetes gestacional."
+    }
+  ],
+  "fpp": "2024-10-03",
+  "fum": "2023-12-27",
+  "gestational_age_weeks": 16.3,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.8"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Hematocrito",
+      "unit": "%",
+      "value": "35.2"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Glicemia en ayunas",
+      "unit": "mg/dL",
+      "value": "92"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Grupo y factor Rh",
+      "unit": null,
+      "value": "O Rh+"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "VIH (ELISA)",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "VDRL",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "HBsAg",
+      "unit": null,
+      "value": "No reactivo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    }
+  ],
+  "notes_summary": "Control prenatal de embarazo G2P1 en semana 16+2. Paciente con fórmula obstétrica G2 P1, parto vaginal previo en 2019 sin complicaciones. Presenta sobrepeso pre-gestacional (IMC 25.6) y antecedente familiar materno de diabetes mellitus tipo 2, configurando riesgo aumentado para diabetes gestacional. Laboratorios del primer trimestre dentro de límites normales, incluyendo hemoglobina 11.8 g/dL y tamizajes infecciosos negativos. Se planifica PTOG 75 g en semana 24 por factores de riesgo.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "Antecedente familiar de diabetes mellitus tipo 2",
+    "Riesgo aumentado de diabetes gestacional"
+  ]
+}

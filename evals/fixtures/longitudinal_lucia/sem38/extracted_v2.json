@@ -1,0 +1,118 @@
+{
+  "active_problems": [
+    "Diabetes gestacional controlada con insulina",
+    "Macrosomía fetal",
+    "Anemia leve"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "FUR 27/12/2023",
+      "source_page": 1,
+      "source_text": "FUR:\n27/12/2023"
+    },
+    {
+      "claim": "FPP 03/10/2024",
+      "source_page": 1,
+      "source_text": "FPP:\n03/10/2024"
+    },
+    {
+      "claim": "EG actual 38 semanas + 2 días",
+      "source_page": 1,
+      "source_text": "EG actual:\n38 semanas + 2 días"
+    },
+    {
+      "claim": "Diabetes gestacional diagnosticada en sem 24",
+      "source_page": 1,
+      "source_text": "**Diabetes gestacional diagnosticada en sem 24** por PTOG alterada."
+    },
+    {
+      "claim": "Insulina NPH actualmente 18 UI nocturnas + 8 UI matutinas",
+      "source_page": 1,
+      "source_text": "**Titulación\nprogresiva**: actualmente 18 UI nocturnas + 8 UI matutinas."
+    },
+    {
+      "claim": "HbA1c 5.8%",
+      "source_page": 1,
+      "source_text": "HbA1c\n5.8\n%\nControlada"
+    },
+    {
+      "claim": "Hemoglobina 10.9 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n10.9\ng/dL\nLeve anemia esperable"
+    },
+    {
+      "claim": "Macrosomía fetal PFE 3,850 g percentil 90",
+      "source_page": 1,
+      "source_text": "Peso fetal estimado: **3,850 g (percentil 90 — MACROSOMÍA CONFIRMADA)**."
+    },
+    {
+      "claim": "Sobrepeso pre-gestacional IMC 25.6",
+      "source_page": 1,
+      "source_text": "Sobrepeso pre-gestacional (IMC 25.6)."
+    },
+    {
+      "claim": "Antecedente familiar DM2 (madre)",
+      "source_page": 1,
+      "source_text": "Antecedente familiar DM2 (madre)."
+    },
+    {
+      "claim": "Cesárea electiva programada para semana 39",
+      "source_page": 2,
+      "source_text": "**DECISIÓN: CESÁREA ELECTIVA programada para semana 39** (próxima semana). Justificación: riesgo aumentado de\ndistocia de hombros con PFE >4,000 g + DG."
+    }
+  ],
+  "fpp": "2024-10-03",
+  "fum": "2023-12-27",
+  "gestational_age_weeks": 38.3,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "HbA1c",
+      "unit": "%",
+      "value": "5.8"
+    },
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "10.9"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Proteinuria cualitativa",
+      "unit": null,
+      "value": "Negativo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Test no estresante",
+      "unit": null,
+      "value": "Reactivo"
+    }
+  ],
+  "notes_summary": "Paciente G2P1 de 28 años con embarazo de 38+2 semanas con diabetes gestacional diagnosticada en semana 24, actualmente controlada con insulina NPH (18 UI nocturnas + 8 UI matutinas) con HbA1c de 5.8%. Ecografía de semana 37 muestra macrosomía fetal con peso fetal estimado de 3,850 g (percentil 90). Se programa cesárea electiva para semana 39 debido al riesgo aumentado de distocia de hombros en contexto de macrosomía con DG, con referencia a hospital de mayor complejidad para manejo neonatal.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "Antecedente familiar de diabetes mellitus tipo 2 (madre)",
+    "Macrosomía fetal (PFE 3,850 g, percentil 90)",
+    "Riesgo de distocia de hombros"
+  ]
+}

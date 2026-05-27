@@ -1,0 +1,106 @@
+{
+  "active_problems": [
+    "Diabetes gestacional",
+    "Sobrepeso pre-gestacional"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "Edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "FUR 27/12/2023",
+      "source_page": 1,
+      "source_text": "FUR:\n27/12/2023"
+    },
+    {
+      "claim": "FPP 03/10/2024",
+      "source_page": 1,
+      "source_text": "FPP:\n03/10/2024"
+    },
+    {
+      "claim": "EG actual 24 semanas + 1 día",
+      "source_page": 1,
+      "source_text": "EG actual:\n24 semanas + 1 día"
+    },
+    {
+      "claim": "Hemoglobina 11.2 g/dL",
+      "source_page": 1,
+      "source_text": "Hemoglobina\n11.2\ng/dL\nLeve descenso esperado"
+    },
+    {
+      "claim": "PTOG 75g — 2 h: 162 mg/dL ALTERADO",
+      "source_page": 1,
+      "source_text": "PTOG 75g — 2 h\n162\nmg/dL\nALTERADO (criterio >153)"
+    },
+    {
+      "claim": "Diabetes gestacional",
+      "source_page": 2,
+      "source_text": "1. Embarazo de 24 semanas. 2. **DIABETES GESTACIONAL** (criterio IADPSG/ADA cumplido: valor 2 h post-carga 162\nmg/dL > 153 mg/dL). 3. Sobrepeso pre-gestacional persistente."
+    },
+    {
+      "claim": "Sobrepeso pre-gestacional (IMC 25.6)",
+      "source_page": 1,
+      "source_text": "Sobrepeso pre-gestacional (IMC 25.6)"
+    },
+    {
+      "claim": "Antecedente familiar materno de DM2",
+      "source_page": 1,
+      "source_text": "Antecedente familiar materno de DM2\n(madre dx a los 50 años)"
+    },
+    {
+      "claim": "G2 P1 parto vaginal 2019",
+      "source_page": 1,
+      "source_text": "Fórmula obstétrica: G2 P1 (parto vaginal 2019, RN 3,200 g sin complicaciones)"
+    }
+  ],
+  "fpp": "2024-10-03",
+  "fum": "2023-12-27",
+  "gestational_age_weeks": 24.14,
+  "lab_results": [
+    {
+      "abnormal": false,
+      "date": "2024-06-10",
+      "name": "Hemoglobina",
+      "unit": "g/dL",
+      "value": "11.2"
+    },
+    {
+      "abnormal": false,
+      "date": "2024-06-10",
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    },
+    {
+      "abnormal": false,
+      "date": "2024-06-10",
+      "name": "PTOG 75g — basal",
+      "unit": "mg/dL",
+      "value": "98"
+    },
+    {
+      "abnormal": false,
+      "date": "2024-06-10",
+      "name": "PTOG 75g — 1 h",
+      "unit": "mg/dL",
+      "value": "178"
+    },
+    {
+      "abnormal": true,
+      "date": "2024-06-10",
+      "name": "PTOG 75g — 2 h",
+      "unit": "mg/dL",
+      "value": "162"
+    }
+  ],
+  "notes_summary": "Paciente G2P1 con embarazo de 24 semanas + 1 día, en su cuarto control prenatal. Se diagnostica diabetes gestacional por PTOG alterada (valor 2 horas post-carga 162 mg/dL, criterio IADPSG/ADA >153 mg/dL). Ecografía morfológica de semana 22 sin malformaciones estructurales. Se inicia manejo con dieta, interconsulta a endocrinología y nutrición, y automonitoreo de glicemias capilares con control en 2 semanas.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Antecedente familiar materno de DM2",
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "G2P1 parto vaginal previo sin complicaciones"
+  ]
+}

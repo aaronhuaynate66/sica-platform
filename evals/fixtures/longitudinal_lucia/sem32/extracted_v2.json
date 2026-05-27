@@ -1,0 +1,132 @@
+{
+  "active_problems": [
+    "Diabetes gestacional mal controlada con dieta",
+    "Macrosomía fetal incipiente",
+    "Polihidramnios leve"
+  ],
+  "confidence_score": 0.95,
+  "evidence_spans": [
+    {
+      "claim": "edad 28 años",
+      "source_page": 1,
+      "source_text": "Edad:\n28 años"
+    },
+    {
+      "claim": "FUR 27/12/2023",
+      "source_page": 1,
+      "source_text": "FUR:\n27/12/2023"
+    },
+    {
+      "claim": "FPP 03/10/2024",
+      "source_page": 1,
+      "source_text": "FPP:\n03/10/2024"
+    },
+    {
+      "claim": "EG actual 32 semanas + 4 días",
+      "source_page": 1,
+      "source_text": "EG actual:\n32 semanas + 4 días"
+    },
+    {
+      "claim": "Diabetes gestacional diagnosticada en sem 24",
+      "source_page": 1,
+      "source_text": "**DIABETES\nGESTACIONAL** diagnosticada en sem 24 (10/06/2024) por PTOG alterada."
+    },
+    {
+      "claim": "Sobrepeso pre-gestacional IMC 25.6",
+      "source_page": 1,
+      "source_text": "Sobrepeso pre-gestacional (IMC 25.6)."
+    },
+    {
+      "claim": "Antecedente familiar DM2 (madre)",
+      "source_page": 1,
+      "source_text": "Antecedente familiar DM2 (madre)."
+    },
+    {
+      "claim": "Glicemia basal promedio 102 mg/dL ALTERADO",
+      "source_page": 1,
+      "source_text": "Glicemia basal — promedio\n102\nmg/dL\nALTERADO (objetivo <95)"
+    },
+    {
+      "claim": "Glicemia 1 h post-prandial promedio 145 mg/dL ALTERADO",
+      "source_page": 1,
+      "source_text": "Glicemia 1 h post-prandial — promedio\n145\nmg/dL\nALTERADO (objetivo <140)"
+    },
+    {
+      "claim": "HbA1c 6.2% Alto para embarazo",
+      "source_page": 1,
+      "source_text": "HbA1c\n6.2\n%\nAlto para embarazo (objetivo <6.0)"
+    },
+    {
+      "claim": "Peso fetal estimado 2,100 g percentil 85 TENDENCIA A MACROSOMÍA",
+      "source_page": 1,
+      "source_text": "Peso fetal estimado: 2,100 g (percentil 85 — TENDENCIA A MACROSOMÍA)."
+    },
+    {
+      "claim": "ILA 22 cm POLIHIDRAMNIOS leve asociado a DG",
+      "source_page": 1,
+      "source_text": "Líquido amniótico: ILA 22 cm (POLIHIDRAMNIOS leve — asociado a DG)."
+    },
+    {
+      "claim": "Diagnóstico: Diabetes gestacional MAL CONTROLADA con dieta",
+      "source_page": 2,
+      "source_text": "2. **Diabetes gestacional MAL CONTROLADA con dieta** (HbA1c 6.2%, glicemias\nayunas promedio 102 mg/dL, post-prandiales 145 mg/dL)."
+    },
+    {
+      "claim": "Diagnóstico: Macrosomía fetal incipiente",
+      "source_page": 2,
+      "source_text": "3. **Macrosomía fetal incipiente** (PFE p85)."
+    },
+    {
+      "claim": "Diagnóstico: Polihidramnios leve",
+      "source_page": 2,
+      "source_text": "4. **Polihidramnios\nleve** (ILA 22 cm)."
+    }
+  ],
+  "fpp": "2024-10-03",
+  "fum": "2023-12-27",
+  "gestational_age_weeks": 32.57,
+  "lab_results": [
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "Glicemia basal — promedio",
+      "unit": "mg/dL",
+      "value": "102"
+    },
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "Glicemia 1 h post-prandial — promedio",
+      "unit": "mg/dL",
+      "value": "145"
+    },
+    {
+      "abnormal": true,
+      "date": null,
+      "name": "HbA1c",
+      "unit": "%",
+      "value": "6.2"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Urocultivo",
+      "unit": null,
+      "value": "Negativo"
+    },
+    {
+      "abnormal": false,
+      "date": null,
+      "name": "Proteinuria cualitativa",
+      "unit": null,
+      "value": "Negativo"
+    }
+  ],
+  "notes_summary": "Paciente de 28 años, G2P1, con embarazo de 32 semanas+4 días, cursa con diabetes gestacional diagnosticada en semana 24 que no logra control adecuado con dieta sola (HbA1c 6.2%, glicemias basales promedio 102 mg/dL, post-prandiales 145 mg/dL). Ecografía muestra tendencia a macrosomía fetal (PFE p85) y polihidramnios leve (ILA 22 cm) asociado a la diabetes. Se inicia insulina NPH 10 UI nocturnas y se intensifica automonitoreo a 6 controles diarios, con reevaluación en 1 semana para ajuste de dosis.",
+  "patient_age": 28,
+  "risk_factors": [
+    "Antecedente familiar DM2 (madre)",
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "Cesárea previa implícita por G2P1"
+  ]
+}
