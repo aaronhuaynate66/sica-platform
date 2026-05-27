@@ -446,6 +446,107 @@ class TestAnthropicProviderTracingIntegration:
         client.messages.create.assert_called_once()
 
 
+# =========================================================================
+# PHI redaction integrada en trace_extraction (ADR-0009)
+# =========================================================================
+
+
+class TestTraceExtractionRedactsPHI:
+    """El payload enviado al SDK debe quedar redactado.
+
+    Verifica que ``redact_phi`` se aplica sobre ``output_json`` y ``metadata``
+    antes de pasarlos a ``start_observation``. El return de
+    ``extract_from_pdf`` mantiene datos completos (eso se prueba aparte vía
+    integración con el provider).
+    """
+
+    def test_phi_in_output_json_is_redacted(self, monkeypatch) -> None:
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+
+        payload_with_phi = {
+            "nombre_paciente": "Lucia Mendoza Quispe",
+            "dni": "47812936",
+            "patient_age": 30,
+            "gestational_age_weeks": 16.4,
+            "active_problems": ["Embarazo bajo riesgo"],
+            "notes_summary": "Paciente DNI 47812936 contacta al 987654321.",
+        }
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="case_phi_01",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=100,
+                output_tokens=50,
+                output_json=payload_with_phi,
+            )
+
+        sent_output = mock_client.start_observation.call_args.kwargs["output"]
+        # PHI canónico redactado:
+        assert sent_output["nombre_paciente"] == "[REDACTED]"
+        assert sent_output["dni"] == "[REDACTED]"
+        # Inline en notes_summary también redactado:
+        assert "47812936" not in sent_output["notes_summary"]
+        assert "987654321" not in sent_output["notes_summary"]
+        # Datos clínicos preservados:
+        assert sent_output["patient_age"] == 30
+        assert sent_output["gestational_age_weeks"] == 16.4
+        assert sent_output["active_problems"] == ["Embarazo bajo riesgo"]
+
+    def test_phi_in_metadata_pdf_filename_is_redacted(self, monkeypatch) -> None:
+        """metadata.pdf_filename con nombre de paciente → [REDACTED].pdf."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="case_x",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+                metadata={"pdf_filename": "maria_lopez_hc2024.pdf"},
+            )
+        sent_meta = mock_client.start_observation.call_args.kwargs["metadata"]
+        assert sent_meta["pdf_filename"] == "[REDACTED].pdf"
+
+    def test_safe_pdf_filename_preserved(self, monkeypatch) -> None:
+        """Filename con prefijo seguro (synthetic_) NO se redacta."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="case_y",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+                metadata={"pdf_filename": "synthetic_case_01.pdf"},
+            )
+        sent_meta = mock_client.start_observation.call_args.kwargs["metadata"]
+        assert sent_meta["pdf_filename"] == "synthetic_case_01.pdf"
+
+    def test_output_json_none_does_not_break(self, monkeypatch) -> None:
+        """output_json=None → output sigue siendo None (no crash al redactar)."""
+        _patch_settings_enabled(monkeypatch, True)
+        mock_client = MagicMock()
+        mock_client.start_observation.return_value = MagicMock()
+        with patch("langfuse.Langfuse", return_value=mock_client):
+            tracing.trace_extraction(
+                case_id="case_z",
+                model="claude-sonnet-4-5-20250929",
+                provider_id="anthropic",
+                input_tokens=10,
+                output_tokens=5,
+                output_json=None,
+            )
+        sent_output = mock_client.start_observation.call_args.kwargs["output"]
+        assert sent_output is None
+
+
 # Sanity: que las fixtures del mock no oculten errores reales de import
 # (paranoia post-refactor).
 def test_module_imports_cleanly() -> None:

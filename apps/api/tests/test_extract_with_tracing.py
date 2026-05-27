@@ -271,6 +271,86 @@ def test_extract_passes_none_to_extractor_when_tracing_disabled(
     assert received_kwargs.get("parent_span_id") is None
 
 
+def test_extract_response_to_client_is_not_redacted(
+    make_client, minimal_pdf_bytes
+) -> None:
+    """ADR-0009: la redaction sólo aplica al payload de Langfuse.
+
+    El response HTTP que el cliente recibe debe llevar los datos completos.
+    Verifica que un fake_extractor que devuelve un payload "como si" tuviera
+    PHI (campos clínicos normales — el extractor real NO produce dichos
+    campos PHI, pero defensivamente verificamos que el flujo no redacta el
+    response del API).
+    """
+    def _extractor_with_clinical_data(pdf_path, *, api_key: str, **kwargs: Any) -> dict[str, Any]:
+        return {
+            "patient_age": 30,
+            "gestational_age_weeks": 24.5,
+            "fum": "2025-12-01",
+            "fpp": "2026-09-07",
+            "active_problems": ["Diabetes gestacional"],
+            "risk_factors": ["Edad materna avanzada"],
+            "lab_results": [],
+            "notes_summary": "Paciente con control adecuado, factores de riesgo controlados.",
+            "confidence_score": 0.92,
+            "evidence_spans": [],
+        }
+
+    client = make_client(extractor=_extractor_with_clinical_data)
+    response = client.post(
+        "/extract",
+        files={"file": ("synthetic_demo.pdf", minimal_pdf_bytes, "application/pdf")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    # Datos clínicos del response NO están redactados — el cliente HTTP
+    # recibe el JSON completo (la redacción aplica solo al SDK Langfuse).
+    assert body["patient_age"] == 30
+    assert body["active_problems"] == ["Diabetes gestacional"]
+    assert "Paciente con control" in body["notes_summary"]
+    assert "[REDACTED]" not in body["notes_summary"]
+
+
+def test_extract_start_trace_sanitizes_phi_filename(
+    make_client, fake_extractor, minimal_pdf_bytes, monkeypatch
+) -> None:
+    """ADR-0009: pdf_filename con potencial PHI llega redactado al SDK.
+
+    Cuando el upload trae un filename sin prefijo seguro (e.g.
+    ``maria_lopez_hc.pdf``), el span padre en Langfuse debe llevar
+    ``[REDACTED].pdf`` en metadata.pdf_filename — no el filename original.
+    Verifica el contrato extremo a extremo a través del endpoint.
+    """
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-x")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-x")
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "https://test.local")
+    from sica_api import tracing as _tracing
+    from sica_api.settings import get_settings
+
+    get_settings.cache_clear()
+    _tracing.get_langfuse_client.cache_clear()
+
+    from unittest.mock import MagicMock as _Mock
+
+    mock_span = _Mock(trace_id="t-1", id="s-1")
+    mock_client = _Mock()
+    mock_client.start_observation.return_value = mock_span
+
+    with patch("langfuse.Langfuse", return_value=mock_client):
+        client = make_client(extractor=fake_extractor)
+        response = client.post(
+            "/extract",
+            files={
+                "file": ("maria_lopez_hc.pdf", minimal_pdf_bytes, "application/pdf"),
+            },
+        )
+
+    assert response.status_code == 200
+    # El span se creó con filename redactado en metadata.
+    call_kwargs = mock_client.start_observation.call_args.kwargs
+    assert call_kwargs["metadata"]["pdf_filename"] == "[REDACTED].pdf"
+
+
 def test_extract_finish_trace_sdk_failure_does_not_break_response(
     make_client, fake_extractor, minimal_pdf_bytes, monkeypatch
 ) -> None:
