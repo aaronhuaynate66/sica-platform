@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `6baa80d`
+**Hash del último commit:** `96e575e`
 
 ## Progreso general
 
@@ -214,6 +214,8 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | 0005 | [Decisiones metodológicas de evaluación clínica](docs/decisions/0005-evaluation-methodology.md) | Accepted | 2026-05-22 |
 | 0006 | [Render Dashboard UI tiene precedencia sobre `render.yaml`](docs/decisions/0006-render-config-precedence.md) | Accepted — 2026-05-25 (actualizado 2026-05-26: validación empírica del plan de remediación; ver § Plan de remediación intentado y descartado) | 2026-05-25 |
 | 0007 | [Langfuse Cloud para observability LLM](docs/decisions/0007-langfuse-observability.md) | Accepted — 2026-05-26 — Implementado | 2026-05-26 |
+| 0008 | [Prompt Registry con Versionado y Hash Determinístico](docs/decisions/0008-prompt-registry-versioning.md) | Accepted — 2026-05-26 — Fase 1 implementada | 2026-05-26 |
+| 0009 | [PHI Redaction antes de Langfuse Cloud](docs/decisions/0009-phi-redaction-in-tracing.md) | Accepted — 2026-05-27 — Implementación bloqueante para primer PDF real | 2026-05-27 |
 
 Auto-generado leyendo `docs/decisions/`.
 
@@ -225,16 +227,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
-| `6baa80d` | aaronhuaynate66 | feat(prompts): add versioned prompt registry with deterministic hashing | 2026-05-26 |
-| `57a9a17` | aaronhuaynate66 | test(evals): add longitudinal continuity tests for Lucia case (4 controls) | 2026-05-26 |
-| `4675b5c` | aaronhuaynate66 | feat(evals): add longitudinal Lucia extractions + baseline sem16 (validates continuity across 4 controls) | 2026-05-26 |
-| `d66e449` | aaronhuaynate66 | feat(data): add longitudinal dataset Lucia Mendoza 4 controls (16-24-32-38 sem) with gestational diabetes | 2026-05-26 |
-| `c653f2b` | aaronhuaynate66 | chore(ci): extend lint to evals/ package | 2026-05-26 |
-| `1f19e4c` | aaronhuaynate66 | chore(repo): replace individual PDF entries in .gitignore with wildcard patterns | 2026-05-26 |
-| `c2450d9` | aaronhuaynate66 | fix(api): use upload filename as case_id instead of tempfile name | 2026-05-26 |
-| `a1592a7` | aaronhuaynate66 | docs(adr): document cold start race condition in Langfuse + Render free tier | 2026-05-26 |
-| `6e6a745` | aaronhuaynate66 | docs(adr): update ADR-0007 with trace context propagation | 2026-05-26 |
-| `d160aec` | aaronhuaynate66 | feat(extractor): support parent_trace_id for hierarchical traces | 2026-05-26 |
+| `96e575e` | aaronhuaynate66 | docs(adr): document extract_obstetric_v2 + default pinning strategy (ADR-0008 update) | 2026-05-27 |
+| `75dd230` | aaronhuaynate66 | test(evals): validate extract_obstetric_v2 fixes pregnancy-in-active-problems | 2026-05-27 |
+| `4ffe028` | aaronhuaynate66 | feat(prompts): add extract_obstetric_v2 (fix: 'embarazo' no es problema activo) | 2026-05-27 |
+| `d6d4874` | aaronhuaynate66 | test(phi): cover key-in-text redaction + update docs (close TODO #3) | 2026-05-27 |
+| `95a477f` | aaronhuaynate66 | feat(phi): detect PHI keys in plain text (e.g., 'nombre=Maria') | 2026-05-27 |
+| `f16473d` | aaronhuaynate66 | feat(cli): add --prompt-version flag for explicit prompt versioning | 2026-05-27 |
+| `3aa7271` | aaronhuaynate66 | docs(operations): add PHI handling operational guide (procedures + checklists) | 2026-05-27 |
+| `5fc1c95` | aaronhuaynate66 | fix(api): apply redact_phi to provider error responses (defense in depth) | 2026-05-27 |
+| `defb198` | aaronhuaynate66 | docs: provider routing contract for POST /extract + ADR-0004 update | 2026-05-27 |
+| `e28ba53` | aaronhuaynate66 | feat(api): add provider routing to POST /extract via ?provider= query param | 2026-05-27 |
 
 ---
 
