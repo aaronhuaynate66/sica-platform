@@ -140,7 +140,8 @@ def test_parse_markdown_sections_wrong_order_raises() -> None:
 
 def test_list_versions_returns_sorted() -> None:
     versions = list_versions("extract_obstetric")
-    assert versions == [1]
+    # v1 + v2 al 2026-05-27 (ver ADR-0008 § Actualización).
+    assert versions == [1, 2]
     # idempotente
     assert list_versions("extract_obstetric") == versions
 
@@ -150,7 +151,9 @@ def test_list_versions_for_nonexistent_returns_empty() -> None:
 
 
 def test_latest_version_returns_max() -> None:
-    assert latest_version("extract_obstetric") == 1
+    # ``latest_version`` es informacional — devuelve el max disponible,
+    # independiente del pin de DEFAULT_VERSIONS.
+    assert latest_version("extract_obstetric") == 2
 
 
 def test_latest_version_raises_when_no_versions() -> None:
@@ -168,9 +171,44 @@ def test_get_active_with_override() -> None:
     assert p.version == 1
 
 
-def test_get_active_without_override_uses_latest() -> None:
+def test_get_active_with_override_v2() -> None:
+    p = get_active_prompt("extract_obstetric", version_override=2)
+    assert p.version == 2
+
+
+def test_get_active_without_override_respects_default_pin() -> None:
+    """ADR-0008 § Actualización 2026-05-27: ``extract_obstetric`` está
+    pineado a v1 en ``DEFAULT_VERSIONS``. v2 NO se sirve por default
+    aunque sea la latest.
+    """
     p = get_active_prompt("extract_obstetric")
-    assert p.version == latest_version("extract_obstetric")
+    assert p.version == 1
+
+
+def test_default_pin_does_not_equal_latest_when_v2_present() -> None:
+    """Sanity: el pin (1) y latest (2) son explícitamente distintos.
+
+    Si este test rompe en el futuro, fue porque alguien promovió el
+    default sin actualizar DEFAULT_VERSIONS — fuerza re-justificación.
+    """
+    pinned = get_active_prompt("extract_obstetric").version
+    latest = latest_version("extract_obstetric")
+    assert pinned == 1
+    assert latest == 2
+    assert pinned != latest
+
+
+def test_get_active_falls_back_to_latest_when_name_not_pinned(tmp_path) -> None:
+    """Para nombres NO listados en DEFAULT_VERSIONS, comportamiento
+    sigue siendo "latest = active" (compat con prompts sin política
+    de pin formal — típico cuando solo hay una versión)."""
+    # Sanity: si en algún momento se agrega "fictional_prompt" al pin,
+    # este test rompería. Hoy no está y latest_version falla con
+    # FileNotFoundError. El path positivo del fallback se cubre indirecto
+    # vía el patrón único existente (DEFAULT_VERSIONS solo contiene
+    # extract_obstetric a la fecha).
+    with pytest.raises(FileNotFoundError):
+        get_active_prompt("nonexistent_prompt_xyz")
 
 
 # =========================================================================

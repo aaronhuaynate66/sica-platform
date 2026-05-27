@@ -42,6 +42,26 @@ PROMPTS_DIR = Path(__file__).parent / "versions"
 _SYSTEM_MARKER = "## SYSTEM"
 _USER_MARKER = "## USER_TEMPLATE"
 
+# Versión "default" explícita por nombre lógico. Cuando un nombre aparece
+# acá, ``get_active_prompt`` SIN override usa este pin en vez de
+# ``latest_version``. Diseño (ADR-0008 § Actualización 2026-05-27):
+#
+# - El comportamiento ingenuo "latest = default" promueve cualquier
+#   versión nueva en cuanto se commitea su .md, sin validación. Para
+#   prompts clínicos eso es peligroso — un v_new no probado puede
+#   regresionar métricas críticas.
+# - El pin desacopla "qué versiones existen" (registry inmutable) de
+#   "cuál se sirve por default" (decisión operativa). Bumpear el
+#   default es un commit explícito separado del commit que introduce
+#   la nueva versión — permite ventana de validación.
+# - Nombres NO listados acá caen al fallback ``latest_version`` (compat
+#   con el comportamiento original cuando solo hay una versión).
+DEFAULT_VERSIONS: dict[str, int] = {
+    # extract_obstetric: pinned a v1 mientras v2 está en validación. La
+    # promoción a v2 requiere comparator offline + revisión clínica.
+    "extract_obstetric": 1,
+}
+
 
 @dataclass(frozen=True)
 class PromptVersion:
@@ -188,13 +208,20 @@ def get_active_prompt(
     """Versión "activa" de un prompt.
 
     Lógica:
-    - ``version_override`` provisto → carga esa versión exacta.
-    - None → carga ``latest_version(name)``.
+
+    - ``version_override`` provisto → carga esa versión exacta (siempre
+      gana sobre el default y sobre latest).
+    - ``name`` listado en ``DEFAULT_VERSIONS`` → usa ese pin.
+    - Si no, fallback a ``latest_version(name)`` (compat con prompts que
+      no requieren validación previa por tener una sola versión).
 
     Fase 2 agregará rutas A/B aquí (split por hash de request, etc.).
     """
     if version_override is not None:
         return get_prompt(name, version_override)
+    pinned = DEFAULT_VERSIONS.get(name)
+    if pinned is not None:
+        return get_prompt(name, pinned)
     return get_prompt(name, latest_version(name))
 
 
