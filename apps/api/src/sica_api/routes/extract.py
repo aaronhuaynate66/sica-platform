@@ -22,7 +22,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from sica_api.settings import Settings, get_settings
@@ -44,6 +44,40 @@ router = APIRouter(tags=["extract"])
 PDF_MAGIC = b"%PDF-"
 _CHUNK_BYTES = 64 * 1024
 
+# --------------------------------------------------------------------------- #
+# Provider routing — ADR 0004 § Actualización 2026-05-27.
+#
+# El query param ?provider= selecciona el LLM provider que atiende el request.
+# Los valores públicos (PUBLIC_PROVIDERS) son los IDs cortos que el cliente
+# usa. Internamente mapeamos al ``provider_id`` real del registry (que puede
+# ser más largo, e.g. ``vertex-medgemma``).
+# --------------------------------------------------------------------------- #
+
+DEFAULT_PROVIDER = "anthropic"
+
+# Mapeo público → ID interno del registry. Cambiar aquí requiere ADR (rompe
+# contrato del query param). Cambiar el ID interno NO basta — el registry
+# debe seguir reconociéndolo.
+PROVIDER_ALIASES: dict[str, str] = {
+    "anthropic": "anthropic",
+    "vertex": "vertex-medgemma",
+}
+
+VALID_PROVIDERS: frozenset[str] = frozenset(PROVIDER_ALIASES.keys())
+
+
+def _safe_provider_error_detail(exc: BaseException) -> str:
+    """Sanitiza el mensaje de excepción del provider para el response.
+
+    Trunca a 200 chars y remueve newlines / tabs. NO incluye traceback ni
+    paths absolutos. Para mensajes vacíos devuelve un fallback genérico.
+    """
+    raw = str(exc).strip()
+    if not raw:
+        return "El provider no está disponible en este entorno."
+    cleaned = " ".join(raw.split())
+    return cleaned[:200]
+
 
 # --------------------------------------------------------------------------- #
 # Adapter para inyectar el extractor en tests sin tocar la red.
@@ -60,6 +94,7 @@ def _default_extractor(
     parent_trace_id: str | None = None,
     parent_span_id: str | None = None,
     case_id: str | None = None,
+    provider_id: str | None = None,
 ) -> dict[str, Any]:
     import os
 
@@ -76,6 +111,7 @@ def _default_extractor(
             parent_trace_id=parent_trace_id,
             parent_span_id=parent_span_id,
             case_id=case_id,
+            provider_id=provider_id,
         )
     except ExtractionError:
         raise
@@ -98,16 +134,29 @@ def get_extractor() -> Callable[..., Awaitable[dict[str, Any]] | dict[str, Any]]
     "/extract",
     summary="Extrae un ObstetricSummary estructurado desde un PDF clínico.",
     responses={
-        400: {"description": "Archivo inválido (no es PDF)."},
+        400: {"description": "Archivo inválido (no es PDF) o provider inválido."},
         413: {"description": "Archivo excede el tamaño máximo permitido."},
         422: {"description": "Body multipart inválido o falta el campo 'file'."},
         500: {"description": "Error interno — el cliente recibe un error_id."},
-        503: {"description": "Extractor no disponible (falta ANTHROPIC_API_KEY)."},
+        503: {
+            "description": (
+                "Extractor o provider no disponible (falta ANTHROPIC_API_KEY, "
+                "GCP creds para vertex, etc.)."
+            )
+        },
     },
 )
 async def extract(
     request: Request,
     file: UploadFile = File(..., description="PDF de historia clínica obstétrica."),
+    provider: str = Query(
+        default=DEFAULT_PROVIDER,
+        description=(
+            "ID del provider LLM a usar. Valores válidos: 'anthropic' (default), "
+            "'vertex'. 'vertex' retorna 503 hasta que GCP MedGemma esté configurado "
+            "(issue #12). Ver ADR 0004 § Actualización 2026-05-27."
+        ),
+    ),
     settings: Settings = Depends(get_settings),
     extractor: Callable[..., Any] = Depends(get_extractor),
 ) -> JSONResponse:
@@ -121,6 +170,28 @@ async def extract(
     """
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
     response_headers = {"X-Request-ID": request_id}
+
+    # ---- 0. Provider routing — validación temprana ANTES de leer el PDF
+    # (no desperdiciar I/O si el query param es inválido). Acepta string
+    # vacío y mapea al default — comportamiento estándar de FastAPI Query
+    # también lo daría, pero hacerlo explícito documenta la decisión.
+    requested_provider = (provider or DEFAULT_PROVIDER).lower()
+    if requested_provider not in VALID_PROVIDERS:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            headers=response_headers,
+            content={
+                "error": "invalid_provider",
+                "detail": (
+                    f"Provider '{provider}' no es válido. "
+                    f"Valores aceptados: {sorted(VALID_PROVIDERS)}."
+                ),
+                "provider": provider,
+                "request_id": request_id,
+            },
+        )
+    # Internal ID: el registry del extractor conoce 'anthropic' y 'vertex-medgemma'.
+    internal_provider_id = PROVIDER_ALIASES[requested_provider]
 
     # ---- 1. Extractor disponible
     if not settings.extractor_available:
@@ -213,10 +284,12 @@ async def extract(
     # ---- 4. Iniciar trace padre (no-op si Langfuse deshabilitado)
     # Se hace ANTES del extractor para que el trace_id viaje como parent.
     # ``start_extract_trace`` jamás levanta — graceful degradation absoluta.
+    # Pasamos el ``provider`` (alias público) en metadata para auditoría.
     trace_context = start_extract_trace(
         request_id=request_id,
         pdf_filename=filename,
         pdf_size_bytes=len(received),
+        user_metadata={"provider": requested_provider},
     )
     parent_trace_id = get_trace_id_from_context(trace_context)
     parent_span_id = get_span_id_from_context(trace_context)
@@ -232,6 +305,16 @@ async def extract(
             tmp_path = Path(tmp.name)
 
         # ---- 6. Ejecutar extractor (con trace context propagado)
+        logger.info(
+            "extract start",
+            extra={
+                "request_id": request_id,
+                "provider": requested_provider,
+                "internal_provider_id": internal_provider_id,
+                "uploaded_filename": filename,
+                "size_bytes": len(received),
+            },
+        )
         try:
             assert settings.anthropic_api_key is not None  # narrowing for mypy
             payload = extractor(
@@ -240,8 +323,21 @@ async def extract(
                 parent_trace_id=parent_trace_id,
                 parent_span_id=parent_span_id,
                 case_id=case_id_for_extractor,
+                provider_id=internal_provider_id,
             )
         except Exception as exc:
+            # ---- 6a. Errores específicos de provider → 503 (no 500).
+            # ``ProviderNotAvailableError`` (vertex sin GCP creds), o
+            # ``NotImplementedError`` que levanta VertexMedGemmaProvider.extract
+            # (stub) son ambos "el provider seleccionado no atiende ahora" —
+            # el cliente puede orquestar reintento con otro provider.
+            # Detección por nombre para evitar acoplar apps/api al extractor
+            # tipo-import (mantenemos el extractor como optional dependency).
+            exc_type = type(exc).__name__
+            is_provider_unavailable = (
+                exc_type == "ProviderNotAvailableError"
+                or isinstance(exc, NotImplementedError)
+            )
             error_id = str(uuid.uuid4())
             latency_ms = (time.perf_counter() - extract_started) * 1000
             logger.exception(
@@ -249,23 +345,44 @@ async def extract(
                 extra={
                     "request_id": request_id,
                     "error_id": error_id,
+                    "provider": requested_provider,
                     "size_bytes": len(received),
-                    "exception_type": type(exc).__name__,
+                    "exception_type": exc_type,
                 },
             )
             # Cierra el trace padre con outcome de error. No-op si tracing
-            # deshabilitado. Nunca levanta — el cliente recibe el 500 igual.
+            # deshabilitado. Nunca levanta — el cliente recibe el error igual.
             finish_extract_trace(
                 trace_context,
                 success=False,
                 latency_ms=latency_ms,
-                error=f"{type(exc).__name__}: {exc}",
+                error=f"{exc_type}: {exc}",
                 output_summary={
                     "error_id": error_id,
                     "uploaded_filename": filename,
                     "size_bytes": len(received),
+                    "provider": requested_provider,
                 },
             )
+            if is_provider_unavailable:
+                # 503 — el provider está mapeado en el registry pero no es
+                # operativo (env vars faltantes, stub no implementado).
+                # Sin stack trace ni datos del PDF en el detail.
+                return JSONResponse(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    headers={**response_headers, "X-Error-ID": error_id},
+                    content={
+                        "error": "provider_unavailable",
+                        "detail": (
+                            f"Provider '{requested_provider}' no disponible: "
+                            f"{_safe_provider_error_detail(exc)}"
+                        ),
+                        "provider": requested_provider,
+                        "error_type": exc_type,
+                        "request_id": request_id,
+                        "error_id": error_id,
+                    },
+                )
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 headers={**response_headers, "X-Error-ID": error_id},
@@ -275,6 +392,7 @@ async def extract(
                         "El extractor falló procesando el documento. "
                         "Citar el error_id al pedir soporte."
                     ),
+                    "provider": requested_provider,
                     "request_id": request_id,
                     "error_id": error_id,
                 },

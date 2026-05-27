@@ -109,15 +109,37 @@ def _read_pdf_text(pdf_path: Path) -> tuple[str, int]:
     return full_text, len(reader.pages)
 
 
-def _resolve_provider(model_id: str, client: anthropic.Anthropic | None) -> LLMProvider:
-    """Resuelve el provider para ``model_id``.
+def _resolve_provider(
+    model_id: str,
+    client: anthropic.Anthropic | None,
+    provider_id: str | None = None,
+) -> LLMProvider:
+    """Resuelve el provider para una extracción.
 
-    Si se inyecta ``client`` (tests/dependency injection), siempre se
-    devuelve un ``AnthropicProvider`` ad-hoc con ese cliente — mantiene
-    retrocompatibilidad con tests que inyectaban el cliente directamente.
+    Orden de precedencia:
+
+    1. Si se inyecta ``client`` (tests/dependency injection), siempre se
+       devuelve un ``AnthropicProvider`` ad-hoc con ese cliente —
+       retrocompatibilidad con tests que inyectaban el cliente directamente.
+    2. Si ``provider_id`` viene explícito (caller seleccionó provider, e.g.
+       ``apps/api`` con query param), se busca por ID en el registry. Esto
+       permite enrutamiento explícito independiente del modelo.
+    3. Si no, se resuelve por ``model_id`` (comportamiento histórico).
+
+    Raises:
+        ExtractionError: si el ``provider_id`` no existe en el registry o
+            si ningún provider soporta ``model_id``.
     """
     if client is not None:
         return AnthropicProvider(client=client)
+
+    if provider_id is not None:
+        try:
+            return DEFAULT_REGISTRY.get(provider_id)
+        except ValueError as exc:
+            # ValueError del registry → traducir a ExtractionError para el
+            # contrato público.
+            raise ExtractionError(str(exc)) from exc
 
     provider = DEFAULT_REGISTRY.get_for_model(model_id)
     if provider is None:
@@ -144,6 +166,7 @@ def extract_from_pdf(
     parent_trace_id: str | None = None,
     parent_span_id: str | None = None,
     case_id: str | None = None,
+    provider_id: str | None = None,
 ) -> ObstetricSummary:
     """Extrae un ``ObstetricSummary`` desde un PDF nativo de historia obstétrica.
 
@@ -166,6 +189,12 @@ def extract_from_pdf(
             Override del default (que es ``pdf_path.stem``). Útil cuando
             ``pdf_path`` es un tempfile (e.g. ``apps/api`` pasa aquí el
             filename original del upload). Si None, se deriva del path.
+        provider_id: ID explícito del provider (``anthropic``,
+            ``vertex-medgemma``, ...). Si se provee, el registry resuelve
+            por ID y se ignora la resolución basada en ``model``. Si
+            ``model`` también está ausente, el provider usa su primer
+            ``supported_model`` (default). Útil para routing desde
+            ``apps/api`` con query param.
 
     Returns:
         ObstetricSummary validado.
@@ -173,9 +202,11 @@ def extract_from_pdf(
     Raises:
         ExtractionError: si el PDF no se puede leer, si el modelo no responde
             como se espera, si los retries se agotan, si el output falla
-            validación Pydantic, o si no hay provider para ``model``.
+            validación Pydantic, o si no hay provider para ``model`` /
+            ``provider_id``.
         ProviderNotAvailableError: si el provider seleccionado no está
-            configurado (ej. ``ANTHROPIC_API_KEY`` ausente).
+            configurado (ej. ``ANTHROPIC_API_KEY`` ausente, GCP creds
+            faltantes para vertex-medgemma).
 
     Telemetría: emite un registro JSON-line al logger
     ``clinical_extractor.telemetry`` con campos: timestamp, operation_id,
@@ -209,7 +240,9 @@ def extract_from_pdf(
     retry_count = 0
     token_usage: dict[str, int] | None = None
     error_type: str | None = None
-    provider_id: str | None = None
+    # ID efectivo del provider (lo que el registry resolvió). Diferente del
+    # kwarg ``provider_id`` que es el input del caller.
+    effective_provider_id: str | None = None
     success = False
 
     try:
@@ -221,9 +254,21 @@ def extract_from_pdf(
 
         document_text, pages_extracted = _read_pdf_text(pdf_path)
 
-        # 2. Resolver provider (vía registry, salvo client inyectado)
-        provider = _resolve_provider(resolved_model, client)
-        provider_id = provider.provider_id
+        # 2. Resolver provider — precedencia: client inyectado >
+        # provider_id explícito (apps/api con query param) > resolución por model.
+        provider = _resolve_provider(resolved_model, client, provider_id=provider_id)
+        effective_provider_id = provider.provider_id
+
+        # Si el caller pidió un provider explícito sin model, usar el primer
+        # supported_model del provider como default. Esto permite que el
+        # caller diga "use vertex" sin tener que conocer el model_id concreto.
+        if (
+            provider_id is not None
+            and not model
+            and not os.getenv("CLAUDE_MODEL")
+            and provider.supported_models
+        ):
+            resolved_model = provider.supported_models[0]
 
         if not provider.is_available():
             msg = (
@@ -295,7 +340,7 @@ def extract_from_pdf(
                 "pdf_path": str(pdf_path),
                 "pdf_size_bytes": pdf_size_bytes,
                 "pages_extracted": pages_extracted,
-                "provider_id": provider_id,
+                "provider_id": effective_provider_id,
                 "model_used": resolved_model,
                 "prompt_version": resolved_prompt.version,
                 "latency_ms": latency_ms,

@@ -206,6 +206,46 @@ class TestExtractorErrorHandling:
         mock_client.messages.create.assert_called_once()
 
 
+class TestExtractorProviderRouting:
+    """Resolución por ``provider_id`` desde el caller (e.g. apps/api)."""
+
+    def test_unknown_provider_id_raises_extraction_error(self, tmp_path: Path) -> None:
+        """provider_id no registrado → ExtractionError con detalle de disponibles."""
+        pdf_path = tmp_path / "x.pdf"
+        pdf_path.write_bytes(_minimal_valid_pdf_bytes())
+        with pytest.raises(ExtractionError, match="no registrado"):
+            extract_from_pdf(pdf_path, provider_id="openai")
+
+    def test_provider_id_anthropic_resolves_anthropic_provider(
+        self, tmp_path: Path
+    ) -> None:
+        """provider_id='anthropic' (con client inyectado) sigue funcionando."""
+        pdf_path = tmp_path / "x.pdf"
+        pdf_path.write_bytes(_minimal_valid_pdf_bytes())
+
+        mock_block = MagicMock()
+        mock_block.type = "tool_use"
+        mock_block.name = "record_obstetric_summary"
+        mock_block.input = {
+            "confidence_score": 0.5,
+            "active_problems": [],
+            "risk_factors": [],
+            "lab_results": [],
+            "evidence_spans": [],
+            "notes_summary": "",
+        }
+        mock_response = MagicMock()
+        mock_response.content = [mock_block]
+        mock_response.stop_reason = "tool_use"
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_response
+
+        # client inyectado: precedencia sobre provider_id, pero el resultado
+        # equivale a usar anthropic.
+        result = extract_from_pdf(pdf_path, client=mock_client, provider_id="anthropic")
+        assert isinstance(result, ObstetricSummary)
+
+
 # =========================================================================
 # Helpers
 # =========================================================================
