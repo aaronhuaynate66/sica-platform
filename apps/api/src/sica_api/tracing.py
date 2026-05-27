@@ -33,6 +33,12 @@ El extractor consume ``trace_id`` y ``span_id`` desde este dict (vía
 ``ExtractionRequest.parent_trace_id`` y ``parent_span_id``) y crea su
 ``generation`` como child del span root — produce jerarquía visible en
 el dashboard.
+
+Privacidad (ADR-0009): el ``pdf_filename`` puede contener nombre del
+paciente; pasa por ``redact_filename`` antes de llegar al SDK. El
+``output_summary`` del span padre se pasa por ``redact_phi`` defensivo.
+Datos completos para el cliente HTTP del API NO se redactan — solo el
+envío a Langfuse Cloud queda sanitizado.
 """
 
 from __future__ import annotations
@@ -99,16 +105,24 @@ def start_extract_trace(
         return None
 
     try:
+        # PHI redaction (ADR-0009): el filename del upload puede contener
+        # nombre del paciente; lo sanitizamos antes de enviarlo al SDK.
+        # user_metadata adicional también se pasa por redact_phi por defensa.
+        from clinical_extractor.phi import redact_filename, redact_phi
+
+        sanitized_filename = redact_filename(pdf_filename) if pdf_filename else "uploaded_pdf"
+        sanitized_user_metadata = redact_phi(user_metadata or {})
+
         span = client.start_observation(
             name="api_extract_request",
             as_type="span",
             metadata={
                 "request_id": request_id,
-                "pdf_filename": pdf_filename or "uploaded_pdf",
+                "pdf_filename": sanitized_filename,
                 "pdf_size_bytes": pdf_size_bytes,
                 "service": "sica-api",
                 "endpoint": "POST /extract",
-                **(user_metadata or {}),
+                **sanitized_user_metadata,
             },
         )
         return {
@@ -147,8 +161,16 @@ def finish_extract_trace(
         span = trace_context.get("span")
         if span is None:
             return
+        # PHI redaction (ADR-0009): el output_summary del span padre ya es un
+        # subconjunto reducido (conteos + confidence), pero aplicamos redact_phi
+        # como defensa por si alguien agrega un campo futuro que filtre PHI.
+        from clinical_extractor.phi import redact_phi
+
+        sanitized_output_summary = (
+            redact_phi(output_summary) if output_summary is not None else None
+        )
         span.update(
-            output=output_summary,
+            output=sanitized_output_summary,
             metadata={
                 "latency_ms": latency_ms,
                 "success": success,

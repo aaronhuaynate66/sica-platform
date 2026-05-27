@@ -79,7 +79,8 @@ class TestStartExtractTrace:
         with patch("langfuse.Langfuse", return_value=mock_client):
             ctx = tracing.start_extract_trace(
                 request_id="req-42",
-                pdf_filename="caso_01.pdf",
+                # synthetic_ es prefijo seguro (ADR-0009) — se preserva tal cual.
+                pdf_filename="synthetic_caso_01.pdf",
                 pdf_size_bytes=5_000,
             )
 
@@ -94,7 +95,7 @@ class TestStartExtractTrace:
         assert call.kwargs["name"] == "api_extract_request"
         assert call.kwargs["as_type"] == "span"
         assert call.kwargs["metadata"]["request_id"] == "req-42"
-        assert call.kwargs["metadata"]["pdf_filename"] == "caso_01.pdf"
+        assert call.kwargs["metadata"]["pdf_filename"] == "synthetic_caso_01.pdf"
         assert call.kwargs["metadata"]["pdf_size_bytes"] == 5_000
 
     def test_returns_none_when_sdk_raises(self, monkeypatch) -> None:

@@ -32,10 +32,12 @@ Convención de level Langfuse:
 - ``DEFAULT`` (éxito).
 - ``ERROR`` (con ``status_message=str(error)``) cuando la extracción falló.
 
-Privacidad: ``output_json`` se envía a Langfuse Cloud (US region). Ver
-ADR 0007 § Privacidad y PHI — actualmente sólo PDFs sintéticos; si en
-algún momento se procesa PHI real, evaluar Langfuse self-hosted o
-omitir el campo ``output_json``.
+Privacidad (ADR-0009): ``output_json`` y ``metadata`` se sanitizan vía
+``redact_phi`` antes de pasarlos al SDK. Datos identificables (nombre,
+DNI, fecha de nacimiento, dirección, teléfono, médico tratante, HC) son
+reemplazados por ``[REDACTED]``. Los datos completos se mantienen en el
+return de ``extract_from_pdf`` y en logs locales — solo el envío a
+Langfuse Cloud queda redactado.
 """
 
 from __future__ import annotations
@@ -143,6 +145,7 @@ def trace_extraction(
 
     try:
         from clinical_extractor import __version__
+        from clinical_extractor.phi import redact_filename, redact_phi
         from clinical_extractor.pricing import calculate_cost_usd
 
         # Cost calculation — None si modelo no está en la tabla de pricing.
@@ -166,6 +169,23 @@ def trace_extraction(
             full_metadata["latency_ms"] = latency_ms
         if metadata:
             full_metadata.update(metadata)
+
+        # --- Redaction PHI (ADR-0009) ---
+        # output_json y metadata pueden contener identificadores del paciente.
+        # Antes de cualquier envío al SDK, sanitizar campo por campo.
+        # Datos completos siguen disponibles en el return del extractor.
+        sanitized_output: dict[str, Any] | None = (
+            redact_phi(output_json) if output_json is not None else None
+        )
+        sanitized_metadata: dict[str, Any] = redact_phi(full_metadata)
+        # pdf_filename merece tratamiento dedicado: prefijos sintéticos seguros
+        # se preservan, cualquier otro filename se reemplaza por [REDACTED].pdf.
+        if "pdf_filename" in sanitized_metadata and isinstance(
+            sanitized_metadata["pdf_filename"], str
+        ):
+            sanitized_metadata["pdf_filename"] = redact_filename(
+                sanitized_metadata["pdf_filename"]
+            )
 
         # Usage details: shape esperado por Langfuse (claves "input"/"output"
         # + cache fields). Sólo incluir keys con valor real.
@@ -202,8 +222,8 @@ def trace_extraction(
             "name": f"extract_{case_id}",
             "as_type": "generation",
             "model": model,
-            "output": output_json,
-            "metadata": full_metadata,
+            "output": sanitized_output,
+            "metadata": sanitized_metadata,
             "usage_details": usage_details or None,
             "cost_details": cost_details,
             "level": "ERROR" if error else "DEFAULT",
