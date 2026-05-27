@@ -177,6 +177,7 @@ Compatibles entre sí: si en futuro se decide omitir output completo, el redacto
 - **ADR 0003** — Security and PHI handling policy (predecesor genérico).
 - **ADR 0007** — Langfuse observability (define el punto de inyección y abre explícitamente la pregunta de qué hacer con PHI en cloud).
 - **ADR 0008** — Prompt Registry (formato ADR seguido aquí).
+- **[`docs/operations/phi-handling.md`](../operations/phi-handling.md)** — Guía operacional que traduce este ADR a procedimientos concretos para desarrolladores y médicos colaboradores: checklist antes del primer PDF real, cómo identificar paciente desde un trace, comportamiento de filenames, limitaciones conocidas.
 - **STRATEGY § 11.1, § 13** — PHI sensible nunca sale a cloud sin política explícita.
 - **Commits asociados** — pendientes en esta sesión: ADR + implementación + tests.
 
