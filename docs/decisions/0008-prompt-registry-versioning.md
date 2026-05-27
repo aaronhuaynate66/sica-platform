@@ -218,10 +218,116 @@ Capacidades:
 
 Esta decisión se revisa explícitamente en uno de estos triggers:
 
-- **Aparece el primer prompt v2** — validar que la convención y el parser escalan.
+- **Aparece el primer prompt v2** — validar que la convención y el parser escalan. **DISPARADO 2026-05-27** — ver § Actualización abajo.
 - **Se requiere A/B testing** (R1.5) — disparar Fase 2.
 - **Se requiere rollback automático** (R2) — disparar Fase 3.
 - **El repo crece >100 archivos en `versions/`** — evaluar migración a DB.
 - **Cambia el contrato de Langfuse generations** — actualizar el snapshot del smoke fixture.
 
 Hasta entonces, **Prompt Registry Fase 1 con `.md` versionados y hash SHA256 determinístico** es la configuración operativa.
+
+## Actualización 2026-05-27 — Primera nueva versión: `extract_obstetric_v2` + default pinning
+
+Estrena el prompt registry en operación real. Dispara el primer trigger de revisión de arriba ("Aparece el primer prompt v2") y agrega el mecanismo de **default pinning** que faltaba para promover versiones de forma controlada.
+
+### Trigger
+
+Bug clínico identificado en uso real (output v1 contra el dataset longitudinal Lucía):
+
+- `evals/fixtures/longitudinal_lucia/sem16/extracted.json` mostraba:
+  ```json
+  "active_problems": [
+    "Embarazo de 16 semanas + 2 días por FUR",
+    "Sobrepeso pre-gestacional (IMC 25.6)",
+    "Antecedente familiar de DM2 — riesgo aumentado de diabetes gestacional"
+  ]
+  ```
+- "Embarazo de N semanas" NO es problema clínico activo; es contexto/estado. La edad gestacional ya se reporta en `gestational_age_weeks`. Incluirlo en `active_problems` confunde al médico revisor y degrada la utilidad asistiva del output.
+
+### Cambio
+
+1. **Nuevo archivo**: `prompts/versions/extract_obstetric_v2.md` (hash `0f802ac8`). v1 (hash `9241ec0d`) INMUTABLE — sigue intacto byte-a-byte.
+
+2. **Regla 8 nueva** en el SYSTEM de v2: define explícitamente el scope de `active_problems`:
+   - SÍ va: diagnósticos patológicos vigentes, condiciones que requieran manejo activo, complicaciones obstétricas.
+   - NO va: el embarazo en sí mismo, información ya capturada en otros campos del schema, estados normales/esperados del embarazo, datos de filiación.
+   - Heurística de decisión: "¿esto requiere intervención médica activa o seguimiento como factor a controlar?".
+
+3. **Recordatorio en USER_TEMPLATE** de v2 referenciando la regla 8.
+
+4. **Nueva constante `DEFAULT_VERSIONS: dict[str, int]`** en `registry.py`:
+   ```python
+   DEFAULT_VERSIONS = {"extract_obstetric": 1}
+   ```
+   - `get_active_prompt(name)` sin override consulta `DEFAULT_VERSIONS[name]` antes de fallback a `latest_version(name)`.
+   - Nombres NO listados en `DEFAULT_VERSIONS` mantienen el comportamiento legacy (latest = default).
+
+### Por qué pinning y no "latest = default"
+
+El comportamiento ingenuo "latest = default" es atractivo (un commit con `.md` nuevo y listo) pero peligroso para prompts clínicos:
+
+- Una versión nueva puede regresionar métricas críticas (factual_accuracy, completitud, hallucinations) en formas que no se detectan sin validación empírica.
+- "Quien commitea el `.md` decide la política" es exactamente el patrón que ADR-0008 evita para los `.md` (regla: archivos inmutables); el principio se extiende a "qué se sirve por default".
+
+El pin desacopla:
+
+- **Existencia** (registry, fixtures, hashes anclados en tests): commit del `.md` nuevo.
+- **Promoción a default**: commit explícito separado que actualiza `DEFAULT_VERSIONS[name] = N+1`.
+
+Esto crea una **ventana de validación** entre los dos commits — el tiempo que se tarde en correr comparator offline, validación clínica del médico colaborador, A/B opcional (Fase 2), etc.
+
+### Default sigue siendo v1 — v2 es opt-in
+
+Acceso a v2:
+
+- **CLI**: `clinical-extractor extract <pdf> --prompt-version 2 [--output ...]`
+- **Programático**: `extract_from_pdf(pdf_path, prompt_version=2)`
+- **Tests**: cargan `extracted_v2.json` desde `evals/fixtures/longitudinal_lucia/semXX/`.
+
+Cualquier corrida que NO especifique versión usa v1 (default pineado).
+
+### Validación realizada en esta sesión
+
+4 PDFs longitudinales de Lucía Mendoza Quispe extraídos con `--prompt-version 2` contra Anthropic Claude Sonnet 4.5 real:
+
+| Caso | v1 active_problems | v2 active_problems | Veredicto |
+|---|---|---|---|
+| sem16 | `["Embarazo de 16 semanas + 2 días por FUR", "Sobrepeso...", "Antecedente familiar DM2..."]` | `["Sobrepeso pre-gestacional (IMC 25.6)"]` | ✅ Anti-patrón eliminado. Antecedente familiar movido a risk_factors (correcto). |
+| sem24 | `["Diabetes gestacional", "Sobrepeso..."]` | `["Diabetes gestacional", "Sobrepeso..."]` | ✅ Estable (no había anti-patrón en v1). |
+| sem32 | `["DG mal controlada...", "Macrosomía...", "Polihidramnios...", "Edemas pretibiales leves"]` | `["DG mal controlada...", "Macrosomía...", "Polihidramnios leve"]` | ✅ Edemas leves drop (justificable por regla 8 — no requieren manejo activo). |
+| sem38 | `["DG controlada con insulina", "Macrosomía...", "Anemia leve", "Edemas maleolares ++/4"]` | `["DG controlada con insulina", "Macrosomía...", "Anemia leve"]` | ✅ Mismo patrón. |
+
+Campos estructurales (no regresión):
+
+- `gestational_age_weeks`, `patient_age`, `fum`, `fpp`: **IDÉNTICOS** en los 4 casos.
+- `confidence_score`: **0.95** en los 4 casos (sin caída).
+- `lab_results count`: idéntico (8/5/5/5).
+- `evidence_spans count`: variación normal dentro de tolerancia.
+
+Costo Anthropic de la validación: **USD 0.16** (4 smokes × ~USD 0.04).
+
+### Promoción a default (cuándo y cómo)
+
+Cuando emerja la decisión de promover v2:
+
+1. Correr comparator offline contra dataset retrospectivo (ground truth) que NO sea sólo Lucía — al menos 20 casos diversos.
+2. Validar con médico colaborador que los cambios cualitativos (e.g. drop de edemas leves) son aceptables.
+3. Opcional: A/B con tráfico real (Fase 2 del registry).
+4. Si pasa: PR con `DEFAULT_VERSIONS["extract_obstetric"] = 2` + actualización de fixtures de smoke y este ADR.
+
+Hasta entonces, v2 sigue siendo opt-in.
+
+### Tests anclados
+
+- `tests/test_prompt_registry.py`:
+  - `test_list_versions_returns_sorted` ancla `[1, 2]`.
+  - `test_latest_version_returns_max` ancla `2` (informacional).
+  - `test_get_active_without_override_respects_default_pin` ancla v1 como default.
+  - `test_default_pin_does_not_equal_latest_when_v2_present` — fuerza re-justificación si alguien promueve sin actualizar pin.
+- `evals/tests/test_prompt_v2_no_pregnancy_in_problems.py` (13 tests): anti-patrón eliminado en los 4 casos, preservación de campos estructurales, continuidad clínica.
+
+### Commits asociados
+
+- `4ffe028` — `feat(prompts): add extract_obstetric_v2 (fix: 'embarazo' no es problema activo)` — v2 .md + DEFAULT_VERSIONS + tests del registry.
+- `75dd230` — `test(evals): validate extract_obstetric_v2 fixes pregnancy-in-active-problems` — fixtures de v2 + tests de regresión.
+- (este commit del ADR).
