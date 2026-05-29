@@ -96,7 +96,7 @@ export default async function ControlPage({ params }: ControlPageProps) {
       <Card className="mt-4">
         <CardContent className="p-5">
           <h3 className="mb-3 text-sm font-medium">Metadata técnico</h3>
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs sm:grid-cols-4">
             <div>
               <dt className="text-muted-foreground">Confianza</dt>
               <dd className="mt-0.5 font-mono">
@@ -126,12 +126,44 @@ export default async function ControlPage({ params }: ControlPageProps) {
               </dd>
             </div>
             <div>
+              <dt className="text-muted-foreground">Modelo</dt>
+              <dd className="mt-0.5 truncate font-mono text-[10px]"
+                  title={control.extractor_version ?? undefined}>
+                {control.extractor_version ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Prompt</dt>
+              <dd className="mt-0.5 font-mono text-[10px]">
+                {control.prompt_version ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Costo</dt>
+              <dd className="mt-0.5 font-mono">
+                {control.cost_usd != null
+                  ? `$${control.cost_usd.toFixed(4)}`
+                  : "—"}
+              </dd>
+            </div>
+            <div className="col-span-2">
               <dt className="text-muted-foreground">Trace ID</dt>
               <dd
                 className="mt-0.5 truncate font-mono text-[10px]"
                 title={control.trace_id ?? undefined}
               >
-                {control.trace_id ? control.trace_id.slice(0, 12) + "…" : "—"}
+                {control.trace_id ? (
+                  <a
+                    href={`https://us.cloud.langfuse.com/trace/${control.trace_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-clinical-blue hover:underline"
+                  >
+                    {control.trace_id.slice(0, 12)}…
+                  </a>
+                ) : (
+                  "—"
+                )}
               </dd>
             </div>
           </dl>

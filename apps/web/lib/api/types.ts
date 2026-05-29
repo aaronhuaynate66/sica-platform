@@ -14,6 +14,44 @@ export type {
   ObstetricSummary,
 } from "@/lib/types/obstetric-summary";
 
+/**
+ * Metadata operacional adjunta al response 200 de POST /extract.
+ *
+ * Espeja el modelo Pydantic ``ExtractionMetadata`` en
+ * apps/api/src/sica_api/schemas.py. Es **aditivo**: los campos del
+ * ObstetricSummary siguen al top-level del response — esta interface
+ * vive bajo la clave ``metadata`` del mismo objeto.
+ */
+export interface ExtractionMetadata {
+  operation_id: string;
+  provider_id: string | null;
+  model_used: string;
+  prompt_version: string;
+  prompt_hash: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_usd: number | null;
+  latency_ms: number;
+  retry_count: number;
+  success: boolean;
+  error_type: string | null;
+  trace_id: string | null;
+  request_id: string;
+}
+
+/**
+ * Response del endpoint POST /extract.
+ *
+ * El backend devuelve un objeto que combina los campos del
+ * ``ObstetricSummary`` al top-level + un campo ``metadata`` con la
+ * trazabilidad operacional. Esta forma intersección refleja exactamente
+ * ese shape.
+ */
+import type { ObstetricSummary as _ObstetricSummary } from "@/lib/types/obstetric-summary";
+export type ExtractResponse = _ObstetricSummary & {
+  metadata: ExtractionMetadata;
+};
+
 export interface HealthResponse {
   status: string;
   version: string;

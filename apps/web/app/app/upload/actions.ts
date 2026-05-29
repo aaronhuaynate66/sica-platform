@@ -23,6 +23,7 @@ import { redirect } from "next/navigation";
 import { createControl } from "@/lib/queries/controles";
 import { createPaciente, getPaciente } from "@/lib/queries/pacientes";
 import { createClient } from "@/lib/supabase/server";
+import type { ExtractResponse, ExtractionMetadata } from "@/lib/api/types";
 import type { ObstetricSummary } from "@/lib/types/obstetric-summary";
 
 const EXTRACT_TIMEOUT_MS = 90_000; // 90s: cubre cold start de Render + extraccion ~30s
@@ -41,6 +42,18 @@ function getApiUrl(): string {
     throw new Error("NEXT_PUBLIC_API_URL no está configurado");
   }
   return env.trim().replace(/\/+$/, "");
+}
+
+/**
+ * Elimina el campo `metadata` del response para persistir solo el
+ * `ObstetricSummary` canónico en `resumen_json`. `metadata` viaja por
+ * separado en columnas dedicadas de la tabla `controles`.
+ */
+function stripMetadata(payload: ExtractResponse): ObstetricSummary {
+  // Destructuramos para descartar `metadata` sin mutar el objeto original.
+  const { metadata: _metadata, ...summary } = payload;
+  void _metadata;
+  return summary;
 }
 
 export async function processPdfAction(
@@ -134,8 +147,9 @@ export async function processPdfAction(
   extractForm.append("file", file, file.name);
 
   const started = Date.now();
-  let summary: ObstetricSummary;
-  let traceId: string | null = null;
+  let extractBody: ExtractResponse;
+  let extractionMetadata: ExtractionMetadata | null = null;
+  let traceIdFromHeader: string | null = null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS);
 
@@ -146,7 +160,7 @@ export async function processPdfAction(
       signal: controller.signal,
     });
 
-    traceId = res.headers.get("X-Request-ID");
+    traceIdFromHeader = res.headers.get("X-Request-ID");
 
     if (!res.ok) {
       let detail = `HTTP ${res.status}`;
@@ -163,7 +177,12 @@ export async function processPdfAction(
       };
     }
 
-    summary = (await res.json()) as ObstetricSummary;
+    // El response tiene los campos del summary al top-level + un campo
+    // "metadata" agregado en commit 2555269. Para clientes antiguos que
+    // no leen metadata, el shape sigue siendo el ObstetricSummary; aquí
+    // sí lo leemos para persistir trazabilidad.
+    extractBody = (await res.json()) as ExtractResponse;
+    extractionMetadata = extractBody.metadata ?? null;
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") {
       return {
@@ -182,6 +201,17 @@ export async function processPdfAction(
   }
 
   const latencyMs = Date.now() - started;
+  // Preferir la latencia que mide el extractor (sin red cliente→Render);
+  // si no viene, caer al timer client-side.
+  const persistedLatencyMs = extractionMetadata?.latency_ms ?? latencyMs;
+  // trace_id viene del bloque metadata cuando Langfuse está activo en
+  // el backend; si no, eco del X-Request-ID del header.
+  const persistedTraceId =
+    extractionMetadata?.trace_id ?? traceIdFromHeader;
+
+  // El summary persistido NO debe llevar el campo "metadata" embebido
+  // (no es parte del schema canónico ObstetricSummary).
+  const summaryForJsonb: ObstetricSummary = stripMetadata(extractBody);
 
   // ---- 6. Insert control
   try {
@@ -189,16 +219,18 @@ export async function processPdfAction(
       paciente_id: pacienteId!,
       pdf_filename: file.name,
       pdf_storage_path: storagePath,
-      semanas_gestacion: summary.gestational_age_weeks ?? null,
+      semanas_gestacion: summaryForJsonb.gestational_age_weeks ?? null,
       // R1: el extractor no devuelve fecha del control directamente.
       // Usamos la fecha de hoy como aproximación operacional.
       fecha_control: new Date().toISOString().slice(0, 10),
-      resumen_json: summary,
-      confidence_score: summary.confidence_score ?? null,
-      latency_ms: latencyMs,
-      trace_id: traceId,
-      // TODO R2: el API debe exponer prompt_version, provider_id, cost_usd
-      // en headers o response body para persistirlos aquí.
+      resumen_json: summaryForJsonb,
+      confidence_score: summaryForJsonb.confidence_score ?? null,
+      extractor_version: extractionMetadata?.model_used ?? null,
+      prompt_version: extractionMetadata?.prompt_version ?? null,
+      provider_id: extractionMetadata?.provider_id ?? null,
+      cost_usd: extractionMetadata?.cost_usd ?? null,
+      latency_ms: persistedLatencyMs,
+      trace_id: persistedTraceId,
     });
 
     revalidatePath("/app");

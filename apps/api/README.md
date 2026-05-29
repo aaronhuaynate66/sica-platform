@@ -105,12 +105,62 @@ Respuestas:
 
 | Code | Cuando |
 |---|---|
-| `200` | Extracción OK. Body = `ObstetricSummary` JSON. |
+| `200` | Extracción OK. Body = `ObstetricSummary` JSON al top-level **+ campo aditivo `metadata`** con trazabilidad operacional (ver abajo). |
 | `400` | No es PDF (content-type o magic bytes), body vacío, o `provider` inválido (`?provider=foo`). |
 | `413` | Archivo excede `MAX_FILE_SIZE_MB`. |
 | `422` | Body multipart inválido o falta `file`. |
 | `500` | Fallo interno del extractor. Body incluye `error_id` para correlación. Stack trace NUNCA se expone. |
 | `503` | `ANTHROPIC_API_KEY` ausente, **o** el provider seleccionado no está disponible (vertex sin GCP creds, NotImplementedError del stub). |
+
+Shape del response 200:
+
+```json
+{
+  "patient_age": 28,
+  "gestational_age_weeks": 16.3,
+  "fum": "2023-12-27",
+  "fpp": "2024-10-03",
+  "active_problems": ["Sobrepeso pre-gestacional (IMC 25.6)"],
+  "risk_factors": ["Antecedente familiar DM2"],
+  "lab_results": [
+    { "name": "Hemoglobina", "value": "11.8", "unit": "g/dL", "date": null, "abnormal": false }
+  ],
+  "notes_summary": "...",
+  "confidence_score": 0.95,
+  "evidence_spans": [{ "claim": "...", "source_page": 1, "source_text": "..." }],
+
+  "metadata": {
+    "operation_id": "f2d8c4a0-1234-...",
+    "provider_id": "anthropic",
+    "model_used": "claude-sonnet-4-5-20250929",
+    "prompt_version": "0.1.0",
+    "prompt_hash": "9241ec0d",
+    "input_tokens": 4261,
+    "output_tokens": 1251,
+    "cost_usd": 0.031548,
+    "latency_ms": 22500,
+    "retry_count": 0,
+    "success": true,
+    "error_type": null,
+    "trace_id": "abc123..." | null,
+    "request_id": "..."
+  }
+}
+```
+
+El campo `metadata` es **aditivo** desde commit `2555269` (cierre del TODO #1
+del frontend R1): los campos clínicos siguen al top-level, lo nuevo vive bajo
+`metadata`. Schema canónico: `apps/api/src/sica_api/schemas.py::ExtractionMetadata`.
+
+Usos típicos:
+- **Frontend** persiste `provider_id`, `prompt_version`, `cost_usd`, `latency_ms`,
+  `trace_id` en la fila `controles` de Supabase para auditoría longitudinal.
+- **Operadores** correlacionan `trace_id` con el dashboard Langfuse
+  (`https://us.cloud.langfuse.com/trace/<trace_id>`).
+- **Pricing dashboards** suman `cost_usd` por médico/clínica.
+
+Compat: los clientes que no leen `metadata` siguen funcionando sin cambio —
+los campos del `ObstetricSummary` están en el mismo lugar de antes.
 
 Shape del error `400` (provider inválido):
 
