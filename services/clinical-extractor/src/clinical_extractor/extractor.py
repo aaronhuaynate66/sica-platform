@@ -216,6 +216,7 @@ def extract_from_pdf(
     parent_span_id: str | None = None,
     case_id: str | None = None,
     provider_id: str | None = None,
+    metadata_out: dict[str, Any] | None = None,
 ) -> ObstetricSummary:
     """Extrae un ``ObstetricSummary`` desde un PDF nativo de historia obstétrica.
 
@@ -252,6 +253,16 @@ def extract_from_pdf(
             ``model`` también está ausente, el provider usa su primer
             ``supported_model`` (default). Útil para routing desde
             ``apps/api`` con query param.
+        metadata_out: Dict opcional inyectado por el caller. Cuando se
+            provee, la función lo llena (in-place) con metadata operacional
+            de la extracción: ``operation_id``, ``provider_id``,
+            ``model_used``, ``prompt_version``, ``prompt_hash``,
+            ``input_tokens``, ``output_tokens``, ``cost_usd``,
+            ``latency_ms``, ``retry_count``, ``success``, ``error_type``.
+            Ningún campo lleva PHI. Si ``None`` (default), la función no
+            expone metadata — comportamiento legacy intacto. Permite que
+            ``apps/api`` exponga la metadata en el response sin duplicar
+            la lógica del extractor.
 
     Returns:
         ObstetricSummary validado.
@@ -301,6 +312,30 @@ def extract_from_pdf(
     # kwarg ``provider_id`` que es el input del caller.
     effective_provider_id: str | None = None
     success = False
+
+    # Hash del prompt para auditoría. Se resuelve via registry — el prompt
+    # legacy no tiene ``short_hash``, pero todos los prompts activos pasan
+    # por el registry. Si la resolución falla (caso raro), queda None.
+    prompt_hash_value: str | None = None
+    try:
+        from clinical_extractor.prompts.registry import (
+            get_active_prompt as _registry_active,
+        )
+
+        # Si el caller pasó ``prompt_version``, intentamos resolver ese
+        # hash; si pasó ``prompt`` precompilado o None, usamos el activo.
+        if prompt is not None:
+            # No tenemos el archivo origen del prompt inyectado — sin hash.
+            prompt_hash_value = None
+        elif prompt_version is not None:
+            prompt_hash_value = _registry_active(
+                "extract_obstetric", version_override=prompt_version
+            ).short_hash
+        else:
+            prompt_hash_value = _registry_active("extract_obstetric").short_hash
+    except Exception:
+        # No bloquear extracción por falla resolviendo hash.
+        prompt_hash_value = None
 
     try:
         # 1. Read PDF
@@ -407,6 +442,41 @@ def extract_from_pdf(
                 "token_usage": token_usage,
             }
         )
+
+        # Llenado opcional de metadata_out para callers que lo solicitaron
+        # (típicamente ``apps/api`` que lo expone en el response HTTP).
+        # NUNCA pone PHI — solo IDs, conteos, modelo y costo.
+        if metadata_out is not None:
+            from clinical_extractor.pricing import calculate_cost_usd
+
+            input_tokens = token_usage.get("input_tokens") if token_usage else None
+            output_tokens = token_usage.get("output_tokens") if token_usage else None
+            cost_usd: float | None
+            if input_tokens is not None and output_tokens is not None:
+                cost_usd = calculate_cost_usd(
+                    resolved_model,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
+            else:
+                cost_usd = None
+
+            metadata_out.update(
+                {
+                    "operation_id": operation_id,
+                    "provider_id": effective_provider_id,
+                    "model_used": resolved_model,
+                    "prompt_version": resolved_prompt.version,
+                    "prompt_hash": prompt_hash_value,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "cost_usd": cost_usd,
+                    "latency_ms": latency_ms,
+                    "retry_count": retry_count,
+                    "success": success,
+                    "error_type": error_type,
+                }
+            )
 
 
 # =========================================================================

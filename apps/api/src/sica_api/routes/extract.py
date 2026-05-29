@@ -124,6 +124,7 @@ def _default_extractor(
     parent_span_id: str | None = None,
     case_id: str | None = None,
     provider_id: str | None = None,
+    metadata_out: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     import os
 
@@ -141,12 +142,77 @@ def _default_extractor(
             parent_span_id=parent_span_id,
             case_id=case_id,
             provider_id=provider_id,
+            metadata_out=metadata_out,
         )
     except ExtractionError:
         raise
     # model_dump returns Any from a Pydantic model, but we know it's a dict[str, Any].
     dumped: dict[str, Any] = summary.model_dump(mode="json")
     return dumped
+
+
+def _build_response_metadata(
+    *,
+    extraction_metadata: dict[str, Any],
+    request_id: str,
+    parent_trace_id: str | None,
+    requested_provider: str,
+    internal_provider_id: str,
+    latency_ms_fallback: float,
+) -> dict[str, Any]:
+    """Construye el bloque ``metadata`` del response 200 de /extract.
+
+    Args:
+        extraction_metadata: Dict llenado por ``extract_from_pdf`` vía el
+            kwarg ``metadata_out``. Puede estar vacío si el extractor
+            inyectado en tests no lo llena — en ese caso emitimos fallback.
+        request_id: X-Request-ID del request actual.
+        parent_trace_id: Trace ID Langfuse (si tracing activo). None si no.
+        requested_provider: Alias público del provider (``anthropic``,
+            ``vertex``). Lo que el cliente envió en query param.
+        internal_provider_id: ID del registry. Lo eco como provider_id
+            cuando el extractor no llenó metadata.
+        latency_ms_fallback: Latencia medida por el handler — fallback
+            cuando el extractor no llenó la suya (test seam).
+
+    Returns:
+        Dict serializable JSON con todos los campos de
+        ``ExtractionMetadata``. Pasar este dict por
+        ``ExtractionMetadata.model_validate(...)`` debe ser idempotente.
+    """
+    # ``extraction_metadata`` puede venir vacío si el extractor inyectado
+    # no llenó ``metadata_out``. Calzamos defaults razonables que no
+    # mientan: model_used falla a unknown, prompt_version a unknown,
+    # tokens a None.
+    # ``provider_id`` canónico es el del registry. El alias público
+    # (anthropic/vertex) se reflejaría en otra capa si hace falta; aquí
+    # no lo agregamos para mantener ``extra="forbid"`` del schema.
+    del requested_provider  # documenta no-uso intencional para linters
+
+    latency_raw = extraction_metadata.get("latency_ms")
+    latency_value: float
+    if latency_raw is not None:
+        latency_value = float(latency_raw)
+    else:
+        latency_value = latency_ms_fallback
+
+    out: dict[str, Any] = {
+        "operation_id": extraction_metadata.get("operation_id") or str(uuid.uuid4()),
+        "provider_id": extraction_metadata.get("provider_id") or internal_provider_id,
+        "model_used": extraction_metadata.get("model_used") or "unknown",
+        "prompt_version": extraction_metadata.get("prompt_version") or "unknown",
+        "prompt_hash": extraction_metadata.get("prompt_hash"),
+        "input_tokens": extraction_metadata.get("input_tokens"),
+        "output_tokens": extraction_metadata.get("output_tokens"),
+        "cost_usd": extraction_metadata.get("cost_usd"),
+        "latency_ms": int(latency_value),
+        "retry_count": extraction_metadata.get("retry_count", 0),
+        "success": extraction_metadata.get("success", True),
+        "error_type": extraction_metadata.get("error_type"),
+        "trace_id": parent_trace_id,
+        "request_id": request_id,
+    }
+    return out
 
 
 # Hook reemplazable en tests vía dependency_overrides
@@ -361,6 +427,7 @@ async def extract(
         )
         try:
             assert settings.anthropic_api_key is not None  # narrowing for mypy
+            extraction_metadata: dict[str, Any] = {}
             payload = extractor(
                 tmp_path,
                 api_key=settings.anthropic_api_key,
@@ -368,6 +435,7 @@ async def extract(
                 parent_span_id=parent_span_id,
                 case_id=case_id_for_extractor,
                 provider_id=internal_provider_id,
+                metadata_out=extraction_metadata,
             )
         except Exception as exc:
             # ---- 6a. Errores específicos de provider → 503 (no 500).
@@ -478,6 +546,22 @@ async def extract(
             latency_ms=latency_ms,
             output_summary=output_summary,
         )
+
+        # Construir el bloque ``metadata`` para el response. Es aditivo:
+        # los campos del ObstetricSummary siguen al top-level del payload,
+        # sumamos un campo ``metadata`` con la trazabilidad operacional.
+        # Si el extractor (fake en tests, real en prod) llenó
+        # ``extraction_metadata``, lo usamos; si no, exponemos un fallback
+        # mínimo derivado del request actual.
+        metadata_payload = _build_response_metadata(
+            extraction_metadata=extraction_metadata,
+            request_id=request_id,
+            parent_trace_id=parent_trace_id,
+            requested_provider=requested_provider,
+            internal_provider_id=internal_provider_id,
+            latency_ms_fallback=latency_ms,
+        )
+        payload["metadata"] = metadata_payload
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             headers=response_headers,

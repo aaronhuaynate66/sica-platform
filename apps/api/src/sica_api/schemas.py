@@ -162,3 +162,97 @@ class ErrorResponse(BaseModel):
         default=None,
         description="UUID para errores 5xx — el cliente lo cita al pedir soporte.",
     )
+
+
+class ExtractionMetadata(BaseModel):
+    """Metadata operacional adjunta al response 200 de POST /extract.
+
+    Se construye desde el dict que ``extract_from_pdf`` llena vía el
+    parámetro keyword ``metadata_out``. NUNCA incluye PHI — solo IDs,
+    conteos de tokens, identificador de modelo/prompt y costo.
+
+    El campo es **aditivo** al response del extract — los campos del
+    ``ObstetricSummary`` siguen en el top-level y los callers existentes
+    que ignoran ``metadata`` no rompen. Ver ADR pendiente sobre el
+    contrato del API.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Identificación de la corrida -------------------------------------
+    operation_id: str = Field(
+        description=(
+            "UUID generado por el extractor para esta extracción. "
+            "Distinto del request_id de HTTP — uno por llamada interna."
+        ),
+    )
+    provider_id: str | None = Field(
+        default=None,
+        description="Provider que sirvió la extracción (anthropic, vertex-medgemma, ...).",
+    )
+    model_used: str = Field(
+        description="Modelo concreto invocado (ej. claude-sonnet-4-5-20250929).",
+    )
+    prompt_version: str = Field(
+        description=(
+            "Versión del prompt usado, en formato legacy (semver string como "
+            "'0.1.0') o version_string del registry (ej. 'extract_obstetric_v2')."
+        ),
+    )
+    prompt_hash: str | None = Field(
+        default=None,
+        description=(
+            "Primeros 8 chars del SHA256 del prompt. None si el caller inyectó "
+            "un prompt precompilado sin metadata de registry."
+        ),
+    )
+
+    # Métricas de la llamada ------------------------------------------
+    input_tokens: int | None = Field(
+        default=None,
+        description="Tokens cobrados como input por el provider. None si no reporta usage.",
+    )
+    output_tokens: int | None = Field(
+        default=None,
+        description="Tokens cobrados como output. None si el provider no reporta.",
+    )
+    cost_usd: float | None = Field(
+        default=None,
+        description=(
+            "Costo estimado en USD según tabla local de pricing. None si el "
+            "modelo no figura en la tabla o si faltan tokens."
+        ),
+    )
+    latency_ms: int = Field(
+        ge=0,
+        description="Latencia total del extractor (incluye retries y red).",
+    )
+    retry_count: int = Field(
+        default=0,
+        ge=0,
+        description="Cantidad de retries antes del éxito.",
+    )
+
+    # Estado ----------------------------------------------------------
+    success: bool = Field(
+        description="True si la extracción terminó OK (validación Pydantic incluida).",
+    )
+    error_type: str | None = Field(
+        default=None,
+        description="Tipo de excepción si success=False. None en caso de éxito.",
+    )
+
+    # Tracing ---------------------------------------------------------
+    trace_id: str | None = Field(
+        default=None,
+        description=(
+            "Trace ID de Langfuse si tracing está activo en este entorno. "
+            "El cliente lo usa para correlacionar con el dashboard."
+        ),
+    )
+    request_id: str = Field(
+        description=(
+            "X-Request-ID de la request HTTP. Eco del header para clientes "
+            "que solo persisten el body."
+        ),
+    )
