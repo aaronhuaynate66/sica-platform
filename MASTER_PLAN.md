@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `96e575e`
+**Hash del último commit:** `033e7f0`
 
 ## Progreso general
 
@@ -216,6 +216,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | 0007 | [Langfuse Cloud para observability LLM](docs/decisions/0007-langfuse-observability.md) | Accepted — 2026-05-26 — Implementado | 2026-05-26 |
 | 0008 | [Prompt Registry con Versionado y Hash Determinístico](docs/decisions/0008-prompt-registry-versioning.md) | Accepted — 2026-05-26 — Fase 1 implementada | 2026-05-26 |
 | 0009 | [PHI Redaction antes de Langfuse Cloud](docs/decisions/0009-phi-redaction-in-tracing.md) | Accepted — 2026-05-27 — Implementación bloqueante para primer PDF real | 2026-05-27 |
+| 0011 | [Stack del frontend SICA (Next.js + Supabase + Vercel)](docs/decisions/0011-frontend-stack.md) | Accepted — 2026-05-28 | 2026-05-28 |
 
 Auto-generado leyendo `docs/decisions/`.
 
@@ -227,16 +228,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `033e7f0` | aaronhuaynate66 | feat(web): consume extraction metadata + update API docs | 2026-05-29 |
+| `2555269` | aaronhuaynate66 | feat(api): expose extraction metadata in /extract response (prompt_version, cost, tokens, trace_id) | 2026-05-29 |
+| `0ba025d` | aaronhuaynate66 | docs(deploy): operational guide for SICA web production deploy | 2026-05-29 |
+| `b74347c` | aaronhuaynate66 | feat(web): vista paciente longitudinal + detalle control + comparador | 2026-05-29 |
+| `eb6f676` | aaronhuaynate66 | feat(web): PDF upload + processing pipeline (Supabase Storage -> API -> DB) | 2026-05-29 |
+| `85b3efe` | aaronhuaynate66 | feat(web): authenticated app layout + lista pacientes | 2026-05-29 |
+| `d4624d6` | aaronhuaynate66 | feat(web): magic link auth via Supabase | 2026-05-29 |
+| `ab4c649` | aaronhuaynate66 | feat(supabase): initialize SICA Supabase project with auth + schema + RLS | 2026-05-29 |
 | `96e575e` | aaronhuaynate66 | docs(adr): document extract_obstetric_v2 + default pinning strategy (ADR-0008 update) | 2026-05-27 |
 | `75dd230` | aaronhuaynate66 | test(evals): validate extract_obstetric_v2 fixes pregnancy-in-active-problems | 2026-05-27 |
-| `4ffe028` | aaronhuaynate66 | feat(prompts): add extract_obstetric_v2 (fix: 'embarazo' no es problema activo) | 2026-05-27 |
-| `d6d4874` | aaronhuaynate66 | test(phi): cover key-in-text redaction + update docs (close TODO #3) | 2026-05-27 |
-| `95a477f` | aaronhuaynate66 | feat(phi): detect PHI keys in plain text (e.g., 'nombre=Maria') | 2026-05-27 |
-| `f16473d` | aaronhuaynate66 | feat(cli): add --prompt-version flag for explicit prompt versioning | 2026-05-27 |
-| `3aa7271` | aaronhuaynate66 | docs(operations): add PHI handling operational guide (procedures + checklists) | 2026-05-27 |
-| `5fc1c95` | aaronhuaynate66 | fix(api): apply redact_phi to provider error responses (defense in depth) | 2026-05-27 |
-| `defb198` | aaronhuaynate66 | docs: provider routing contract for POST /extract + ADR-0004 update | 2026-05-27 |
-| `e28ba53` | aaronhuaynate66 | feat(api): add provider routing to POST /extract via ?provider= query param | 2026-05-27 |
 
 ---
 
