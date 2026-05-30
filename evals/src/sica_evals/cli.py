@@ -413,5 +413,131 @@ def diff(report_a: Path, report_b: Path) -> None:
     )
 
 
+@main.command("compare-prompts")
+@click.option(
+    "--name",
+    "prompt_name",
+    default="extract_obstetric",
+    show_default=True,
+    help="Nombre lógico del prompt (e.g. extract_obstetric).",
+)
+@click.option(
+    "--version-a",
+    type=int,
+    required=True,
+    help="Versión baseline (e.g. 1).",
+)
+@click.option(
+    "--version-b",
+    type=int,
+    required=True,
+    help="Versión candidata (e.g. 2).",
+)
+@click.option(
+    "--mode",
+    type=click.Choice(["cached", "fresh"], case_sensitive=False),
+    default="cached",
+    show_default=True,
+    help="cached: lee JSONs ya extraídos. fresh: corre extracción real (costo Anthropic).",
+)
+@click.option(
+    "--fixtures",
+    "fixtures_dir",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Carpeta con subdirectorios por caso (modo cached).",
+)
+@click.option(
+    "--pdfs",
+    "pdfs_dir",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Carpeta con PDFs a extraer (modo fresh).",
+)
+@click.option(
+    "--output-dir",
+    "output_dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=None,
+    help="Carpeta de salida para reportes Markdown + JSON (default: evals/reports).",
+)
+@click.option(
+    "--fixture-pattern-a",
+    default="extracted.json",
+    show_default=True,
+    help="Nombre del archivo de output de version_a dentro de cada caso (modo cached).",
+)
+@click.option(
+    "--fixture-pattern-b",
+    default="extracted_v2.json",
+    show_default=True,
+    help="Nombre del archivo de output de version_b dentro de cada caso (modo cached).",
+)
+@click.option(
+    "--fail-on-red",
+    is_flag=True,
+    default=False,
+    help="Si el veredicto es RED, sys.exit(1). Útil para CI gating.",
+)
+def compare_prompts(
+    prompt_name: str,
+    version_a: int,
+    version_b: int,
+    mode: str,
+    fixtures_dir: Path | None,
+    pdfs_dir: Path | None,
+    output_dir: Path | None,
+    fixture_pattern_a: str,
+    fixture_pattern_b: str,
+    fail_on_red: bool,
+) -> None:
+    """Compara dos versiones de un prompt sobre un dataset y emite veredicto."""
+    from sica_evals.comparators import (
+        compare_prompts_fresh,
+        compare_prompts_from_cached,
+    )
+    from sica_evals.reporters import (
+        render_comparison_console,
+        write_comparison_reports,
+    )
+
+    out = output_dir or _default_output_dir()
+    mode_norm = mode.lower()
+
+    if mode_norm == "cached":
+        if fixtures_dir is None:
+            msg = "Modo cached requiere --fixtures"
+            raise click.BadParameter(msg)
+        result = compare_prompts_from_cached(
+            prompt_name=prompt_name,
+            version_a=version_a,
+            version_b=version_b,
+            fixtures_dir=fixtures_dir,
+            fixture_pattern_a=fixture_pattern_a,
+            fixture_pattern_b=fixture_pattern_b,
+        )
+    else:  # fresh
+        if pdfs_dir is None:
+            msg = "Modo fresh requiere --pdfs"
+            raise click.BadParameter(msg)
+        fresh_out = out / f"compare_{prompt_name}_v{version_a}_vs_v{version_b}_extractions"
+        result = compare_prompts_fresh(
+            prompt_name=prompt_name,
+            version_a=version_a,
+            version_b=version_b,
+            pdfs_dir=pdfs_dir,
+            output_dir=fresh_out,
+        )
+
+    _safe_echo(render_comparison_console(result))
+    basename = f"compare_{prompt_name}_v{version_a}_vs_v{version_b}"
+    written = write_comparison_reports(result, out, basename)
+    for fmt, path in written.items():
+        click.echo(f"[compare] wrote {fmt} -> {path}")
+
+    if fail_on_red and result.verdict == "RED":
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()
