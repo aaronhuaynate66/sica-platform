@@ -1,0 +1,109 @@
+name: Langfuse Retention Cleanup
+
+# Política operacional: ADR-0010.
+#
+# Scheduled (cron): cada domingo 03:00 UTC = ~22:00 sábado hora Lima (UTC-5).
+# - Siempre dry-run. Sirve para tener un report semanal de qué se borraría.
+# - El report se sube como artifact (90 días de retención).
+#
+# Manual (workflow_dispatch): el operador elige el modo.
+# - execute=false (default): dry-run, idéntico al scheduled.
+# - execute=true: borrado real. Único camino para eliminar traces.
+# - retention_days opcional para override puntual (>=30 por safety en el script).
+#
+# Esta arquitectura evita borrados automáticos. Cualquier delete requiere
+# acción humana explícita (revisar último dry-run + dispatch manual).
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: 'true = borra realmente. false = dry-run.'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      retention_days:
+        description: 'Días de retención (default 180 si vacío).'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Cleanup Langfuse traces
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install retention script
+        shell: bash
+        run: |
+          cd scripts/langfuse_retention
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Resolve mode
+        id: mode
+        shell: bash
+        # Scheduled runs: SIEMPRE dry-run, sin importar inputs.
+        # workflow_dispatch: respeta el input execute. Si no viene (defensa
+        # contra cron triggers que pasan inputs vacíos), default dry-run.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "execute_flag=" >> "$GITHUB_OUTPUT"
+            echo "mode=DRY-RUN (scheduled)" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.inputs.execute }}" = "true" ]; then
+            echo "execute_flag=--execute" >> "$GITHUB_OUTPUT"
+            echo "mode=EXECUTE (manual)" >> "$GITHUB_OUTPUT"
+          else
+            echo "execute_flag=" >> "$GITHUB_OUTPUT"
+            echo "mode=DRY-RUN (manual)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve retention_days
+        id: retention
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.retention_days }}" ]; then
+            echo "value=--retention-days ${{ github.event.inputs.retention_days }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run cleanup
+        env:
+          LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        shell: bash
+        run: |
+          echo "Modo: ${{ steps.mode.outputs.mode }}"
+          sica-langfuse-cleanup \
+            ${{ steps.mode.outputs.execute_flag }} \
+            ${{ steps.retention.outputs.value }} \
+            --verbose \
+            --output cleanup-report.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanup-report-${{ github.run_id }}
+          path: cleanup-report.json
+          retention-days: 90
