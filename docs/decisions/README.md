@@ -82,12 +82,25 @@ Usamos [MADR](https://adr.github.io/madr/) (Markdown Architecture Decision Recor
 
 **Nunca se borra un ADR.** Si la decisión cambió, se crea un ADR nuevo que la sobreescribe y el viejo cambia a `Superseded by ADR-XXXX`.
 
+## Convenciones
+
+- Numeración secuencial sin gaps.
+- Una decisión por ADR.
+- Actualizaciones se documentan al final del ADR original (sección "Actualización YYYY-MM-DD" o "Migration log").
+- No editar ADRs aceptados sin nuevo ADR que supersede.
+
 ## Índice
 
-| # | Título | Status | Fecha |
+| # | Título | Fecha | Status |
 |---|---|---|---|
-| [0001](0001-monorepo-turborepo.md) | Monorepo en sica-platform con Turborepo + pnpm | Accepted | 2026-05-20 |
-| [0002](0002-living-roadmap-system.md) | Living Roadmap System: MASTER_PLAN.md auto-sincronizado desde issues | Accepted | 2026-05-21 |
-| [0003](0003-security-and-phi-policy.md) | Security and PHI handling policy | Accepted | 2026-05-21 |
-| [0004](0004-model-routing-policy.md) | Política de routing de modelos AI | Accepted | 2026-05-21 |
-| [0005](0005-evaluation-methodology.md) | Decisiones metodológicas de evaluación clínica | Accepted | 2026-05-22 |
+| [0001](0001-monorepo-turborepo.md) | Monorepo Turborepo + pnpm | 2026-05-20 | Aceptado |
+| [0002](0002-living-roadmap-system.md) | Living Roadmap auto-sync desde issues | 2026-05-21 | Aceptado |
+| [0003](0003-security-and-phi-policy.md) | Security & PHI handling policy | 2026-05-21 | Aceptado |
+| [0004](0004-model-routing-policy.md) | Política de routing de modelos AI | 2026-05-21 | Aceptado (actualizado 2026-05-27) |
+| [0005](0005-evaluation-methodology.md) | Metodología de evaluación clínica | 2026-05-22 | Aceptado |
+| [0006](0006-render-config-precedence.md) | Render Dashboard UI vs `render.yaml` precedencia | 2026-05-25 | Aceptado (actualizado 2026-05-26) |
+| [0007](0007-langfuse-observability.md) | Langfuse Cloud para observability LLM | 2026-05-26 | Aceptado — Implementado |
+| [0008](0008-prompt-registry-versioning.md) | Prompt Registry versionado + hash determinístico | 2026-05-26 | Aceptado — Fase 1 implementada (actualizado 2026-05-27) |
+| [0009](0009-phi-redaction-in-tracing.md) | PHI Redaction antes de Langfuse Cloud (Ley 29733) | 2026-05-27 | Aceptado — Implementado (actualizado con detección keys-in-text) |
+| [0010](0010-langfuse-trace-retention.md) | Política de retención de traces Langfuse (180 días) | 2026-05-29 | Aceptado — Implementado |
+| [0011](0011-frontend-stack.md) | Stack del frontend SICA (Next.js + Supabase + Vercel) | 2026-05-28 | Aceptado |
