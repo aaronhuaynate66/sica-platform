@@ -167,7 +167,7 @@ Compatibles entre sí: si en futuro se decide omitir output completo, el redacto
 
 - **Auditoría externa del redactor**: pen-test que intente filtrar PHI mediante prompts adversariales o filenames maliciosos.
 - **Política de consentimiento informado**: independiente del redactor, requiere flujo con paciente y registro auditable. Fuera del scope de este ADR.
-- **Política de retención de traces en Langfuse**: el redactor reduce el riesgo pero los traces igual se guardan N días. Decidir período máximo y mecanismo de borrado automatizado.
+- ~~**Política de retención de traces en Langfuse**~~ — **COMPLETADO 2026-05-29**: ver [ADR-0010](0010-langfuse-trace-retention.md) (180 días + cleanup automatizado via GitHub Actions).
 - **Considerar self-hosted** si crece tráfico (>50k events/mes) o si un partner exige residencia de datos en Perú.
 - **Hooks de CI** que escaneen `PHI_FIELDS_EXACT` contra `ObstetricSummary` y rompan el build si un campo nuevo del schema no está clasificado.
 

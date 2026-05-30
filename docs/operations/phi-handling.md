@@ -110,13 +110,16 @@ Cuando exista BAA con Langfuse Enterprise, self-hosted, o cambio regulatorio que
 
 ## Política de retención de traces
 
-**Hoy (R1)**: traces se guardan en Langfuse Cloud por su retención default (no auditado).
+**Implementada 2026-05-29.** Período: **180 días**. Cleanup automatizado vía GitHub Actions (scheduled dry-run semanal + workflow_dispatch manual para execute).
 
-**TODO R2** ([ADR-0009 § TODOs R2+](../decisions/0009-phi-redaction-in-tracing.md)):
+- Política normativa: [ADR-0010](../decisions/0010-langfuse-trace-retention.md).
+- Procedimiento operacional: [docs/operations/langfuse-retention.md](langfuse-retention.md).
+- Script: [scripts/langfuse_retention/](../../scripts/langfuse_retention/).
+- Workflow: [.github/workflows/langfuse-cleanup.yml](../../.github/workflows/langfuse-cleanup.yml).
 
-- Definir período máximo de retención (e.g. 30 días, alineado con Ley 29733 y derecho de supresión).
-- Implementar mecanismo automatizado de borrado vía Langfuse API (cron job o action manual al cierre de cada sesión clínica).
-- Documentar el procedimiento de borrado para responder solicitudes de derecho de supresión del titular.
+Excepciones (NUNCA se borran aunque sean >180 días): traces con `scores`, con tags `preserve`/`audit`/`reference`, o con `metadata.preserve=true`.
+
+**Derecho de supresión**: el cleanup automático cubre el caso temporal (edad > 180 días). Para borrados por solicitud explícita de la titular, ver [docs/operations/langfuse-retention.md § Derecho de supresión](langfuse-retention.md#derecho-de-supresión--flujo-manual).
 
 ---
 
