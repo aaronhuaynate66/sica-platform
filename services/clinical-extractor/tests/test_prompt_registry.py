@@ -287,22 +287,80 @@ def test_legacy_content_matches_registry() -> None:
 
 
 # =========================================================================
-# Sanity hash conocido
+# Sanity: hashes conocidos de TODAS las versiones inmutables
 # =========================================================================
 
+# Hashes SHA256 completos esperados de cada versión registrada. Si este dict
+# desincroniza del estado real, los tests fallan. Esto es a propósito:
+#
+# 1. ``test_all_known_prompts_have_stable_hash`` detecta una edición
+#    in-place de un .md de versión existente. Eso viola el contrato de
+#    inmutabilidad: una versión nunca cambia.
+# 2. ``test_no_prompts_missing_from_known_hashes`` detecta que se agregó
+#    un .md de versión nueva sin anclar su hash acá. Eso permite que la
+#    versión nueva drifteee sin que CI lo note.
+#
+# Cuando se cree v3 (o cualquier prompt nuevo):
+#   - Calcular su hash: ``python -c "from clinical_extractor.prompts.registry
+#     import get_prompt; print(get_prompt('extract_obstetric', 3).hash)"``.
+#   - Sumar la entrada acá en el mismo commit que crea el .md.
+KNOWN_PROMPT_HASHES: dict[tuple[str, int], str] = {
+    ("extract_obstetric", 1): (
+        "9241ec0d2de94600537f47652cf0315a3fff05f6081878d9087881dff6d86482"
+    ),
+    ("extract_obstetric", 2): (
+        "0f802ac8e4265da3b8fe3680b5e348252eb96053198b3f5b0d7171a4eaa2dca6"
+    ),
+}
 
-def test_known_prompt_hash_is_stable() -> None:
-    """Documenta el hash exacto del prompt v1 al momento del commit.
+# Lista de nombres lógicos de prompts que el registry debe conocer hoy. Si se
+# crea un prompt nuevo (e.g. ``extract_neonatal``), agregar el nombre acá; el
+# test ``no_prompts_missing_from_known_hashes`` itera sobre esta lista.
+REGISTERED_PROMPT_NAMES: list[str] = ["extract_obstetric"]
 
-    Si este test rompe en el futuro, significa que alguien modificó
-    extract_obstetric_v1.md (ya sea contenido, whitespace o encoding).
-    Eso viola la regla "una versión nunca cambia in-place". El fix
-    correcto es crear extract_obstetric_v2.md y dejar v1 intacta.
+
+def test_all_known_prompts_have_stable_hash() -> None:
+    """Ningún prompt versionado puede editarse in-place.
+
+    Itera sobre ``KNOWN_PROMPT_HASHES`` y compara el hash actual del
+    archivo con el anclado. Cualquier diff — incluyendo whitespace o
+    cambios de encoding — produce hash distinto y rompe este test.
+
+    Fix correcto cuando rompe:
+        1. NUNCA editar el ``.md`` de la versión existente.
+        2. Crear ``{name}_v{N+1}.md`` con la modificación deseada.
+        3. Sumar el hash nuevo a ``KNOWN_PROMPT_HASHES`` en el mismo commit.
+        4. Decidir explícitamente si actualizar ``DEFAULT_VERSIONS`` (un
+           commit separado, con comparator offline corrido).
     """
-    p = get_prompt("extract_obstetric", 1)
-    # Hash conocido al momento del commit del Bloque 1.
-    expected_hash_prefix = "9241ec0d"
-    assert p.short_hash == expected_hash_prefix, (
-        f"Hash del prompt v1 cambió. Si fue intencional, crear v2 y "
-        f"NO modificar v1 in-place. Hash actual: {p.short_hash}"
+    for (name, version), expected_hash in KNOWN_PROMPT_HASHES.items():
+        prompt = get_prompt(name, version)
+        assert prompt.hash == expected_hash, (
+            f"Prompt {name}_v{version} fue modificado in-place. "
+            f"Esto viola el contrato de inmutabilidad del registry. "
+            f"Crear v{version + 1} en lugar de editar v{version}. "
+            f"Hash esperado: {expected_hash}, actual: {prompt.hash}"
+        )
+
+
+def test_no_prompts_missing_from_known_hashes() -> None:
+    """Toda versión presente en disk debe estar anclada en ``KNOWN_PROMPT_HASHES``.
+
+    Si este test rompe, significa que alguien agregó un .md de versión
+    nueva pero NO sumó su hash acá. Eso deja la versión nueva sin candado:
+    podría editarse silenciosamente después y CI no lo notaría.
+
+    Fix: agregar la entrada faltante a ``KNOWN_PROMPT_HASHES`` arriba.
+    """
+    available: set[tuple[str, int]] = set()
+    for name in REGISTERED_PROMPT_NAMES:
+        for version in list_versions(name):
+            available.add((name, version))
+
+    anchored = set(KNOWN_PROMPT_HASHES.keys())
+    missing = available - anchored
+
+    assert not missing, (
+        f"Versiones de prompt sin hash anclado: {sorted(missing)}. "
+        f"Agregar entrada a KNOWN_PROMPT_HASHES en este test."
     )
