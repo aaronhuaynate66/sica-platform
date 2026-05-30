@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sica-langfuse-retention"
+version = "0.1.0"
+description = "SICA — retention policy enforcement for Langfuse Cloud traces (ADR-0010)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [
+    { name = "SICA Platform" },
+]
+dependencies = [
+    "requests>=2.31",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-mock>=3.0",
+    "types-requests>=2.31",
+]
+
+[project.scripts]
+sica-langfuse-cleanup = "langfuse_retention.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/langfuse_retention"]
+
+# =========================================================================
+# Ruff
+# =========================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "N",   # naming
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line length handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+# =========================================================================
+# mypy
+# =========================================================================
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+ignore_missing_imports = false
+
+# =========================================================================
+# pytest
+# =========================================================================
+[tool.pytest.ini_options]
+minversion = "8.3"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
