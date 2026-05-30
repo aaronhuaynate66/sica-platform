@@ -6,7 +6,7 @@
 Generado automáticamente por `.github/workflows/sync-roadmap.yml`
 
 **Release activo:** R0 Foundation (Mes 0-2)  
-**Hash del último commit:** `033e7f0`
+**Hash del último commit:** `0ca03a0`
 
 ## Progreso general
 
@@ -216,6 +216,7 @@ Estos issues no pertenecen a un release específico. Bloquean avance de Fase 1 o
 | 0007 | [Langfuse Cloud para observability LLM](docs/decisions/0007-langfuse-observability.md) | Accepted — 2026-05-26 — Implementado | 2026-05-26 |
 | 0008 | [Prompt Registry con Versionado y Hash Determinístico](docs/decisions/0008-prompt-registry-versioning.md) | Accepted — 2026-05-26 — Fase 1 implementada | 2026-05-26 |
 | 0009 | [PHI Redaction antes de Langfuse Cloud](docs/decisions/0009-phi-redaction-in-tracing.md) | Accepted — 2026-05-27 — Implementación bloqueante para primer PDF real | 2026-05-27 |
+| 0010 | [Política de retención de traces en Langfuse Cloud](docs/decisions/0010-langfuse-trace-retention.md) | Accepted — 2026-05-29 — Implementado | 2026-05-29 |
 | 0011 | [Stack del frontend SICA (Next.js + Supabase + Vercel)](docs/decisions/0011-frontend-stack.md) | Accepted — 2026-05-28 | 2026-05-28 |
 
 Auto-generado leyendo `docs/decisions/`.
@@ -228,16 +229,16 @@ Auto-generado leyendo `docs/decisions/`.
 
 | Hash | Autor | Mensaje | Fecha |
 |------|-------|---------|-------|
+| `0ca03a0` | aaronhuaynate66 | docs(operations): EOD handoff snapshot for 2026-05-29 | 2026-05-30 |
+| `1e8e441` | aaronhuaynate66 | docs(operations): activation playbook for SICA frontend production deploy | 2026-05-30 |
+| `a96f007` | aaronhuaynate66 | docs: update ADR index + R1 status snapshot for 2026-05-29 | 2026-05-30 |
+| `004e634` | aaronhuaynate66 | docs(adr): ADR-0010 Langfuse retention policy (180 days) + operational guide | 2026-05-30 |
+| `83a2ec7` | aaronhuaynate66 | ci(langfuse): scheduled weekly retention cleanup workflow (dry-run by default) | 2026-05-30 |
+| `1e5a2ce` | aaronhuaynate66 | feat(ops): Langfuse trace retention script with safety filters and dry-run | 2026-05-30 |
+| `aa98a97` | aaronhuaynate66 | chore(ci): make mypy mandatory for all listed Python packages | 2026-05-30 |
+| `265e482` | aaronhuaynate66 | test(prompts): anchor hashes of all prompt versions (prevent silent edits) | 2026-05-30 |
+| `9c9b1ac` | aaronhuaynate66 | feat(evals): offline comparator for prompt versions with verdict system | 2026-05-30 |
 | `033e7f0` | aaronhuaynate66 | feat(web): consume extraction metadata + update API docs | 2026-05-29 |
-| `2555269` | aaronhuaynate66 | feat(api): expose extraction metadata in /extract response (prompt_version, cost, tokens, trace_id) | 2026-05-29 |
-| `0ba025d` | aaronhuaynate66 | docs(deploy): operational guide for SICA web production deploy | 2026-05-29 |
-| `b74347c` | aaronhuaynate66 | feat(web): vista paciente longitudinal + detalle control + comparador | 2026-05-29 |
-| `eb6f676` | aaronhuaynate66 | feat(web): PDF upload + processing pipeline (Supabase Storage -> API -> DB) | 2026-05-29 |
-| `85b3efe` | aaronhuaynate66 | feat(web): authenticated app layout + lista pacientes | 2026-05-29 |
-| `d4624d6` | aaronhuaynate66 | feat(web): magic link auth via Supabase | 2026-05-29 |
-| `ab4c649` | aaronhuaynate66 | feat(supabase): initialize SICA Supabase project with auth + schema + RLS | 2026-05-29 |
-| `96e575e` | aaronhuaynate66 | docs(adr): document extract_obstetric_v2 + default pinning strategy (ADR-0008 update) | 2026-05-27 |
-| `75dd230` | aaronhuaynate66 | test(evals): validate extract_obstetric_v2 fixes pregnancy-in-active-problems | 2026-05-27 |
 
 ---
 
