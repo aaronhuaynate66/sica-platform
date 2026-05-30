@@ -146,12 +146,17 @@ jobs:
       - name: Mypy
         if: steps.detect.outputs.has_python == 'true'
         shell: bash
+        # Mypy es obligatorio: cualquier error de type-checking rompe CI.
+        # Promovido de advisory (R0) a mandatory — los paquetes listados en
+        # PKG_DIRS pasan mypy --strict con 0 errores al momento de la
+        # promoción. Si un paquete nuevo se agrega a PKG_DIRS, debe entrar
+        # limpio o quedarse fuera hasta que lo esté.
         run: |
           set -e
           for dir in $PKG_DIRS; do
             [ -f "$dir/pyproject.toml" ] || continue
             echo "::group::mypy $dir"
-            (cd "$dir" && mypy src) || true  # mypy advisory en R0; se vuelve obligatorio en R1
+            (cd "$dir" && mypy src)
             echo "::endgroup::"
           done
 
